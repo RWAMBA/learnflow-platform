@@ -58,3 +58,21 @@ export const joinOrganization = createServerFn({ method: "POST" })
 
     return { ok: true };
   });
+
+/**
+ * Onboarding-only lookup: a brand new user has no membership yet, so RLS hides
+ * every organization from them. Reads a minimal, non-sensitive projection with
+ * elevated access after confirming the caller is authenticated.
+ */
+export const listJoinableOrganizations = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async () => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data, error } = await supabaseAdmin
+      .from("organizations")
+      .select("id, name, tenant_type")
+      .order("created_at")
+      .limit(25);
+    if (error) throw new Error(error.message);
+    return data ?? [];
+  });
