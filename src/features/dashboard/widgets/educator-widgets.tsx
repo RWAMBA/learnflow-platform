@@ -21,7 +21,7 @@ export function RosterWidget({ userId, kind }: { userId: string; kind: "teacher"
       title="Your roster"
       action={
         <Button asChild variant="ghost" size="sm">
-          <Link to="/roster">Open roster</Link>
+          <Link to="/students">Open roster</Link>
         </Button>
       }
     >
