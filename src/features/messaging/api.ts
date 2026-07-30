@@ -19,7 +19,7 @@ export async function listConversations(userRoleId: string) {
   const { data, error } = await supabase
     .from("conversations")
     .select(
-      "id, created_at, participants:conversation_participants(user_role_id, user_role:user_roles(id, user_id, profile:profiles(full_name), role:roles(code, name))), messages(id, body, sent_at, read_at, sender_user_role_id)",
+      "id, created_at, participants:conversation_participants(user_role_id, user_role:user_roles(id, user_id, profile:profiles!user_roles_user_id_fkey(full_name), role:roles(code, name))), messages(id, body, sent_at, read_at, sender_user_role_id)",
     )
     .in("id", conversationIds)
     .order("created_at", { ascending: false });
@@ -31,7 +31,7 @@ export async function listMessages(conversationId: string) {
   const { data, error } = await supabase
     .from("messages")
     .select(
-      "id, body, sent_at, read_at, sender_user_role_id, sender:user_roles(id, user_id, profile:profiles(full_name), role:roles(code, name))",
+      "id, body, sent_at, read_at, sender_user_role_id, sender:user_roles(id, user_id, profile:profiles!user_roles_user_id_fkey(full_name), role:roles(code, name))",
     )
     .eq("conversation_id", conversationId)
     .order("sent_at");
@@ -146,7 +146,7 @@ export async function listAllowedContacts(params: {
 
   const { data, error } = await supabase
     .from("user_roles")
-    .select("id, user_id, profile:profiles(full_name), role:roles(code, name)")
+    .select("id, user_id, profile:profiles!user_roles_user_id_fkey(full_name), role:roles(code, name)")
     .eq("organization_id", params.organizationId)
     .eq("status", "active")
     .in("user_id", Array.from(counterpartUserIds));

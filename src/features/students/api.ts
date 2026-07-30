@@ -44,15 +44,20 @@ export async function listLinkedStudentsForParent(userId: string) {
 }
 
 export async function listRosterForEducator(userId: string, kind: "teacher" | "tutor") {
-  const table = kind === "teacher" ? "teacher_student_relationships" : "tutor_student_relationships";
-  const column = kind === "teacher" ? "teacher_id" : "tutor_id";
-  const { data, error } = await supabase
-    .from(table)
-    .select(
-      "id, status, subject:subjects(id, name), student:students(id, first_name, last_name, organization_id, grade:grades(name))",
-    )
-    .eq(column, userId)
-    .eq("status", "active");
+  const select =
+    "id, status, subject:subjects(id, name), student:students(id, first_name, last_name, organization_id, grade:grades(name))";
+  const { data, error } =
+    kind === "teacher"
+      ? await supabase
+          .from("teacher_student_relationships")
+          .select(select)
+          .eq("teacher_id", userId)
+          .eq("status", "active")
+      : await supabase
+          .from("tutor_student_relationships")
+          .select(select)
+          .eq("tutor_id", userId)
+          .eq("status", "active");
   if (error) throw error;
   return data;
 }
