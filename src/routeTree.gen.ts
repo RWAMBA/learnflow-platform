@@ -10,33 +10,290 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
+import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
+import { Route as AuthenticatedAdminTenantsRouteImport } from './routes/_authenticated/admin.tenants'
+import { Route as AuthenticatedAssignmentsIndexRouteImport } from './routes/_authenticated/assignments.index'
+import { Route as AuthenticatedAssignmentsAssignmentIdRouteImport } from './routes/_authenticated/assignments.$assignmentId'
+import { Route as AuthenticatedAssignmentsNewRouteImport } from './routes/_authenticated/assignments.new'
+import { Route as AuthenticatedCurriculumIndexRouteImport } from './routes/_authenticated/curriculum.index'
+import { Route as AuthenticatedMessagesIndexRouteImport } from './routes/_authenticated/messages.index'
+import { Route as AuthenticatedMessagesConversationIdRouteImport } from './routes/_authenticated/messages.$conversationId'
+import { Route as AuthenticatedOrganizationIndexRouteImport } from './routes/_authenticated/organization.index'
+import { Route as AuthenticatedOrganizationBillingRouteImport } from './routes/_authenticated/organization.billing'
+import { Route as AuthenticatedStudentsIndexRouteImport } from './routes/_authenticated/students.index'
+import { Route as AuthenticatedStudentsStudentIdRouteImport } from './routes/_authenticated/students.$studentId'
+import { Route as AuthenticatedStudentsNewRouteImport } from './routes/_authenticated/students.new'
+import { Route as AuthenticatedCurriculumLessonsLessonIdRouteImport } from './routes/_authenticated/curriculum.lessons.$lessonId'
+import { Route as AuthenticatedCurriculumSubjectsSubjectIdRouteImport } from './routes/_authenticated/curriculum.subjects.$subjectId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedNotificationsRoute =
+  AuthenticatedNotificationsRouteImport.update({
+    id: '/notifications',
+    path: '/notifications',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedOnboardingRoute = AuthenticatedOnboardingRouteImport.update({
+  id: '/onboarding',
+  path: '/onboarding',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedAdminTenantsRoute =
+  AuthenticatedAdminTenantsRouteImport.update({
+    id: '/admin/tenants',
+    path: '/admin/tenants',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAssignmentsIndexRoute =
+  AuthenticatedAssignmentsIndexRouteImport.update({
+    id: '/assignments/',
+    path: '/assignments/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAssignmentsAssignmentIdRoute =
+  AuthenticatedAssignmentsAssignmentIdRouteImport.update({
+    id: '/assignments/$assignmentId',
+    path: '/assignments/$assignmentId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAssignmentsNewRoute =
+  AuthenticatedAssignmentsNewRouteImport.update({
+    id: '/assignments/new',
+    path: '/assignments/new',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedCurriculumIndexRoute =
+  AuthenticatedCurriculumIndexRouteImport.update({
+    id: '/curriculum/',
+    path: '/curriculum/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedMessagesIndexRoute =
+  AuthenticatedMessagesIndexRouteImport.update({
+    id: '/messages/',
+    path: '/messages/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedMessagesConversationIdRoute =
+  AuthenticatedMessagesConversationIdRouteImport.update({
+    id: '/messages/$conversationId',
+    path: '/messages/$conversationId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedOrganizationIndexRoute =
+  AuthenticatedOrganizationIndexRouteImport.update({
+    id: '/organization/',
+    path: '/organization/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedOrganizationBillingRoute =
+  AuthenticatedOrganizationBillingRouteImport.update({
+    id: '/organization/billing',
+    path: '/organization/billing',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedStudentsIndexRoute =
+  AuthenticatedStudentsIndexRouteImport.update({
+    id: '/students/',
+    path: '/students/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedStudentsStudentIdRoute =
+  AuthenticatedStudentsStudentIdRouteImport.update({
+    id: '/students/$studentId',
+    path: '/students/$studentId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedStudentsNewRoute =
+  AuthenticatedStudentsNewRouteImport.update({
+    id: '/students/new',
+    path: '/students/new',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedCurriculumLessonsLessonIdRoute =
+  AuthenticatedCurriculumLessonsLessonIdRouteImport.update({
+    id: '/curriculum/lessons/$lessonId',
+    path: '/curriculum/lessons/$lessonId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedCurriculumSubjectsSubjectIdRoute =
+  AuthenticatedCurriculumSubjectsSubjectIdRouteImport.update({
+    id: '/curriculum/subjects/$subjectId',
+    path: '/curriculum/subjects/$subjectId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
+  '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/admin/tenants': typeof AuthenticatedAdminTenantsRoute
+  '/assignments/$assignmentId': typeof AuthenticatedAssignmentsAssignmentIdRoute
+  '/assignments/new': typeof AuthenticatedAssignmentsNewRoute
+  '/messages/$conversationId': typeof AuthenticatedMessagesConversationIdRoute
+  '/organization/billing': typeof AuthenticatedOrganizationBillingRoute
+  '/students/$studentId': typeof AuthenticatedStudentsStudentIdRoute
+  '/students/new': typeof AuthenticatedStudentsNewRoute
+  '/assignments/': typeof AuthenticatedAssignmentsIndexRoute
+  '/curriculum/': typeof AuthenticatedCurriculumIndexRoute
+  '/messages/': typeof AuthenticatedMessagesIndexRoute
+  '/organization/': typeof AuthenticatedOrganizationIndexRoute
+  '/students/': typeof AuthenticatedStudentsIndexRoute
+  '/curriculum/lessons/$lessonId': typeof AuthenticatedCurriculumLessonsLessonIdRoute
+  '/curriculum/subjects/$subjectId': typeof AuthenticatedCurriculumSubjectsSubjectIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/notifications': typeof AuthenticatedNotificationsRoute
+  '/onboarding': typeof AuthenticatedOnboardingRoute
+  '/admin/tenants': typeof AuthenticatedAdminTenantsRoute
+  '/assignments/$assignmentId': typeof AuthenticatedAssignmentsAssignmentIdRoute
+  '/assignments/new': typeof AuthenticatedAssignmentsNewRoute
+  '/messages/$conversationId': typeof AuthenticatedMessagesConversationIdRoute
+  '/organization/billing': typeof AuthenticatedOrganizationBillingRoute
+  '/students/$studentId': typeof AuthenticatedStudentsStudentIdRoute
+  '/students/new': typeof AuthenticatedStudentsNewRoute
+  '/assignments': typeof AuthenticatedAssignmentsIndexRoute
+  '/curriculum': typeof AuthenticatedCurriculumIndexRoute
+  '/messages': typeof AuthenticatedMessagesIndexRoute
+  '/organization': typeof AuthenticatedOrganizationIndexRoute
+  '/students': typeof AuthenticatedStudentsIndexRoute
+  '/curriculum/lessons/$lessonId': typeof AuthenticatedCurriculumLessonsLessonIdRoute
+  '/curriculum/subjects/$subjectId': typeof AuthenticatedCurriculumSubjectsSubjectIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/reset-password': typeof ResetPasswordRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
+  '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
+  '/_authenticated/admin/tenants': typeof AuthenticatedAdminTenantsRoute
+  '/_authenticated/assignments/$assignmentId': typeof AuthenticatedAssignmentsAssignmentIdRoute
+  '/_authenticated/assignments/new': typeof AuthenticatedAssignmentsNewRoute
+  '/_authenticated/messages/$conversationId': typeof AuthenticatedMessagesConversationIdRoute
+  '/_authenticated/organization/billing': typeof AuthenticatedOrganizationBillingRoute
+  '/_authenticated/students/$studentId': typeof AuthenticatedStudentsStudentIdRoute
+  '/_authenticated/students/new': typeof AuthenticatedStudentsNewRoute
+  '/_authenticated/assignments/': typeof AuthenticatedAssignmentsIndexRoute
+  '/_authenticated/curriculum/': typeof AuthenticatedCurriculumIndexRoute
+  '/_authenticated/messages/': typeof AuthenticatedMessagesIndexRoute
+  '/_authenticated/organization/': typeof AuthenticatedOrganizationIndexRoute
+  '/_authenticated/students/': typeof AuthenticatedStudentsIndexRoute
+  '/_authenticated/curriculum/lessons/$lessonId': typeof AuthenticatedCurriculumLessonsLessonIdRoute
+  '/_authenticated/curriculum/subjects/$subjectId': typeof AuthenticatedCurriculumSubjectsSubjectIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/reset-password'
+    | '/dashboard'
+    | '/notifications'
+    | '/onboarding'
+    | '/admin/tenants'
+    | '/assignments/$assignmentId'
+    | '/assignments/new'
+    | '/messages/$conversationId'
+    | '/organization/billing'
+    | '/students/$studentId'
+    | '/students/new'
+    | '/assignments/'
+    | '/curriculum/'
+    | '/messages/'
+    | '/organization/'
+    | '/students/'
+    | '/curriculum/lessons/$lessonId'
+    | '/curriculum/subjects/$subjectId'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/auth'
+    | '/reset-password'
+    | '/dashboard'
+    | '/notifications'
+    | '/onboarding'
+    | '/admin/tenants'
+    | '/assignments/$assignmentId'
+    | '/assignments/new'
+    | '/messages/$conversationId'
+    | '/organization/billing'
+    | '/students/$studentId'
+    | '/students/new'
+    | '/assignments'
+    | '/curriculum'
+    | '/messages'
+    | '/organization'
+    | '/students'
+    | '/curriculum/lessons/$lessonId'
+    | '/curriculum/subjects/$subjectId'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/reset-password'
+    | '/_authenticated/dashboard'
+    | '/_authenticated/notifications'
+    | '/_authenticated/onboarding'
+    | '/_authenticated/admin/tenants'
+    | '/_authenticated/assignments/$assignmentId'
+    | '/_authenticated/assignments/new'
+    | '/_authenticated/messages/$conversationId'
+    | '/_authenticated/organization/billing'
+    | '/_authenticated/students/$studentId'
+    | '/_authenticated/students/new'
+    | '/_authenticated/assignments/'
+    | '/_authenticated/curriculum/'
+    | '/_authenticated/messages/'
+    | '/_authenticated/organization/'
+    | '/_authenticated/students/'
+    | '/_authenticated/curriculum/lessons/$lessonId'
+    | '/_authenticated/curriculum/subjects/$subjectId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
+  ResetPasswordRoute: typeof ResetPasswordRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,22 +305,202 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/notifications': {
+      id: '/_authenticated/notifications'
+      path: '/notifications'
+      fullPath: '/notifications'
+      preLoaderRoute: typeof AuthenticatedNotificationsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/onboarding': {
+      id: '/_authenticated/onboarding'
+      path: '/onboarding'
+      fullPath: '/onboarding'
+      preLoaderRoute: typeof AuthenticatedOnboardingRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/tenants': {
+      id: '/_authenticated/admin/tenants'
+      path: '/admin/tenants'
+      fullPath: '/admin/tenants'
+      preLoaderRoute: typeof AuthenticatedAdminTenantsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/assignments/': {
+      id: '/_authenticated/assignments/'
+      path: '/assignments'
+      fullPath: '/assignments/'
+      preLoaderRoute: typeof AuthenticatedAssignmentsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/assignments/$assignmentId': {
+      id: '/_authenticated/assignments/$assignmentId'
+      path: '/assignments/$assignmentId'
+      fullPath: '/assignments/$assignmentId'
+      preLoaderRoute: typeof AuthenticatedAssignmentsAssignmentIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/assignments/new': {
+      id: '/_authenticated/assignments/new'
+      path: '/assignments/new'
+      fullPath: '/assignments/new'
+      preLoaderRoute: typeof AuthenticatedAssignmentsNewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/curriculum/': {
+      id: '/_authenticated/curriculum/'
+      path: '/curriculum'
+      fullPath: '/curriculum/'
+      preLoaderRoute: typeof AuthenticatedCurriculumIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/messages/': {
+      id: '/_authenticated/messages/'
+      path: '/messages'
+      fullPath: '/messages/'
+      preLoaderRoute: typeof AuthenticatedMessagesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/messages/$conversationId': {
+      id: '/_authenticated/messages/$conversationId'
+      path: '/messages/$conversationId'
+      fullPath: '/messages/$conversationId'
+      preLoaderRoute: typeof AuthenticatedMessagesConversationIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/organization/': {
+      id: '/_authenticated/organization/'
+      path: '/organization'
+      fullPath: '/organization/'
+      preLoaderRoute: typeof AuthenticatedOrganizationIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/organization/billing': {
+      id: '/_authenticated/organization/billing'
+      path: '/organization/billing'
+      fullPath: '/organization/billing'
+      preLoaderRoute: typeof AuthenticatedOrganizationBillingRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/students/': {
+      id: '/_authenticated/students/'
+      path: '/students'
+      fullPath: '/students/'
+      preLoaderRoute: typeof AuthenticatedStudentsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/students/$studentId': {
+      id: '/_authenticated/students/$studentId'
+      path: '/students/$studentId'
+      fullPath: '/students/$studentId'
+      preLoaderRoute: typeof AuthenticatedStudentsStudentIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/students/new': {
+      id: '/_authenticated/students/new'
+      path: '/students/new'
+      fullPath: '/students/new'
+      preLoaderRoute: typeof AuthenticatedStudentsNewRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/curriculum/lessons/$lessonId': {
+      id: '/_authenticated/curriculum/lessons/$lessonId'
+      path: '/curriculum/lessons/$lessonId'
+      fullPath: '/curriculum/lessons/$lessonId'
+      preLoaderRoute: typeof AuthenticatedCurriculumLessonsLessonIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/curriculum/subjects/$subjectId': {
+      id: '/_authenticated/curriculum/subjects/$subjectId'
+      path: '/curriculum/subjects/$subjectId'
+      fullPath: '/curriculum/subjects/$subjectId'
+      preLoaderRoute: typeof AuthenticatedCurriculumSubjectsSubjectIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
+  AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
+  AuthenticatedAdminTenantsRoute: typeof AuthenticatedAdminTenantsRoute
+  AuthenticatedAssignmentsAssignmentIdRoute: typeof AuthenticatedAssignmentsAssignmentIdRoute
+  AuthenticatedAssignmentsNewRoute: typeof AuthenticatedAssignmentsNewRoute
+  AuthenticatedMessagesConversationIdRoute: typeof AuthenticatedMessagesConversationIdRoute
+  AuthenticatedOrganizationBillingRoute: typeof AuthenticatedOrganizationBillingRoute
+  AuthenticatedStudentsStudentIdRoute: typeof AuthenticatedStudentsStudentIdRoute
+  AuthenticatedStudentsNewRoute: typeof AuthenticatedStudentsNewRoute
+  AuthenticatedAssignmentsIndexRoute: typeof AuthenticatedAssignmentsIndexRoute
+  AuthenticatedCurriculumIndexRoute: typeof AuthenticatedCurriculumIndexRoute
+  AuthenticatedMessagesIndexRoute: typeof AuthenticatedMessagesIndexRoute
+  AuthenticatedOrganizationIndexRoute: typeof AuthenticatedOrganizationIndexRoute
+  AuthenticatedStudentsIndexRoute: typeof AuthenticatedStudentsIndexRoute
+  AuthenticatedCurriculumLessonsLessonIdRoute: typeof AuthenticatedCurriculumLessonsLessonIdRoute
+  AuthenticatedCurriculumSubjectsSubjectIdRoute: typeof AuthenticatedCurriculumSubjectsSubjectIdRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
+  AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
+  AuthenticatedAdminTenantsRoute: AuthenticatedAdminTenantsRoute,
+  AuthenticatedAssignmentsAssignmentIdRoute:
+    AuthenticatedAssignmentsAssignmentIdRoute,
+  AuthenticatedAssignmentsNewRoute: AuthenticatedAssignmentsNewRoute,
+  AuthenticatedMessagesConversationIdRoute:
+    AuthenticatedMessagesConversationIdRoute,
+  AuthenticatedOrganizationBillingRoute: AuthenticatedOrganizationBillingRoute,
+  AuthenticatedStudentsStudentIdRoute: AuthenticatedStudentsStudentIdRoute,
+  AuthenticatedStudentsNewRoute: AuthenticatedStudentsNewRoute,
+  AuthenticatedAssignmentsIndexRoute: AuthenticatedAssignmentsIndexRoute,
+  AuthenticatedCurriculumIndexRoute: AuthenticatedCurriculumIndexRoute,
+  AuthenticatedMessagesIndexRoute: AuthenticatedMessagesIndexRoute,
+  AuthenticatedOrganizationIndexRoute: AuthenticatedOrganizationIndexRoute,
+  AuthenticatedStudentsIndexRoute: AuthenticatedStudentsIndexRoute,
+  AuthenticatedCurriculumLessonsLessonIdRoute:
+    AuthenticatedCurriculumLessonsLessonIdRoute,
+  AuthenticatedCurriculumSubjectsSubjectIdRoute:
+    AuthenticatedCurriculumSubjectsSubjectIdRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
+  ResetPasswordRoute: ResetPasswordRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
