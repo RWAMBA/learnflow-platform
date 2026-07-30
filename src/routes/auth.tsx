@@ -29,7 +29,7 @@ import { useSession } from "@/features/auth/use-session";
 export const Route = createFileRoute("/auth")({
   ssr: false,
   validateSearch: (search: Record<string, unknown>) => ({
-    mode: search.mode === "sign-up" ? ("sign-up" as const) : ("sign-in" as const),
+    mode: (search.mode === "sign-up" ? "sign-up" : "sign-in") as "sign-in" | "sign-up" | undefined,
   }),
   head: () => ({
     meta: [

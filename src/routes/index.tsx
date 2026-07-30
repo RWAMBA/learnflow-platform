@@ -68,7 +68,7 @@ function HomePage() {
             <Link to="/auth">Get started</Link>
           </Button>
           <Button asChild size="lg" variant="outline">
-            <Link to="/auth" search={{ mode: "sign-up" }}>
+            <Link to="/auth" search={{ mode: "sign-up" as const }}>
               Create an account
             </Link>
           </Button>

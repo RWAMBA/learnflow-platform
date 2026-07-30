@@ -43,7 +43,7 @@ export function ProfileMenu() {
           </span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={() => void navigate({ to: "/subscription" })}>
+        <DropdownMenuItem onSelect={() => void navigate({ to: "/organization/billing" })}>
           Plan &amp; entitlements
         </DropdownMenuItem>
         <DropdownMenuSeparator />
