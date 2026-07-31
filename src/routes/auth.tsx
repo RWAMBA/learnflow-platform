@@ -28,9 +28,10 @@ import { useSession } from "@/features/auth/use-session";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
-  validateSearch: (search: Record<string, unknown>) => ({
-    mode: (search.mode === "sign-up" ? "sign-up" : "sign-in") as "sign-in" | "sign-up" | undefined,
-  }),
+  validateSearch: (search: Record<string, unknown>): { mode?: "sign-in" | "sign-up" } =>
+    search.mode === "sign-up" || search.mode === "sign-in"
+      ? { mode: search.mode }
+      : {},
   head: () => ({
     meta: [
       { title: "Sign in — the Platform" },
