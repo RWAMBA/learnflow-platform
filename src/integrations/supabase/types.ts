@@ -1428,15 +1428,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      auth_organization_ids: { Args: never; Returns: string[] }
-      auth_user_role_ids: { Args: { p_role_code?: string }; Returns: string[] }
-      can_manage_student: { Args: { p_student_id: string }; Returns: boolean }
-      can_view_student: { Args: { p_student_id: string }; Returns: boolean }
-      has_org_role: {
-        Args: { p_org_id: string; p_role_code: string }
-        Returns: boolean
-      }
-      is_platform_admin: { Args: never; Returns: boolean }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never
