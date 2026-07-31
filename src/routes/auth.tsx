@@ -74,7 +74,7 @@ function AuthPage() {
           {showReset ? (
             <ResetRequestForm onBack={() => setShowReset(false)} />
           ) : (
-            <Tabs defaultValue={mode}>
+            <Tabs defaultValue={mode ?? "sign-in"}>
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="sign-in">Sign in</TabsTrigger>
                 <TabsTrigger value="sign-up">Create account</TabsTrigger>
