@@ -581,6 +581,7 @@ export type Database = {
           default_locale: string
           id: string
           name: string
+          open_enrollment: boolean
           tenant_type: string
           timezone: string
           updated_at: string
@@ -594,6 +595,7 @@ export type Database = {
           default_locale?: string
           id?: string
           name: string
+          open_enrollment?: boolean
           tenant_type: string
           timezone?: string
           updated_at?: string
@@ -607,6 +609,7 @@ export type Database = {
           default_locale?: string
           id?: string
           name?: string
+          open_enrollment?: boolean
           tenant_type?: string
           timezone?: string
           updated_at?: string

@@ -71,6 +71,7 @@ export const listJoinableOrganizations = createServerFn({ method: "GET" })
     const { data, error } = await supabaseAdmin
       .from("organizations")
       .select("id, name, tenant_type")
+      .eq("open_enrollment", true)
       .order("created_at")
       .limit(25);
     if (error) throw new Error(error.message);
