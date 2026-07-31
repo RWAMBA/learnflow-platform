@@ -15,7 +15,15 @@ export async function fetchViewerContext(userId: string): Promise<ViewerContext>
       )
       .eq("user_id", userId)
       .eq("status", "active"),
-    supabase.rpc("is_platform_admin"),
+    // The is_platform_admin() helper is no longer exposed through the API
+    // schema; read the caller's own platform_admins row instead (RLS allows
+    // users to see only their own row).
+    supabase
+      .from("platform_admins")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("status", "active")
+      .maybeSingle(),
   ]);
 
   if (profileResult.error) throw profileResult.error;
@@ -36,7 +44,7 @@ export async function fetchViewerContext(userId: string): Promise<ViewerContext>
   return {
     userId,
     fullName: profileResult.data?.full_name ?? "",
-    isPlatformAdmin: Boolean(platformAdminResult.data),
+    isPlatformAdmin: platformAdminResult.data !== null,
     roles,
   };
 }
