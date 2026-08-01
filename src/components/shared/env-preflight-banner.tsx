@@ -110,14 +110,6 @@ function announceCountdown(ms: number) {
   return parts.join(" ");
 }
 
-function unusedFormatClockPlaceholder(at: number) {
-  return new Date(at).toLocaleTimeString(undefined, {
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
-}
-
 /**
  * Surfaces missing server-side configuration up front, so a blank screen from
  * a failed server action is explained before the user triggers it.
