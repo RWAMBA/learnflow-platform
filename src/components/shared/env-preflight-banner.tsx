@@ -158,7 +158,7 @@ export function EnvPreflightBanner() {
     }
   }, [intervalMs, hydrated]);
 
-  const { data, refetch, isFetching } = useQuery({
+  const { data, refetch, isFetching, dataUpdatedAt } = useQuery({
     queryKey: ["supabase-env-preflight"],
     queryFn: () => preflight(),
     staleTime: 60_000,
@@ -173,9 +173,9 @@ export function EnvPreflightBanner() {
 
   // Record each completed check so the user can see what was missing over time.
   const lastRecordedRef = useRef<number | null>(null);
-  const dataUpdatedAt = useQueryUpdatedAt(data);
+  const [lastCheckedAt, setLastCheckedAt] = useState<number | null>(null);
   useEffect(() => {
-    if (!data || dataUpdatedAt == null) return;
+    if (!data || !dataUpdatedAt) return;
     if (lastRecordedRef.current === dataUpdatedAt) return;
     lastRecordedRef.current = dataUpdatedAt;
     setHistory((prev) =>
@@ -186,8 +186,6 @@ export function EnvPreflightBanner() {
     );
     setLastCheckedAt(dataUpdatedAt);
   }, [data, dataUpdatedAt]);
-
-  const [lastCheckedAt, setLastCheckedAt] = useState<number | null>(null);
 
   // Tick once per second while a countdown is visible.
   const countdownActive = autoRecheck && !!data && !data.ok;
