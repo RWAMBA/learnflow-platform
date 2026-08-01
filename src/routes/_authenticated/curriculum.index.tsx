@@ -116,6 +116,13 @@ function CurriculumDashboard() {
       <PageHeader
         title="Curriculum"
         description="Grades, pathways, subjects, topics and lessons — searchable across the whole library."
+        actions={
+          <Button asChild variant="outline">
+            <Link to="/curriculum/progress">
+              <LineChart aria-hidden="true" className="size-4" /> Progress
+            </Link>
+          </Button>
+        }
       />
 
       <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
