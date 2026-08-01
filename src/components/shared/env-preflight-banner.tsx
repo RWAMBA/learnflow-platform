@@ -372,6 +372,24 @@ export function EnvPreflightBanner() {
               />
               {isFetching ? "Running check…" : "Run preflight check now"}
             </Button>
+            <div className="flex items-center gap-2">
+              <Label htmlFor="env-preflight-export-count" className="text-xs font-normal">
+                Export last
+              </Label>
+              <select
+                id="env-preflight-export-count"
+                value={exportCount}
+                onChange={(e) => setExportCount(Number(e.target.value))}
+                className="h-8 rounded-md border border-input bg-background px-2 py-1 text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                aria-label="Number of recent checks to export"
+              >
+                {EXPORT_COUNT_OPTIONS.map((option) => (
+                  <option key={option} value={option}>
+                    Last {option}
+                  </option>
+                ))}
+              </select>
+            </div>
             <Button
               type="button"
               variant="outline"
