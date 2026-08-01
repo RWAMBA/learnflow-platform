@@ -35,12 +35,16 @@ import {
 } from "@/components/ui/select";
 import {
   assignSubjectToStudents,
+  assignPathwayToStudents,
+  recordProgress,
   saveLearningObjective,
   saveLesson,
+  savePathway,
   saveSubject,
   saveTopic,
 } from "@/lib/curriculum.functions";
 import { listStudents, studentKeys } from "@/features/students/api";
+import { MASTERY_LEVELS } from "@/features/curriculum/api";
 
 const statusValues = ["draft", "published", "archived"] as const;
 
