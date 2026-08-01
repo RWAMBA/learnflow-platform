@@ -8,3 +8,14 @@ export function useServerFn() {
     return res.json();
   };
 }
+
+/** The banner imports the real server function module, which declares its
+ * function with createServerFn; the harness only needs a chainable no-op. */
+export function createServerFn() {
+  const chain = {
+    inputValidator: () => chain,
+    middleware: () => chain,
+    handler: () => async () => undefined,
+  };
+  return chain;
+}
