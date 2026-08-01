@@ -99,6 +99,25 @@ function formatClock(at: number) {
   });
 }
 
+/** Verbose countdown text for screen readers ("2 minutes 5 seconds"). */
+function announceCountdown(ms: number) {
+  const total = Math.max(0, Math.ceil(ms / 1_000));
+  const minutes = Math.floor(total / 60);
+  const seconds = total % 60;
+  const parts: string[] = [];
+  if (minutes > 0) parts.push(`${minutes} minute${minutes === 1 ? "" : "s"}`);
+  if (seconds > 0 || minutes === 0) parts.push(`${seconds} second${seconds === 1 ? "" : "s"}`);
+  return parts.join(" ");
+}
+
+function unusedFormatClockPlaceholder(at: number) {
+  return new Date(at).toLocaleTimeString(undefined, {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
 /**
  * Surfaces missing server-side configuration up front, so a blank screen from
  * a failed server action is explained before the user triggers it.
