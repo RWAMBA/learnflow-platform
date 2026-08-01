@@ -372,6 +372,7 @@ export type Database = {
           created_at: string
           id: string
           published_at: string | null
+          search_vector: unknown
           sequence_order: number
           status: string
           storage_path: string | null
@@ -388,6 +389,7 @@ export type Database = {
           created_at?: string
           id?: string
           published_at?: string | null
+          search_vector?: unknown
           sequence_order: number
           status?: string
           storage_path?: string | null
@@ -404,6 +406,7 @@ export type Database = {
           created_at?: string
           id?: string
           published_at?: string | null
+          search_vector?: unknown
           sequence_order?: number
           status?: string
           storage_path?: string | null
@@ -788,24 +791,46 @@ export type Database = {
       }
       pathways: {
         Row: {
+          authoring_organization_id: string | null
           created_at: string
+          description: string | null
           grade_id: string
           id: string
           name: string
+          published_at: string | null
+          status: string
+          updated_at: string
         }
         Insert: {
+          authoring_organization_id?: string | null
           created_at?: string
+          description?: string | null
           grade_id: string
           id?: string
           name: string
+          published_at?: string | null
+          status?: string
+          updated_at?: string
         }
         Update: {
+          authoring_organization_id?: string | null
           created_at?: string
+          description?: string | null
           grade_id?: string
           id?: string
           name?: string
+          published_at?: string | null
+          status?: string
+          updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "pathways_authoring_organization_id_fkey"
+            columns: ["authoring_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "pathways_grade_id_fkey"
             columns: ["grade_id"]
@@ -942,8 +967,11 @@ export type Database = {
           competency_id: string | null
           id: string
           learning_objective_id: string | null
+          lesson_id: string | null
           mastery_level: string
+          notes: string | null
           recorded_at: string
+          recorded_by: string | null
           student_id: string
         }
         Insert: {
@@ -951,8 +979,11 @@ export type Database = {
           competency_id?: string | null
           id?: string
           learning_objective_id?: string | null
+          lesson_id?: string | null
           mastery_level: string
+          notes?: string | null
           recorded_at?: string
+          recorded_by?: string | null
           student_id: string
         }
         Update: {
@@ -960,8 +991,11 @@ export type Database = {
           competency_id?: string | null
           id?: string
           learning_objective_id?: string | null
+          lesson_id?: string | null
           mastery_level?: string
+          notes?: string | null
           recorded_at?: string
+          recorded_by?: string | null
           student_id?: string
         }
         Relationships: [
@@ -984,6 +1018,20 @@ export type Database = {
             columns: ["learning_objective_id"]
             isOneToOne: false
             referencedRelation: "learning_objectives"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "progress_records_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "progress_records_recorded_by_fkey"
+            columns: ["recorded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -1218,6 +1266,7 @@ export type Database = {
           name: string
           pathway_id: string | null
           published_at: string | null
+          search_vector: unknown
           status: string
           updated_at: string
         }
@@ -1231,6 +1280,7 @@ export type Database = {
           name: string
           pathway_id?: string | null
           published_at?: string | null
+          search_vector?: unknown
           status?: string
           updated_at?: string
         }
@@ -1244,6 +1294,7 @@ export type Database = {
           name?: string
           pathway_id?: string | null
           published_at?: string | null
+          search_vector?: unknown
           status?: string
           updated_at?: string
         }
@@ -1411,6 +1462,7 @@ export type Database = {
           description: string | null
           id: string
           published_at: string | null
+          search_vector: unknown
           sequence_order: number
           status: string
           subject_id: string
@@ -1423,6 +1475,7 @@ export type Database = {
           description?: string | null
           id?: string
           published_at?: string | null
+          search_vector?: unknown
           sequence_order?: number
           status?: string
           subject_id: string
@@ -1435,6 +1488,7 @@ export type Database = {
           description?: string | null
           id?: string
           published_at?: string | null
+          search_vector?: unknown
           sequence_order?: number
           status?: string
           subject_id?: string
@@ -1643,7 +1697,29 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      search_curriculum: {
+        Args: {
+          p_content_type?: string
+          p_grade_id?: string
+          p_kinds?: string[]
+          p_limit?: number
+          p_offset?: number
+          p_status?: string
+          p_term?: string
+        }
+        Returns: {
+          content_type: string
+          grade_id: string
+          grade_name: string
+          id: string
+          kind: string
+          status: string
+          subject_id: string
+          subtitle: string
+          title: string
+          total_count: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never
