@@ -318,3 +318,111 @@ export const removeCurriculumAssignment = createServerFn({ method: "POST" })
     });
     return { ok: true };
   });
+
+/* -------------------------------------------------------------- pathways */
+
+export const savePathway = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => pathwayInput.parse(input))
+  .handler(async ({ data, context }) => {
+    const { supabase } = context;
+    const row = {
+      grade_id: data.gradeId,
+      name: data.name,
+      description: data.description || null,
+      status: data.status,
+      authoring_organization_id: data.organizationId,
+      published_at: data.status === "published" ? new Date().toISOString() : null,
+    };
+    const query = data.id
+      ? supabase.from("pathways").update(row).eq("id", data.id).select("id").single()
+      : supabase.from("pathways").insert(row).select("id").single();
+    const { data: saved, error } = await query;
+    if (error) throw new Error(error.message);
+    await writeAudit(context, {
+      organizationId: data.organizationId,
+      action: data.id ? "curriculum.pathway.updated" : "curriculum.pathway.created",
+      entityType: "pathways",
+      entityId: saved.id,
+      afterState: row,
+    });
+    return { id: saved.id };
+  });
+
+export const assignPathwayToStudents = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        organizationId: uuid,
+        pathwayId: uuid,
+        studentIds: z.array(uuid).min(1).max(200),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase } = context;
+    const { error } = await supabase
+      .from("students")
+      .update({ pathway_id: data.pathwayId })
+      .in("id", data.studentIds);
+    if (error) throw new Error(error.message);
+    await writeAudit(context, {
+      organizationId: data.organizationId,
+      action: "curriculum.pathway.assigned",
+      entityType: "students",
+      entityId: data.pathwayId,
+      afterState: { student_ids: data.studentIds },
+    });
+    return { assigned: data.studentIds.length };
+  });
+
+/* -------------------------------------------------------------- progress */
+
+/**
+ * Capture point for learner progress. Assessments will reuse this by passing
+ * the assessment id alongside the lesson / objective being evidenced.
+ */
+export const recordProgress = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        organizationId: uuid,
+        studentId: uuid,
+        lessonId: uuid.nullable().optional(),
+        learningObjectiveId: uuid.nullable().optional(),
+        competencyId: uuid.nullable().optional(),
+        assessmentId: uuid.nullable().optional(),
+        masteryLevel,
+        notes: z.string().trim().max(1000).nullable().optional(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }) => {
+    const { supabase, userId } = context;
+    const row = {
+      student_id: data.studentId,
+      lesson_id: data.lessonId || null,
+      learning_objective_id: data.learningObjectiveId || null,
+      competency_id: data.competencyId || null,
+      assessment_id: data.assessmentId || null,
+      mastery_level: data.masteryLevel,
+      notes: data.notes || null,
+      recorded_by: userId,
+    };
+    const { data: saved, error } = await supabase
+      .from("progress_records")
+      .insert(row)
+      .select("id")
+      .single();
+    if (error) throw new Error(error.message);
+    await writeAudit(context, {
+      organizationId: data.organizationId,
+      action: "curriculum.progress.recorded",
+      entityType: "progress_records",
+      entityId: saved.id,
+      afterState: row,
+    });
+    return { id: saved.id };
+  });
