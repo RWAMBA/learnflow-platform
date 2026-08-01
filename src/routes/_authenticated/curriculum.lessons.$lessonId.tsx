@@ -101,9 +101,18 @@ function LessonPage() {
             : undefined
         }
         actions={
-          mayAuthor && lesson ? (
+          lesson && (mayAuthor || mayRecordProgress) ? (
             <div className="flex flex-wrap gap-2">
-              <LessonFormDialog
+              {mayRecordProgress ? (
+                <RecordProgressDialog
+                  organizationId={organizationId}
+                  lessonId={lesson.id}
+                  trigger={<Button variant="outline">Record progress</Button>}
+                />
+              ) : null}
+              {mayAuthor ? (
+                <>
+                  <LessonFormDialog
                 organizationId={organizationId}
                 subjectId={lesson.subject!.id}
                 topics={subjectContent.data?.topics ?? []}
@@ -135,6 +144,8 @@ function LessonPage() {
               >
                 Archive
               </Button>
+                </>
+              ) : null}
             </div>
           ) : undefined
         }
