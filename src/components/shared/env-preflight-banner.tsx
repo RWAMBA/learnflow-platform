@@ -1,8 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AlertTriangle, ExternalLink, RefreshCw } from "lucide-react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { getSupabaseEnvPreflight } from "@/lib/env-preflight.functions";
+/** How often to silently re-check while configuration is still incomplete. */
+const AUTO_RECHECK_INTERVAL_MS = 120_000;
+
 
 const PROJECT_REF = import.meta.env['VITE_SUPABASE_PROJECT_ID'] as string | undefined;
 
@@ -46,11 +52,18 @@ const FALLBACK_STEPS = [
  */
 export function EnvPreflightBanner() {
   const preflight = useServerFn(getSupabaseEnvPreflight);
+  const [autoRecheck, setAutoRecheck] = useState(true);
   const { data, refetch, isFetching } = useQuery({
     queryKey: ["supabase-env-preflight"],
     queryFn: () => preflight(),
     staleTime: 60_000,
     retry: false,
+    // Poll only while something is still missing; stop once the env is healthy.
+    refetchInterval: (query) =>
+      autoRecheck && query.state.data && !query.state.data.ok
+        ? AUTO_RECHECK_INTERVAL_MS
+        : false,
+    refetchIntervalInBackground: false,
   });
 
   if (!data || data.ok) return null;
@@ -102,6 +115,16 @@ export function EnvPreflightBanner() {
               />
               {isFetching ? "Re-checking…" : "Re-run check"}
             </Button>
+            <div className="flex items-center gap-2">
+              <Switch
+                id="env-preflight-auto-recheck"
+                checked={autoRecheck}
+                onCheckedChange={setAutoRecheck}
+              />
+              <Label htmlFor="env-preflight-auto-recheck" className="text-xs font-normal">
+                Auto re-check every 2 minutes
+              </Label>
+            </div>
           </div>
         </div>
       </div>
