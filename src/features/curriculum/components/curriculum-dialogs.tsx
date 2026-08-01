@@ -946,7 +946,9 @@ export function AssignPathwayDialog({
   const mutation = useMutation({
     mutationFn: () => assign({ data: { organizationId, pathwayId, studentIds: selected } }),
     onSuccess: (result) => {
-      toast.success(`Pathway assigned to ${result.assigned} student${result.assigned === 1 ? "" : "s"}`);
+      toast.success(
+        `Pathway assigned to ${result.assigned} student${result.assigned === 1 ? "" : "s"}`,
+      );
       setSelected([]);
       setOpen(false);
       void queryClient.invalidateQueries({ queryKey: ["students"] });

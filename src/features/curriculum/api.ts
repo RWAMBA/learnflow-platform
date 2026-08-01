@@ -345,9 +345,7 @@ export async function getStudentProgressOverview(studentId: string) {
       const subjectLessons = (lessonsResult.data ?? []).filter(
         (lesson) => lesson.subject_id === row.subject!.id && lesson.status !== "archived",
       );
-      const completed = subjectLessons.filter((lesson) =>
-        completedLessonIds.has(lesson.id),
-      ).length;
+      const completed = subjectLessons.filter((lesson) => completedLessonIds.has(lesson.id)).length;
       return {
         subjectId: row.subject!.id,
         subjectName: row.subject!.name,
@@ -355,9 +353,7 @@ export async function getStudentProgressOverview(studentId: string) {
         totalLessons: subjectLessons.length,
         completedLessons: completed,
         percent:
-          subjectLessons.length === 0
-            ? 0
-            : Math.round((completed / subjectLessons.length) * 100),
+          subjectLessons.length === 0 ? 0 : Math.round((completed / subjectLessons.length) * 100),
       };
     });
 
