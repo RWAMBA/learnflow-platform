@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { getSupabaseEnvPreflight } from "@/lib/env-preflight.functions";
 
-const PROJECT_REF = import.meta.env['VITE_SUPABASE_PROJECT_ID'] as string | undefined;
+const PROJECT_REF = import.meta.env["VITE_SUPABASE_PROJECT_ID"] as string | undefined;
 
 const SETUP_URL = PROJECT_REF
   ? `https://supabase.com/dashboard/project/${PROJECT_REF}/settings/api-keys`
@@ -112,7 +112,7 @@ export function EnvPreflightBanner() {
   const [now, setNow] = useState(() => Date.now());
   const isCustom = useMemo(
     () => !INTERVAL_OPTIONS.some((o) => o.value === intervalMs),
-    [intervalMs]
+    [intervalMs],
   );
 
   // Hydrate persisted preferences on the client only.
@@ -165,9 +165,7 @@ export function EnvPreflightBanner() {
     retry: false,
     // Poll only while something is still missing; stop once the env is healthy.
     refetchInterval: (query) =>
-      autoRecheck && query.state.data && !query.state.data.ok
-        ? intervalMs
-        : false,
+      autoRecheck && query.state.data && !query.state.data.ok ? intervalMs : false,
     refetchIntervalInBackground: false,
   });
 
@@ -179,10 +177,10 @@ export function EnvPreflightBanner() {
     if (lastRecordedRef.current === dataUpdatedAt) return;
     lastRecordedRef.current = dataUpdatedAt;
     setHistory((prev) =>
-      [
-        { at: dataUpdatedAt, ok: data.ok, missing: data.missing.map((m) => m.name) },
-        ...prev,
-      ].slice(0, HISTORY_LIMIT)
+      [{ at: dataUpdatedAt, ok: data.ok, missing: data.missing.map((m) => m.name) }, ...prev].slice(
+        0,
+        HISTORY_LIMIT,
+      ),
     );
     setLastCheckedAt(dataUpdatedAt);
   }, [data, dataUpdatedAt]);
@@ -212,9 +210,11 @@ export function EnvPreflightBanner() {
   const nextRunAt = lastCheckedAt != null ? lastCheckedAt + intervalMs : null;
   const countdownMs = nextRunAt != null ? nextRunAt - now : null;
 
-  const activeLabel = INTERVAL_OPTIONS.find((o) => o.value === intervalMs)?.label ?? formatInterval(intervalMs);
+  const activeLabel =
+    INTERVAL_OPTIONS.find((o) => o.value === intervalMs)?.label ?? formatInterval(intervalMs);
   const customParsed = Number(customSeconds);
-  const customValid = Number.isFinite(customParsed) && customParsed >= MIN_SECONDS && customParsed <= MAX_SECONDS;
+  const customValid =
+    Number.isFinite(customParsed) && customParsed >= MIN_SECONDS && customParsed <= MAX_SECONDS;
 
   return (
     <div
@@ -288,7 +288,9 @@ export function EnvPreflightBanner() {
                   const value = e.target.value;
                   if (value === CUSTOM_VALUE) {
                     const parsed = Number(customSeconds);
-                    setIntervalMs(Number.isFinite(parsed) && parsed >= MIN_SECONDS ? parsed * 1_000 : 60_000);
+                    setIntervalMs(
+                      Number.isFinite(parsed) && parsed >= MIN_SECONDS ? parsed * 1_000 : 60_000,
+                    );
                   } else {
                     setIntervalMs(Number(value));
                   }
@@ -316,7 +318,11 @@ export function EnvPreflightBanner() {
                       const raw = e.target.value;
                       setCustomSeconds(raw);
                       const parsed = Number(raw);
-                      if (Number.isFinite(parsed) && parsed >= MIN_SECONDS && parsed <= MAX_SECONDS) {
+                      if (
+                        Number.isFinite(parsed) &&
+                        parsed >= MIN_SECONDS &&
+                        parsed <= MAX_SECONDS
+                      ) {
                         setIntervalMs(parsed * 1_000);
                       }
                     }}
@@ -336,9 +342,7 @@ export function EnvPreflightBanner() {
               Re-checking automatically every {activeLabel} until all variables are configured.
               {countdownMs != null && (
                 <span className="ml-1" aria-live="polite">
-                  {isFetching
-                    ? "Checking now…"
-                    : `Next check in ${formatCountdown(countdownMs)}.`}
+                  {isFetching ? "Checking now…" : `Next check in ${formatCountdown(countdownMs)}.`}
                 </span>
               )}
               {isCustom && !customValid && (
@@ -356,9 +360,7 @@ export function EnvPreflightBanner() {
                   <li key={entry.at} className="flex flex-wrap gap-x-2">
                     <span className="font-mono">{formatClock(entry.at)}</span>
                     <span>
-                      {entry.ok
-                        ? "All variables present"
-                        : `Missing: ${entry.missing.join(", ")}`}
+                      {entry.ok ? "All variables present" : `Missing: ${entry.missing.join(", ")}`}
                     </span>
                   </li>
                 ))}
