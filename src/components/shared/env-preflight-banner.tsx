@@ -16,6 +16,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { getSupabaseEnvPreflight } from "@/lib/env-preflight.functions";
+import {
+  announceCountdown,
+  buildHistoryCsv,
+  type CheckRecord,
+} from "@/lib/env-preflight-format";
 
 const PROJECT_REF = import.meta.env["VITE_SUPABASE_PROJECT_ID"] as string | undefined;
 
@@ -45,11 +50,7 @@ const LS_KEY_AUTO_RECHECK = `${LS_NAMESPACE}:auto-recheck`;
 const LS_KEY_INTERVAL_SECONDS = `${LS_NAMESPACE}:interval-seconds`;
 const LS_KEY_HISTORY = `${LS_NAMESPACE}:history`;
 
-export interface CheckRecord {
-  at: number;
-  ok: boolean;
-  missing: string[];
-}
+
 
 /** Exact click-path for configuring each variable in Lovable Cloud. */
 const SETUP_STEPS: Record<string, string[]> = {
@@ -108,32 +109,6 @@ function formatClock(at: number) {
   });
 }
 
-/** Verbose countdown text for screen readers ("2 minutes 5 seconds"). */
-export function announceCountdown(ms: number) {
-  const total = Math.max(0, Math.ceil(ms / 1_000));
-  const minutes = Math.floor(total / 60);
-  const seconds = total % 60;
-  const parts: string[] = [];
-  if (minutes > 0) parts.push(`${minutes} minute${minutes === 1 ? "" : "s"}`);
-  if (seconds > 0 || minutes === 0) parts.push(`${seconds} second${seconds === 1 ? "" : "s"}`);
-  return parts.join(" ");
-}
-
-/** CSV export of recent checks. Exported for tests. */
-export function buildHistoryCsv(records: CheckRecord[]): string {
-  const escape = (value: string) => `"${value.replace(/"/g, '""')}"`;
-  const rows = [
-    ["checked_at", "status", "missing_variables"].join(","),
-    ...records.map((entry) =>
-      [
-        escape(new Date(entry.at).toISOString()),
-        escape(entry.ok ? "ok" : "missing"),
-        escape(entry.missing.join(" ")),
-      ].join(","),
-    ),
-  ];
-  return rows.join("\n");
-}
 
 function downloadFile(contents: string, mimeType: string, extension: string) {
   const blob = new Blob([contents], { type: mimeType });

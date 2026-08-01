@@ -13,7 +13,7 @@ vi.mock("@/lib/env-preflight.functions", () => ({
   getSupabaseEnvPreflight: vi.fn(),
 }));
 
-import { announceCountdown, buildHistoryCsv, EnvPreflightBanner } from "./env-preflight-banner";
+import { announceCountdown, buildHistoryCsv, EnvPreflightBanner } from "@/lib/env-preflight-format";
 
 const MISSING_RESPONSE = {
   ok: false,
