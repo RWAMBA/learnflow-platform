@@ -1,7 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, ExternalLink } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { getSupabaseEnvPreflight } from "@/lib/env-preflight.functions";
+
+const PROJECT_REF = import.meta.env['VITE_SUPABASE_PROJECT_ID'] as string | undefined;
+
+const SETUP_URL = PROJECT_REF
+  ? `https://supabase.com/dashboard/project/${PROJECT_REF}/settings/api-keys`
+  : "https://supabase.com/dashboard/projects";
 
 /**
  * Surfaces missing server-side configuration up front, so a blank screen from
@@ -38,6 +45,12 @@ export function EnvPreflightBanner() {
               </li>
             ))}
           </ul>
+          <Button asChild variant="outline" size="sm" className="mt-3">
+            <a href={SETUP_URL} target="_blank" rel="noreferrer noopener">
+              Open Supabase API keys
+              <ExternalLink aria-hidden="true" className="ml-2 size-4" />
+            </a>
+          </Button>
         </div>
       </div>
     </div>
