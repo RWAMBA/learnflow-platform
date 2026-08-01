@@ -28,6 +28,7 @@ import { Route as AuthenticatedOrganizationBillingRouteImport } from './routes/_
 import { Route as AuthenticatedStudentsIndexRouteImport } from './routes/_authenticated/students.index'
 import { Route as AuthenticatedStudentsStudentIdRouteImport } from './routes/_authenticated/students.$studentId'
 import { Route as AuthenticatedStudentsNewRouteImport } from './routes/_authenticated/students.new'
+import { Route as AuthenticatedCurriculumGradesGradeIdRouteImport } from './routes/_authenticated/curriculum.grades.$gradeId'
 import { Route as AuthenticatedCurriculumLessonsLessonIdRouteImport } from './routes/_authenticated/curriculum.lessons.$lessonId'
 import { Route as AuthenticatedCurriculumSubjectsSubjectIdRouteImport } from './routes/_authenticated/curriculum.subjects.$subjectId'
 
@@ -138,6 +139,12 @@ const AuthenticatedStudentsNewRoute =
     path: '/students/new',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedCurriculumGradesGradeIdRoute =
+  AuthenticatedCurriculumGradesGradeIdRouteImport.update({
+    id: '/curriculum/grades/$gradeId',
+    path: '/curriculum/grades/$gradeId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCurriculumLessonsLessonIdRoute =
   AuthenticatedCurriculumLessonsLessonIdRouteImport.update({
     id: '/curriculum/lessons/$lessonId',
@@ -170,6 +177,7 @@ export interface FileRoutesByFullPath {
   '/messages/': typeof AuthenticatedMessagesIndexRoute
   '/organization/': typeof AuthenticatedOrganizationIndexRoute
   '/students/': typeof AuthenticatedStudentsIndexRoute
+  '/curriculum/grades/$gradeId': typeof AuthenticatedCurriculumGradesGradeIdRoute
   '/curriculum/lessons/$lessonId': typeof AuthenticatedCurriculumLessonsLessonIdRoute
   '/curriculum/subjects/$subjectId': typeof AuthenticatedCurriculumSubjectsSubjectIdRoute
 }
@@ -192,6 +200,7 @@ export interface FileRoutesByTo {
   '/messages': typeof AuthenticatedMessagesIndexRoute
   '/organization': typeof AuthenticatedOrganizationIndexRoute
   '/students': typeof AuthenticatedStudentsIndexRoute
+  '/curriculum/grades/$gradeId': typeof AuthenticatedCurriculumGradesGradeIdRoute
   '/curriculum/lessons/$lessonId': typeof AuthenticatedCurriculumLessonsLessonIdRoute
   '/curriculum/subjects/$subjectId': typeof AuthenticatedCurriculumSubjectsSubjectIdRoute
 }
@@ -216,6 +225,7 @@ export interface FileRoutesById {
   '/_authenticated/messages/': typeof AuthenticatedMessagesIndexRoute
   '/_authenticated/organization/': typeof AuthenticatedOrganizationIndexRoute
   '/_authenticated/students/': typeof AuthenticatedStudentsIndexRoute
+  '/_authenticated/curriculum/grades/$gradeId': typeof AuthenticatedCurriculumGradesGradeIdRoute
   '/_authenticated/curriculum/lessons/$lessonId': typeof AuthenticatedCurriculumLessonsLessonIdRoute
   '/_authenticated/curriculum/subjects/$subjectId': typeof AuthenticatedCurriculumSubjectsSubjectIdRoute
 }
@@ -240,6 +250,7 @@ export interface FileRouteTypes {
     | '/messages/'
     | '/organization/'
     | '/students/'
+    | '/curriculum/grades/$gradeId'
     | '/curriculum/lessons/$lessonId'
     | '/curriculum/subjects/$subjectId'
   fileRoutesByTo: FileRoutesByTo
@@ -262,6 +273,7 @@ export interface FileRouteTypes {
     | '/messages'
     | '/organization'
     | '/students'
+    | '/curriculum/grades/$gradeId'
     | '/curriculum/lessons/$lessonId'
     | '/curriculum/subjects/$subjectId'
   id:
@@ -285,6 +297,7 @@ export interface FileRouteTypes {
     | '/_authenticated/messages/'
     | '/_authenticated/organization/'
     | '/_authenticated/students/'
+    | '/_authenticated/curriculum/grades/$gradeId'
     | '/_authenticated/curriculum/lessons/$lessonId'
     | '/_authenticated/curriculum/subjects/$subjectId'
   fileRoutesById: FileRoutesById
@@ -431,6 +444,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStudentsNewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/curriculum/grades/$gradeId': {
+      id: '/_authenticated/curriculum/grades/$gradeId'
+      path: '/curriculum/grades/$gradeId'
+      fullPath: '/curriculum/grades/$gradeId'
+      preLoaderRoute: typeof AuthenticatedCurriculumGradesGradeIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/curriculum/lessons/$lessonId': {
       id: '/_authenticated/curriculum/lessons/$lessonId'
       path: '/curriculum/lessons/$lessonId'
@@ -464,6 +484,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMessagesIndexRoute: typeof AuthenticatedMessagesIndexRoute
   AuthenticatedOrganizationIndexRoute: typeof AuthenticatedOrganizationIndexRoute
   AuthenticatedStudentsIndexRoute: typeof AuthenticatedStudentsIndexRoute
+  AuthenticatedCurriculumGradesGradeIdRoute: typeof AuthenticatedCurriculumGradesGradeIdRoute
   AuthenticatedCurriculumLessonsLessonIdRoute: typeof AuthenticatedCurriculumLessonsLessonIdRoute
   AuthenticatedCurriculumSubjectsSubjectIdRoute: typeof AuthenticatedCurriculumSubjectsSubjectIdRoute
 }
@@ -486,6 +507,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMessagesIndexRoute: AuthenticatedMessagesIndexRoute,
   AuthenticatedOrganizationIndexRoute: AuthenticatedOrganizationIndexRoute,
   AuthenticatedStudentsIndexRoute: AuthenticatedStudentsIndexRoute,
+  AuthenticatedCurriculumGradesGradeIdRoute:
+    AuthenticatedCurriculumGradesGradeIdRoute,
   AuthenticatedCurriculumLessonsLessonIdRoute:
     AuthenticatedCurriculumLessonsLessonIdRoute,
   AuthenticatedCurriculumSubjectsSubjectIdRoute:
@@ -504,13 +527,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

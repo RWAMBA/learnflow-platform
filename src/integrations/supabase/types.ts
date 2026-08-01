@@ -318,6 +318,51 @@ export type Database = {
           },
         ]
       }
+      learning_objectives: {
+        Row: {
+          competency_id: string | null
+          created_at: string
+          description: string
+          id: string
+          lesson_id: string
+          sequence_order: number
+          updated_at: string
+        }
+        Insert: {
+          competency_id?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          lesson_id: string
+          sequence_order?: number
+          updated_at?: string
+        }
+        Update: {
+          competency_id?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          lesson_id?: string
+          sequence_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_objectives_competency_id_fkey"
+            columns: ["competency_id"]
+            isOneToOne: false
+            referencedRelation: "competencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "learning_objectives_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lessons: {
         Row: {
           author_type: string
@@ -326,10 +371,13 @@ export type Database = {
           content_type: string
           created_at: string
           id: string
+          published_at: string | null
           sequence_order: number
+          status: string
           storage_path: string | null
           subject_id: string
           title: string
+          topic_id: string | null
           updated_at: string
         }
         Insert: {
@@ -339,10 +387,13 @@ export type Database = {
           content_type: string
           created_at?: string
           id?: string
+          published_at?: string | null
           sequence_order: number
+          status?: string
           storage_path?: string | null
           subject_id: string
           title: string
+          topic_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -352,10 +403,13 @@ export type Database = {
           content_type?: string
           created_at?: string
           id?: string
+          published_at?: string | null
           sequence_order?: number
+          status?: string
           storage_path?: string | null
           subject_id?: string
           title?: string
+          topic_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -371,6 +425,13 @@ export type Database = {
             columns: ["subject_id"]
             isOneToOne: false
             referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lessons_topic_id_fkey"
+            columns: ["topic_id"]
+            isOneToOne: false
+            referencedRelation: "topics"
             referencedColumns: ["id"]
           },
         ]
@@ -878,24 +939,27 @@ export type Database = {
       progress_records: {
         Row: {
           assessment_id: string | null
-          competency_id: string
+          competency_id: string | null
           id: string
+          learning_objective_id: string | null
           mastery_level: string
           recorded_at: string
           student_id: string
         }
         Insert: {
           assessment_id?: string | null
-          competency_id: string
+          competency_id?: string | null
           id?: string
+          learning_objective_id?: string | null
           mastery_level: string
           recorded_at?: string
           student_id: string
         }
         Update: {
           assessment_id?: string | null
-          competency_id?: string
+          competency_id?: string | null
           id?: string
+          learning_objective_id?: string | null
           mastery_level?: string
           recorded_at?: string
           student_id?: string
@@ -913,6 +977,13 @@ export type Database = {
             columns: ["competency_id"]
             isOneToOne: false
             referencedRelation: "competencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "progress_records_learning_objective_id_fkey"
+            columns: ["learning_objective_id"]
+            isOneToOne: false
+            referencedRelation: "learning_objectives"
             referencedColumns: ["id"]
           },
           {
@@ -989,6 +1060,71 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      student_curriculum_assignments: {
+        Row: {
+          assigned_by: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          organization_id: string
+          status: string
+          student_id: string
+          subject_id: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_by?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          organization_id: string
+          status?: string
+          student_id: string
+          subject_id: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_by?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          status?: string
+          student_id?: string
+          subject_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "student_curriculum_assignments_assigned_by_fkey"
+            columns: ["assigned_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_curriculum_assignments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_curriculum_assignments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_curriculum_assignments_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
             referencedColumns: ["id"]
           },
         ]
@@ -1073,30 +1209,52 @@ export type Database = {
       }
       subjects: {
         Row: {
+          authoring_organization_id: string | null
           code: string | null
           created_at: string
+          description: string | null
           grade_id: string
           id: string
           name: string
           pathway_id: string | null
+          published_at: string | null
+          status: string
+          updated_at: string
         }
         Insert: {
+          authoring_organization_id?: string | null
           code?: string | null
           created_at?: string
+          description?: string | null
           grade_id: string
           id?: string
           name: string
           pathway_id?: string | null
+          published_at?: string | null
+          status?: string
+          updated_at?: string
         }
         Update: {
+          authoring_organization_id?: string | null
           code?: string | null
           created_at?: string
+          description?: string | null
           grade_id?: string
           id?: string
           name?: string
           pathway_id?: string | null
+          published_at?: string | null
+          status?: string
+          updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "subjects_authoring_organization_id_fkey"
+            columns: ["authoring_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "subjects_grade_id_fkey"
             columns: ["grade_id"]
@@ -1242,6 +1400,60 @@ export type Database = {
             columns: ["updated_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      topics: {
+        Row: {
+          authoring_organization_id: string | null
+          created_at: string
+          description: string | null
+          id: string
+          published_at: string | null
+          sequence_order: number
+          status: string
+          subject_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          authoring_organization_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          published_at?: string | null
+          sequence_order?: number
+          status?: string
+          subject_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          authoring_organization_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          published_at?: string | null
+          sequence_order?: number
+          status?: string
+          subject_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "topics_authoring_organization_id_fkey"
+            columns: ["authoring_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "topics_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
             referencedColumns: ["id"]
           },
         ]
