@@ -113,37 +113,37 @@ function LessonPage() {
               {mayAuthor ? (
                 <>
                   <LessonFormDialog
-                organizationId={organizationId}
-                subjectId={lesson.subject!.id}
-                topics={subjectContent.data?.topics ?? []}
-                lesson={{
-                  id: lesson.id,
-                  title: lesson.title,
-                  topic_id: lesson.topic_id,
-                  sequence_order: lesson.sequence_order,
-                  content_type: lesson.content_type,
-                  status: lesson.status,
-                  content_body: lesson.content_body,
-                }}
-                nextOrder={lesson.sequence_order}
-                onSaved={refresh}
-                trigger={<Button variant="outline">Edit lesson</Button>}
-              />
-              <Button
-                disabled={statusMutation.isPending}
-                onClick={() =>
-                  statusMutation.mutate(lesson.status === "published" ? "draft" : "published")
-                }
-              >
-                {lesson.status === "published" ? "Unpublish" : "Publish"}
-              </Button>
-              <Button
-                variant="ghost"
-                disabled={statusMutation.isPending || lesson.status === "archived"}
-                onClick={() => statusMutation.mutate("archived")}
-              >
-                Archive
-              </Button>
+                    organizationId={organizationId}
+                    subjectId={lesson.subject!.id}
+                    topics={subjectContent.data?.topics ?? []}
+                    lesson={{
+                      id: lesson.id,
+                      title: lesson.title,
+                      topic_id: lesson.topic_id,
+                      sequence_order: lesson.sequence_order,
+                      content_type: lesson.content_type,
+                      status: lesson.status,
+                      content_body: lesson.content_body,
+                    }}
+                    nextOrder={lesson.sequence_order}
+                    onSaved={refresh}
+                    trigger={<Button variant="outline">Edit lesson</Button>}
+                  />
+                  <Button
+                    disabled={statusMutation.isPending}
+                    onClick={() =>
+                      statusMutation.mutate(lesson.status === "published" ? "draft" : "published")
+                    }
+                  >
+                    {lesson.status === "published" ? "Unpublish" : "Publish"}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    disabled={statusMutation.isPending || lesson.status === "archived"}
+                    onClick={() => statusMutation.mutate("archived")}
+                  >
+                    Archive
+                  </Button>
                 </>
               ) : null}
             </div>
