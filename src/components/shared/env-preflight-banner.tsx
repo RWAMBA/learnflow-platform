@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AlertTriangle, ExternalLink, RefreshCw } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -25,6 +25,9 @@ const INTERVAL_OPTIONS = [
 const CUSTOM_VALUE = "custom";
 const MIN_SECONDS = 5;
 const MAX_SECONDS = 3600;
+
+const LS_KEY_AUTO_RECHECK = "platform-env-preflight-auto-recheck";
+const LS_KEY_INTERVAL_SECONDS = "platform-env-preflight-interval-seconds";
 
 /** Exact click-path for configuring each variable in Lovable Cloud. */
 const SETUP_STEPS: Record<string, string[]> = {
@@ -64,6 +67,10 @@ function formatInterval(ms: number) {
   return `${minutes}m ${seconds}s`;
 }
 
+function clampSeconds(value: number) {
+  return Math.min(MAX_SECONDS, Math.max(MIN_SECONDS, Math.floor(value)));
+}
+
 /**
  * Surfaces missing server-side configuration up front, so a blank screen from
  * a failed server action is explained before the user triggers it.
@@ -73,10 +80,54 @@ export function EnvPreflightBanner() {
   const [autoRecheck, setAutoRecheck] = useState(true);
   const [intervalMs, setIntervalMs] = useState(120_000);
   const [customSeconds, setCustomSeconds] = useState<string>("60");
+  const [hydrated, setHydrated] = useState(false);
   const isCustom = useMemo(
     () => !INTERVAL_OPTIONS.some((o) => o.value === intervalMs),
     [intervalMs]
   );
+
+  // Hydrate persisted preferences on the client only.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const savedAuto = window.localStorage.getItem(LS_KEY_AUTO_RECHECK);
+      const savedSeconds = window.localStorage.getItem(LS_KEY_INTERVAL_SECONDS);
+      if (savedAuto != null) {
+        setAutoRecheck(savedAuto === "true");
+      }
+      if (savedSeconds != null) {
+        const parsed = Number(savedSeconds);
+        if (Number.isFinite(parsed)) {
+          const clamped = clampSeconds(parsed);
+          setIntervalMs(clamped * 1_000);
+          setCustomSeconds(String(clamped));
+        }
+      }
+    } catch {
+      // localStorage may be unavailable in some contexts; ignore silently.
+    }
+    setHydrated(true);
+  }, []);
+
+  // Persist toggle changes.
+  useEffect(() => {
+    if (!hydrated || typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(LS_KEY_AUTO_RECHECK, String(autoRecheck));
+    } catch {
+      // ignore
+    }
+  }, [autoRecheck, hydrated]);
+
+  // Persist interval changes.
+  useEffect(() => {
+    if (!hydrated || typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(LS_KEY_INTERVAL_SECONDS, String(Math.floor(intervalMs / 1_000)));
+    } catch {
+      // ignore
+    }
+  }, [intervalMs, hydrated]);
 
   const { data, refetch, isFetching } = useQuery({
     queryKey: ["supabase-env-preflight"],
