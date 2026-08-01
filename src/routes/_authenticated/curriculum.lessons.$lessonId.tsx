@@ -12,9 +12,10 @@ import { CurriculumStatusBadge } from "@/features/curriculum/components/status-b
 import {
   LessonFormDialog,
   ObjectiveFormDialog,
+  RecordProgressDialog,
 } from "@/features/curriculum/components/curriculum-dialogs";
 import { curriculumKeys, getLesson, getSubjectWithContent } from "@/features/curriculum/api";
-import { canAuthorCurriculum } from "@/features/roles/permissions";
+import { canAssignCurriculum, canAuthorCurriculum } from "@/features/roles/permissions";
 import { useRoleContext } from "@/features/roles/role-context";
 import { deleteCurriculumItem, setCurriculumStatus } from "@/lib/curriculum.functions";
 import { formatDateTime } from "@/lib/format";
@@ -55,6 +56,8 @@ function LessonPage() {
     canAuthorCurriculum(activeRole?.roleCode) &&
     Boolean(organizationId) &&
     query.data?.lesson?.authoring_organization_id === organizationId;
+
+  const mayRecordProgress = canAssignCurriculum(activeRole?.roleCode) && Boolean(organizationId);
 
   const refresh = () =>
     void queryClient.invalidateQueries({ queryKey: curriculumKeys.lesson(lessonId) });
