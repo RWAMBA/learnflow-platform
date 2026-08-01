@@ -376,13 +376,13 @@ export function EnvPreflightBanner() {
               variant="secondary"
               size="sm"
               disabled={isFetching}
-              onClick={() => void refetch()}
+              onClick={() => void runNow()}
             >
               <RefreshCw
                 aria-hidden="true"
                 className={`mr-2 size-4 ${isFetching ? "animate-spin" : ""}`}
               />
-              {isFetching ? "Re-checking…" : "Run preflight check now"}
+              {isFetching ? "Running check…" : "Run preflight check now"}
             </Button>
             <Button
               type="button"
@@ -393,6 +393,26 @@ export function EnvPreflightBanner() {
             >
               <Download aria-hidden="true" className="mr-2 size-4" />
               Export results (JSON)
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={history.length === 0}
+              onClick={exportHistoryCsv}
+            >
+              <Download aria-hidden="true" className="mr-2 size-4" />
+              Export results (CSV)
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              disabled={history.length === 0}
+              onClick={clearHistory}
+            >
+              <Trash2 aria-hidden="true" className="mr-2 size-4" />
+              Clear history
             </Button>
             <Button type="button" variant="ghost" size="sm" onClick={resetSettings}>
               <RotateCcw aria-hidden="true" className="mr-2 size-4" />
@@ -483,10 +503,36 @@ export function EnvPreflightBanner() {
               )}
             </p>
           )}
+          {(isFetching || runState.status !== "idle") && (
+            <p className="mt-2 flex items-center gap-2 text-xs" data-testid="run-status">
+              {isFetching ? (
+                <>
+                  <RefreshCw aria-hidden="true" className="size-4 animate-spin" />
+                  <span className="text-muted-foreground">Running preflight check…</span>
+                </>
+              ) : runState.status === "success" ? (
+                <>
+                  <CheckCircle2 aria-hidden="true" className="size-4 text-primary" />
+                  <span className="text-muted-foreground">
+                    {runState.missing === 0
+                      ? "Check complete — all variables are configured."
+                      : `Check complete — ${runState.missing} variable${runState.missing === 1 ? "" : "s"} still missing.`}
+                  </span>
+                </>
+              ) : runState.status === "error" ? (
+                <>
+                  <XCircle aria-hidden="true" className="size-4 text-destructive" />
+                  <span className="text-destructive">Check failed — {runState.message}</span>
+                </>
+              ) : null}
+            </p>
+          )}
           <p role="status" aria-live="polite" aria-atomic="true" className="sr-only">
             {isFetching
               ? "Running Supabase environment preflight check now."
-              : `Preflight check complete. ${
+              : runState.status === "error"
+                ? `Supabase environment preflight check failed. ${runState.message}`
+                : `Preflight check complete. ${
                   data.missing.length
                 } environment variable${data.missing.length === 1 ? "" : "s"} still missing: ${data.missing
                   .map((m) => m.name)
