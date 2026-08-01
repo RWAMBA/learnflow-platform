@@ -31,7 +31,10 @@ export function buildExportFilename(
   extension: "json" | "csv",
   at: Date = new Date(),
 ): string {
-  const stamp = at.toISOString().replace(/\.\d{3}Z$/, "Z").replace(/[:]/g, "-");
+  const stamp = at
+    .toISOString()
+    .replace(/\.\d{3}Z$/, "Z")
+    .replace(/[:]/g, "-");
   return `env-preflight-${projectRef ?? "project"}-last-${count}-${stamp}.${extension}`;
 }
 
