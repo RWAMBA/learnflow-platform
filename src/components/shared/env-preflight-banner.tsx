@@ -10,6 +10,36 @@ const SETUP_URL = PROJECT_REF
   ? `https://supabase.com/dashboard/project/${PROJECT_REF}/settings/api-keys`
   : "https://supabase.com/dashboard/projects";
 
+/** Exact click-path for configuring each variable in Lovable Cloud. */
+const SETUP_STEPS: Record<string, string[]> = {
+  SUPABASE_URL: [
+    "In Lovable, open the Cloud view (desktop: nav icon or More → Cloud; mobile: chat mode → ... → Cloud).",
+    "Go to Cloud → Secrets.",
+    "Add a secret named SUPABASE_URL.",
+    "Paste your project URL from Supabase → Settings → API keys (format: https://<project-ref>.supabase.co).",
+    "Save, then reload this page.",
+  ],
+  SUPABASE_PUBLISHABLE_KEY: [
+    "Open Cloud → Secrets in Lovable.",
+    "Add a secret named SUPABASE_PUBLISHABLE_KEY.",
+    "Copy the publishable (anon) key from Supabase → Settings → API keys — never the service role key here.",
+    "Save, then reload this page.",
+  ],
+  SUPABASE_SERVICE_ROLE_KEY: [
+    "Open Cloud → Secrets in Lovable.",
+    "Add a secret named SUPABASE_SERVICE_ROLE_KEY.",
+    "Copy the service_role secret key from Supabase → Settings → API keys, revealing it first.",
+    "Save it — this key bypasses row-level security, so it stays server-side only.",
+    "Reload this page; if it still reports missing, ask Lovable to refresh the Supabase key binding.",
+  ],
+};
+
+const FALLBACK_STEPS = [
+  "Open Cloud → Secrets in Lovable.",
+  "Add a secret with this exact name.",
+  "Paste the matching value from your Supabase project settings, save, and reload this page.",
+];
+
 /**
  * Surfaces missing server-side configuration up front, so a blank screen from
  * a failed server action is explained before the user triggers it.
@@ -37,11 +67,18 @@ export function EnvPreflightBanner() {
           <p className="mt-1 text-muted-foreground">
             Server actions will fail until these variables are configured:
           </p>
-          <ul className="mt-2 list-disc space-y-1 pl-5">
+          <ul className="mt-3 space-y-4">
             {data.missing.map((entry) => (
-              <li key={entry.name}>
-                <code className="font-mono text-xs">{entry.name}</code>
-                <span className="text-muted-foreground"> — {entry.purpose}</span>
+              <li key={entry.name} className="rounded-md border bg-card p-3">
+                <p>
+                  <code className="font-mono text-xs">{entry.name}</code>
+                  <span className="text-muted-foreground"> — {entry.purpose}</span>
+                </p>
+                <ol className="mt-2 list-decimal space-y-1 pl-5 text-muted-foreground">
+                  {(SETUP_STEPS[entry.name] ?? FALLBACK_STEPS).map((step) => (
+                    <li key={step}>{step}</li>
+                  ))}
+                </ol>
               </li>
             ))}
           </ul>
