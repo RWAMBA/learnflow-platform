@@ -11,11 +11,27 @@ export const curriculumKeys = {
   allSubjects: () => ["subjects", "all"] as const,
   stats: (organizationId: string) => ["curriculum", "stats", organizationId] as const,
   search: (params: unknown) => ["curriculum", "search", params] as const,
+  pathways: (gradeId: string) => ["curriculum", "pathways", gradeId] as const,
+  progress: (studentId: string) => ["curriculum", "progress", studentId] as const,
+  lessonProgress: (studentId: string, lessonId: string) =>
+    ["curriculum", "progress", studentId, lessonId] as const,
   studentAssignments: (studentId: string) =>
     ["curriculum", "student-assignments", studentId] as const,
   subjectAssignments: (subjectId: string) =>
     ["curriculum", "subject-assignments", subjectId] as const,
 };
+
+export const MASTERY_LEVELS = [
+  "not_started",
+  "emerging",
+  "developing",
+  "proficient",
+  "mastered",
+] as const;
+export type MasteryLevel = (typeof MASTERY_LEVELS)[number];
+
+/** Mastery levels that count a lesson as complete for progress percentages. */
+const COMPLETED_LEVELS: string[] = ["proficient", "mastered"];
 
 export async function listCurricula() {
   const { data, error } = await supabase.from("curricula").select("id, code, name").order("name");
@@ -207,4 +223,153 @@ export async function listSubjectAssignments(subjectId: string) {
     .order("created_at", { ascending: false });
   if (error) throw error;
   return data ?? [];
+}
+
+/* ------------------------------------------------------------- pathways */
+
+export async function listPathways(gradeId: string) {
+  const { data, error } = await supabase
+    .from("pathways")
+    .select("id, name, description, status, grade_id, authoring_organization_id, published_at")
+    .eq("grade_id", gradeId)
+    .order("name");
+  if (error) throw error;
+  return data ?? [];
+}
+
+/* --------------------------------------------------------------- search */
+
+export type CurriculumKind = "subject" | "topic" | "lesson";
+
+export interface CurriculumSearchAllParams {
+  term: string;
+  gradeId: string | null;
+  status: PublishStatus | "all";
+  contentType: string | "all";
+  kinds: CurriculumKind[];
+  page: number;
+  pageSize: number;
+}
+
+export interface CurriculumSearchRow {
+  kind: string;
+  id: string;
+  title: string;
+  subtitle: string | null;
+  status: string;
+  content_type: string | null;
+  subject_id: string;
+  grade_id: string;
+  grade_name: string | null;
+  total_count: number;
+}
+
+/**
+ * Unified full-text search across subjects, topics and lessons.
+ * Backed by the `search_curriculum` SQL function (RLS applies as the caller).
+ */
+export async function searchCurriculum(params: CurriculumSearchAllParams) {
+  const kinds = params.kinds.length > 0 ? params.kinds : (["subject", "topic", "lesson"] as const);
+  const { data, error } = await supabase.rpc("search_curriculum", {
+    p_term: params.term.trim(),
+    p_grade_id: params.gradeId ?? undefined,
+    p_status: params.status === "all" ? undefined : params.status,
+    p_content_type: params.contentType === "all" ? undefined : params.contentType,
+    p_kinds: [...kinds],
+    p_limit: params.pageSize,
+    p_offset: (params.page - 1) * params.pageSize,
+  });
+  if (error) throw error;
+  const rows = (data ?? []) as CurriculumSearchRow[];
+  return { rows, total: rows[0]?.total_count ?? 0 };
+}
+
+/* ------------------------------------------------------------- progress */
+
+export async function listStudentProgress(studentId: string) {
+  const { data, error } = await supabase
+    .from("progress_records")
+    .select(
+      "id, mastery_level, recorded_at, notes, lesson_id, competency_id, learning_objective_id, lesson:lessons(id, title, subject_id), competency:competencies(id, name), objective:learning_objectives(id, description)",
+    )
+    .eq("student_id", studentId)
+    .order("recorded_at", { ascending: false })
+    .limit(500);
+  if (error) throw error;
+  return data ?? [];
+}
+
+export interface SubjectProgress {
+  subjectId: string;
+  subjectName: string;
+  gradeName: string | null;
+  totalLessons: number;
+  completedLessons: number;
+  percent: number;
+}
+
+/**
+ * Per-subject completion for a student, derived from their curriculum
+ * assignments and the progress records captured against lessons.
+ * This is the data capture point future assessments will feed into.
+ */
+export async function getStudentProgressOverview(studentId: string) {
+  const assignments = await listStudentCurriculumAssignments(studentId);
+  const subjectIds = assignments
+    .map((row) => row.subject?.id)
+    .filter((id): id is string => Boolean(id));
+
+  if (subjectIds.length === 0) {
+    return { subjects: [] as SubjectProgress[], records: await listStudentProgress(studentId) };
+  }
+
+  const [lessonsResult, records] = await Promise.all([
+    supabase.from("lessons").select("id, subject_id, status").in("subject_id", subjectIds),
+    listStudentProgress(studentId),
+  ]);
+  if (lessonsResult.error) throw lessonsResult.error;
+
+  const completedLessonIds = new Set(
+    records
+      .filter((record) => record.lesson_id && COMPLETED_LEVELS.includes(record.mastery_level))
+      .map((record) => record.lesson_id as string),
+  );
+
+  const subjects: SubjectProgress[] = assignments
+    .filter((row) => row.subject)
+    .map((row) => {
+      const subjectLessons = (lessonsResult.data ?? []).filter(
+        (lesson) => lesson.subject_id === row.subject!.id && lesson.status !== "archived",
+      );
+      const completed = subjectLessons.filter((lesson) =>
+        completedLessonIds.has(lesson.id),
+      ).length;
+      return {
+        subjectId: row.subject!.id,
+        subjectName: row.subject!.name,
+        gradeName: row.subject!.grade?.name ?? null,
+        totalLessons: subjectLessons.length,
+        completedLessons: completed,
+        percent:
+          subjectLessons.length === 0
+            ? 0
+            : Math.round((completed / subjectLessons.length) * 100),
+      };
+    });
+
+  return { subjects, records };
+}
+
+/** Latest progress record for one student on one lesson. */
+export async function getLessonProgress(studentId: string, lessonId: string) {
+  const { data, error } = await supabase
+    .from("progress_records")
+    .select("id, mastery_level, recorded_at, notes")
+    .eq("student_id", studentId)
+    .eq("lesson_id", lessonId)
+    .order("recorded_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
 }
