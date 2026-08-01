@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { BookOpen, GraduationCap, Layers, Search } from "lucide-react";
+import { BookOpen, GraduationCap, Layers, LineChart, Search } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ListSkeleton, QueryState } from "@/components/shared/query-state";
@@ -22,14 +23,21 @@ import {
   getCurriculumStats,
   listGrades,
   listStudentCurriculumAssignments,
-  searchLessons,
-  type CurriculumSearchParams,
+  searchCurriculum,
+  type CurriculumKind,
+  type CurriculumSearchAllParams,
   type PublishStatus,
 } from "@/features/curriculum/api";
 import { useCurrentStudent } from "@/features/dashboard/use-viewer-students";
 import { useRoleContext } from "@/features/roles/role-context";
 
 const PAGE_SIZE = 10;
+
+const KIND_OPTIONS: { value: CurriculumKind; label: string }[] = [
+  { value: "subject", label: "Subjects" },
+  { value: "topic", label: "Topics" },
+  { value: "lesson", label: "Lessons" },
+];
 
 export const Route = createFileRoute("/_authenticated/curriculum/")({
   head: () => ({
@@ -62,6 +70,7 @@ function CurriculumDashboard() {
   const [gradeId, setGradeId] = useState<string>("all");
   const [status, setStatus] = useState<PublishStatus | "all">("all");
   const [contentType, setContentType] = useState<string>("all");
+  const [kinds, setKinds] = useState<CurriculumKind[]>(["subject", "topic", "lesson"]);
   const [page, setPage] = useState(1);
 
   const grades = useQuery({
@@ -74,21 +83,22 @@ function CurriculumDashboard() {
     queryFn: () => getCurriculumStats(organizationId),
   });
 
-  const searchParams: CurriculumSearchParams = useMemo(
+  const searchParams: CurriculumSearchAllParams = useMemo(
     () => ({
       term,
       gradeId: gradeId === "all" ? null : gradeId,
       status,
       contentType,
+      kinds,
       page,
       pageSize: PAGE_SIZE,
     }),
-    [term, gradeId, status, contentType, page],
+    [term, gradeId, status, contentType, kinds, page],
   );
 
   const results = useQuery({
     queryKey: curriculumKeys.search(searchParams),
-    queryFn: () => searchLessons(searchParams),
+    queryFn: () => searchCurriculum(searchParams),
     placeholderData: keepPreviousData,
   });
 
