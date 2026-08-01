@@ -133,6 +133,7 @@ export function EnvPreflightBanner() {
   const [customSeconds, setCustomSeconds] = useState<string>("60");
   const [hydrated, setHydrated] = useState(false);
   const [history, setHistory] = useState<CheckRecord[]>([]);
+  const [exportCount, setExportCount] = useState<number>(DEFAULT_EXPORT_COUNT);
   const [now, setNow] = useState(() => Date.now());
   const isCustom = useMemo(
     () => !INTERVAL_OPTIONS.some((o) => o.value === intervalMs),
