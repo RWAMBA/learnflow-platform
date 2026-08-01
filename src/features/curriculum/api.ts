@@ -57,7 +57,11 @@ export async function getGradeWithContent(gradeId: string) {
       .select("id, name, sequence_order, pathway_required, curriculum:curricula(id, name)")
       .eq("id", gradeId)
       .maybeSingle(),
-    supabase.from("pathways").select("id, name").eq("grade_id", gradeId).order("name"),
+    supabase
+      .from("pathways")
+      .select("id, name, description, status, authoring_organization_id, published_at")
+      .eq("grade_id", gradeId)
+      .order("name"),
     supabase
       .from("subjects")
       .select("id, name, code, description, status, pathway_id, authoring_organization_id")
@@ -341,9 +345,7 @@ export async function getStudentProgressOverview(studentId: string) {
       const subjectLessons = (lessonsResult.data ?? []).filter(
         (lesson) => lesson.subject_id === row.subject!.id && lesson.status !== "archived",
       );
-      const completed = subjectLessons.filter((lesson) =>
-        completedLessonIds.has(lesson.id),
-      ).length;
+      const completed = subjectLessons.filter((lesson) => completedLessonIds.has(lesson.id)).length;
       return {
         subjectId: row.subject!.id,
         subjectName: row.subject!.name,
@@ -351,9 +353,7 @@ export async function getStudentProgressOverview(studentId: string) {
         totalLessons: subjectLessons.length,
         completedLessons: completed,
         percent:
-          subjectLessons.length === 0
-            ? 0
-            : Math.round((completed / subjectLessons.length) * 100),
+          subjectLessons.length === 0 ? 0 : Math.round((completed / subjectLessons.length) * 100),
       };
     });
 

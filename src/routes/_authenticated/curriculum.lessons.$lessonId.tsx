@@ -12,9 +12,10 @@ import { CurriculumStatusBadge } from "@/features/curriculum/components/status-b
 import {
   LessonFormDialog,
   ObjectiveFormDialog,
+  RecordProgressDialog,
 } from "@/features/curriculum/components/curriculum-dialogs";
 import { curriculumKeys, getLesson, getSubjectWithContent } from "@/features/curriculum/api";
-import { canAuthorCurriculum } from "@/features/roles/permissions";
+import { canAssignCurriculum, canAuthorCurriculum } from "@/features/roles/permissions";
 import { useRoleContext } from "@/features/roles/role-context";
 import { deleteCurriculumItem, setCurriculumStatus } from "@/lib/curriculum.functions";
 import { formatDateTime } from "@/lib/format";
@@ -55,6 +56,8 @@ function LessonPage() {
     canAuthorCurriculum(activeRole?.roleCode) &&
     Boolean(organizationId) &&
     query.data?.lesson?.authoring_organization_id === organizationId;
+
+  const mayRecordProgress = canAssignCurriculum(activeRole?.roleCode) && Boolean(organizationId);
 
   const refresh = () =>
     void queryClient.invalidateQueries({ queryKey: curriculumKeys.lesson(lessonId) });
@@ -98,40 +101,51 @@ function LessonPage() {
             : undefined
         }
         actions={
-          mayAuthor && lesson ? (
+          lesson && (mayAuthor || mayRecordProgress) ? (
             <div className="flex flex-wrap gap-2">
-              <LessonFormDialog
-                organizationId={organizationId}
-                subjectId={lesson.subject!.id}
-                topics={subjectContent.data?.topics ?? []}
-                lesson={{
-                  id: lesson.id,
-                  title: lesson.title,
-                  topic_id: lesson.topic_id,
-                  sequence_order: lesson.sequence_order,
-                  content_type: lesson.content_type,
-                  status: lesson.status,
-                  content_body: lesson.content_body,
-                }}
-                nextOrder={lesson.sequence_order}
-                onSaved={refresh}
-                trigger={<Button variant="outline">Edit lesson</Button>}
-              />
-              <Button
-                disabled={statusMutation.isPending}
-                onClick={() =>
-                  statusMutation.mutate(lesson.status === "published" ? "draft" : "published")
-                }
-              >
-                {lesson.status === "published" ? "Unpublish" : "Publish"}
-              </Button>
-              <Button
-                variant="ghost"
-                disabled={statusMutation.isPending || lesson.status === "archived"}
-                onClick={() => statusMutation.mutate("archived")}
-              >
-                Archive
-              </Button>
+              {mayRecordProgress ? (
+                <RecordProgressDialog
+                  organizationId={organizationId}
+                  lessonId={lesson.id}
+                  trigger={<Button variant="outline">Record progress</Button>}
+                />
+              ) : null}
+              {mayAuthor ? (
+                <>
+                  <LessonFormDialog
+                    organizationId={organizationId}
+                    subjectId={lesson.subject!.id}
+                    topics={subjectContent.data?.topics ?? []}
+                    lesson={{
+                      id: lesson.id,
+                      title: lesson.title,
+                      topic_id: lesson.topic_id,
+                      sequence_order: lesson.sequence_order,
+                      content_type: lesson.content_type,
+                      status: lesson.status,
+                      content_body: lesson.content_body,
+                    }}
+                    nextOrder={lesson.sequence_order}
+                    onSaved={refresh}
+                    trigger={<Button variant="outline">Edit lesson</Button>}
+                  />
+                  <Button
+                    disabled={statusMutation.isPending}
+                    onClick={() =>
+                      statusMutation.mutate(lesson.status === "published" ? "draft" : "published")
+                    }
+                  >
+                    {lesson.status === "published" ? "Unpublish" : "Publish"}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    disabled={statusMutation.isPending || lesson.status === "archived"}
+                    onClick={() => statusMutation.mutate("archived")}
+                  >
+                    Archive
+                  </Button>
+                </>
+              ) : null}
             </div>
           ) : undefined
         }

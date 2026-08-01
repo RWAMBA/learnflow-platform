@@ -56,13 +56,7 @@ const pathwayInput = z.object({
   status: publishStatus,
 });
 
-const masteryLevel = z.enum([
-  "not_started",
-  "emerging",
-  "developing",
-  "proficient",
-  "mastered",
-]);
+const masteryLevel = z.enum(["not_started", "emerging", "developing", "proficient", "mastered"]);
 
 type AuditContext = {
   supabase: {

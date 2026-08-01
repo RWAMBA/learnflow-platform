@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { BookOpen, GraduationCap, Layers, Search } from "lucide-react";
+import { BookOpen, GraduationCap, Layers, LineChart, Search } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ListSkeleton, QueryState } from "@/components/shared/query-state";
@@ -22,14 +23,21 @@ import {
   getCurriculumStats,
   listGrades,
   listStudentCurriculumAssignments,
-  searchLessons,
-  type CurriculumSearchParams,
+  searchCurriculum,
+  type CurriculumKind,
+  type CurriculumSearchAllParams,
   type PublishStatus,
 } from "@/features/curriculum/api";
 import { useCurrentStudent } from "@/features/dashboard/use-viewer-students";
 import { useRoleContext } from "@/features/roles/role-context";
 
 const PAGE_SIZE = 10;
+
+const KIND_OPTIONS: { value: CurriculumKind; label: string }[] = [
+  { value: "subject", label: "Subjects" },
+  { value: "topic", label: "Topics" },
+  { value: "lesson", label: "Lessons" },
+];
 
 export const Route = createFileRoute("/_authenticated/curriculum/")({
   head: () => ({
@@ -62,6 +70,7 @@ function CurriculumDashboard() {
   const [gradeId, setGradeId] = useState<string>("all");
   const [status, setStatus] = useState<PublishStatus | "all">("all");
   const [contentType, setContentType] = useState<string>("all");
+  const [kinds, setKinds] = useState<CurriculumKind[]>(["subject", "topic", "lesson"]);
   const [page, setPage] = useState(1);
 
   const grades = useQuery({
@@ -74,21 +83,22 @@ function CurriculumDashboard() {
     queryFn: () => getCurriculumStats(organizationId),
   });
 
-  const searchParams: CurriculumSearchParams = useMemo(
+  const searchParams: CurriculumSearchAllParams = useMemo(
     () => ({
       term,
       gradeId: gradeId === "all" ? null : gradeId,
       status,
       contentType,
+      kinds,
       page,
       pageSize: PAGE_SIZE,
     }),
-    [term, gradeId, status, contentType, page],
+    [term, gradeId, status, contentType, kinds, page],
   );
 
   const results = useQuery({
     queryKey: curriculumKeys.search(searchParams),
-    queryFn: () => searchLessons(searchParams),
+    queryFn: () => searchCurriculum(searchParams),
     placeholderData: keepPreviousData,
   });
 
@@ -106,6 +116,13 @@ function CurriculumDashboard() {
       <PageHeader
         title="Curriculum"
         description="Grades, pathways, subjects, topics and lessons — searchable across the whole library."
+        actions={
+          <Button asChild variant="outline">
+            <Link to="/curriculum/progress">
+              <LineChart aria-hidden="true" className="size-4" /> Progress
+            </Link>
+          </Button>
+        }
       />
 
       <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -198,7 +215,7 @@ function CurriculumDashboard() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Search lessons</CardTitle>
+          <CardTitle className="text-base">Search the curriculum</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -212,7 +229,7 @@ function CurriculumDashboard() {
                 <Input
                   id="curriculum-search"
                   className="pl-9"
-                  placeholder="Lesson title…"
+                  placeholder="Subject, topic or lesson…"
                   value={term}
                   onChange={(event) => {
                     setTerm(event.target.value);
@@ -267,6 +284,26 @@ function CurriculumDashboard() {
             />
           </div>
 
+          <fieldset className="flex flex-wrap items-center gap-4">
+            <legend className="sr-only">Content kinds</legend>
+            {KIND_OPTIONS.map((option) => (
+              <label key={option.value} className="flex items-center gap-2 text-sm">
+                <Checkbox
+                  checked={kinds.includes(option.value)}
+                  onCheckedChange={(value) => {
+                    setKinds((prev) =>
+                      value === true
+                        ? [...prev, option.value]
+                        : prev.filter((kind) => kind !== option.value),
+                    );
+                    setPage(1);
+                  }}
+                />
+                {option.label}
+              </label>
+            ))}
+          </fieldset>
+
           <QueryState
             isPending={results.isPending}
             error={results.error}
@@ -276,7 +313,7 @@ function CurriculumDashboard() {
             isEmpty={(value) => value.rows.length === 0}
             empty={
               <EmptyState
-                title="No lessons match"
+                title="No curriculum items match"
                 description="Try a different search term or clear the filters."
               />
             }
@@ -284,25 +321,54 @@ function CurriculumDashboard() {
             {(value) => (
               <div className="space-y-3">
                 <ul className="divide-y rounded-md border">
-                  {value.rows.map((lesson) => (
-                    <li key={lesson.id}>
-                      <Link
-                        to="/curriculum/lessons/$lessonId"
-                        params={{ lessonId: lesson.id }}
-                        className="flex flex-col gap-1 p-3 transition-colors hover:bg-accent sm:flex-row sm:items-center sm:justify-between"
-                      >
-                        <span className="font-medium">{lesson.title}</span>
-                        <span className="flex items-center gap-2 text-sm text-muted-foreground">
-                          {lesson.subject?.grade?.name ?? "—"} · {lesson.subject?.name}
-                          <CurriculumStatusBadge status={lesson.status} />
+                  {value.rows.map((row) => {
+                    const inner = (
+                      <>
+                        <span className="font-medium">
+                          <span className="mr-2 rounded bg-muted px-2 py-0.5 text-xs uppercase text-muted-foreground">
+                            {row.kind}
+                          </span>
+                          {row.title}
                         </span>
-                      </Link>
-                    </li>
-                  ))}
+                        <span className="flex items-center gap-2 text-sm text-muted-foreground">
+                          {row.grade_name ?? "—"}
+                          {row.subtitle ? ` · ${row.subtitle}` : ""}
+                          {row.content_type ? (
+                            <span className="text-xs uppercase">{row.content_type}</span>
+                          ) : null}
+                          <CurriculumStatusBadge status={row.status} />
+                        </span>
+                      </>
+                    );
+                    const className =
+                      "flex flex-col gap-1 p-3 transition-colors hover:bg-accent sm:flex-row sm:items-center sm:justify-between";
+                    return (
+                      <li key={`${row.kind}-${row.id}`}>
+                        {row.kind === "lesson" ? (
+                          <Link
+                            to="/curriculum/lessons/$lessonId"
+                            params={{ lessonId: row.id }}
+                            className={className}
+                          >
+                            {inner}
+                          </Link>
+                        ) : (
+                          <Link
+                            to="/curriculum/subjects/$subjectId"
+                            params={{ subjectId: row.subject_id }}
+                            className={className}
+                          >
+                            {inner}
+                          </Link>
+                        )}
+                      </li>
+                    );
+                  })}
                 </ul>
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm text-muted-foreground" aria-live="polite">
-                    Page {page} of {totalPages} · {value.total} lesson{value.total === 1 ? "" : "s"}
+                    Page {page} of {totalPages} · {value.total} result
+                    {value.total === 1 ? "" : "s"}
                   </p>
                   <div className="flex gap-2">
                     <Button

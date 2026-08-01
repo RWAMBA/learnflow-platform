@@ -35,12 +35,16 @@ import {
 } from "@/components/ui/select";
 import {
   assignSubjectToStudents,
+  assignPathwayToStudents,
+  recordProgress,
   saveLearningObjective,
   saveLesson,
+  savePathway,
   saveSubject,
   saveTopic,
 } from "@/lib/curriculum.functions";
 import { listStudents, studentKeys } from "@/features/students/api";
+import { MASTERY_LEVELS } from "@/features/curriculum/api";
 
 const statusValues = ["draft", "published", "archived"] as const;
 
@@ -813,3 +817,359 @@ export function AssignSubjectDialog({
     </DialogShell>
   );
 }
+
+/* ------------------------------------------------------------- pathways */
+
+const pathwaySchema = z.object({
+  name: z.string().trim().min(2, "Name is required").max(120),
+  description: z.string().trim().max(2000).optional(),
+  status: z.enum(statusValues),
+});
+
+export function PathwayFormDialog({
+  organizationId,
+  gradeId,
+  pathway,
+  trigger,
+  onSaved,
+}: {
+  organizationId: string;
+  gradeId: string;
+  pathway?: { id: string; name: string; description: string | null; status: string };
+  trigger: ReactNode;
+  onSaved?: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const save = useServerFn(savePathway);
+  const form = useForm<z.infer<typeof pathwaySchema>>({
+    resolver: zodResolver(pathwaySchema),
+    defaultValues: {
+      name: pathway?.name ?? "",
+      description: pathway?.description ?? "",
+      status: (pathway?.status as (typeof statusValues)[number]) ?? "draft",
+    },
+  });
+
+  const mutation = useMutation({
+    mutationFn: (values: z.infer<typeof pathwaySchema>) =>
+      save({
+        data: {
+          id: pathway?.id,
+          organizationId,
+          gradeId,
+          name: values.name,
+          description: values.description || null,
+          status: values.status,
+        },
+      }),
+    onSuccess: () => {
+      toast.success(pathway ? "Pathway updated" : "Pathway created");
+      setOpen(false);
+      onSaved?.();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  return (
+    <DialogShell
+      open={open}
+      onOpenChange={setOpen}
+      trigger={trigger}
+      title={pathway ? "Edit pathway" : "New learning pathway"}
+      description="Pathways group the subjects a learner follows within a grade."
+    >
+      <Form {...form}>
+        <form
+          className="space-y-4"
+          onSubmit={form.handleSubmit((values) => mutation.mutate(values))}
+        >
+          <FormField
+            control={form.control}
+            name="name"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Name</FormLabel>
+                <FormControl>
+                  <Input placeholder="Science, Technology, Engineering and Maths" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Description</FormLabel>
+                <FormControl>
+                  <Textarea rows={3} {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <StatusField control={form.control} />
+          <DialogFooter>
+            <Button type="submit" disabled={mutation.isPending}>
+              {mutation.isPending ? "Saving…" : "Save pathway"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </Form>
+    </DialogShell>
+  );
+}
+
+export function AssignPathwayDialog({
+  organizationId,
+  pathwayId,
+  trigger,
+  onSaved,
+}: {
+  organizationId: string;
+  pathwayId: string;
+  trigger: ReactNode;
+  onSaved?: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const [selected, setSelected] = useState<string[]>([]);
+  const queryClient = useQueryClient();
+  const assign = useServerFn(assignPathwayToStudents);
+
+  const students = useQuery({
+    queryKey: studentKeys.list(organizationId),
+    enabled: open && Boolean(organizationId),
+    queryFn: () => listStudents(organizationId),
+  });
+
+  const mutation = useMutation({
+    mutationFn: () => assign({ data: { organizationId, pathwayId, studentIds: selected } }),
+    onSuccess: (result) => {
+      toast.success(
+        `Pathway assigned to ${result.assigned} student${result.assigned === 1 ? "" : "s"}`,
+      );
+      setSelected([]);
+      setOpen(false);
+      void queryClient.invalidateQueries({ queryKey: ["students"] });
+      onSaved?.();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  return (
+    <DialogShell
+      open={open}
+      onOpenChange={setOpen}
+      trigger={trigger}
+      title="Assign pathway to students"
+      description="Selected students will follow this pathway within their grade."
+    >
+      <div className="space-y-3">
+        {students.isPending ? (
+          <p className="text-sm text-muted-foreground">Loading students…</p>
+        ) : null}
+        {students.error ? (
+          <p className="text-sm text-destructive">We couldn't load your students.</p>
+        ) : null}
+        {students.data?.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No students in this organization yet.</p>
+        ) : null}
+        <ul className="space-y-2">
+          {students.data?.map((student) => (
+            <li key={student.id} className="flex items-center gap-3 rounded-md border p-3">
+              <Checkbox
+                id={`pathway-${student.id}`}
+                checked={selected.includes(student.id)}
+                onCheckedChange={(value) =>
+                  setSelected((prev) =>
+                    value === true ? [...prev, student.id] : prev.filter((id) => id !== student.id),
+                  )
+                }
+              />
+              <label htmlFor={`pathway-${student.id}`} className="text-sm">
+                {student.first_name} {student.last_name}
+                <span className="ml-2 text-muted-foreground">
+                  {student.pathway?.name ?? "No pathway"}
+                </span>
+              </label>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <DialogFooter>
+        <Button
+          type="button"
+          disabled={selected.length === 0 || mutation.isPending}
+          onClick={() => mutation.mutate()}
+        >
+          {mutation.isPending ? "Assigning…" : `Assign ${selected.length || ""}`.trim()}
+        </Button>
+      </DialogFooter>
+    </DialogShell>
+  );
+}
+
+/* -------------------------------------------------------------- progress */
+
+const progressSchema = z.object({
+  studentId: z.string().uuid("Choose a student"),
+  masteryLevel: z.enum(MASTERY_LEVELS),
+  notes: z.string().trim().max(1000).optional(),
+});
+
+const MASTERY_LABELS: Record<string, string> = {
+  not_started: "Not started",
+  emerging: "Emerging",
+  developing: "Developing",
+  proficient: "Proficient",
+  mastered: "Mastered",
+};
+
+/**
+ * Capture point for learner progress against a lesson or objective.
+ * Assessments will reuse this dialog's server function later.
+ */
+export function RecordProgressDialog({
+  organizationId,
+  lessonId,
+  learningObjectiveId,
+  competencyId,
+  studentId,
+  trigger,
+  onSaved,
+}: {
+  organizationId: string;
+  lessonId?: string;
+  learningObjectiveId?: string;
+  competencyId?: string;
+  studentId?: string;
+  trigger: ReactNode;
+  onSaved?: () => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const queryClient = useQueryClient();
+  const record = useServerFn(recordProgress);
+
+  const students = useQuery({
+    queryKey: studentKeys.list(organizationId),
+    enabled: open && Boolean(organizationId) && !studentId,
+    queryFn: () => listStudents(organizationId),
+  });
+
+  const form = useForm<z.infer<typeof progressSchema>>({
+    resolver: zodResolver(progressSchema),
+    defaultValues: { studentId: studentId ?? "", masteryLevel: "developing", notes: "" },
+  });
+
+  const mutation = useMutation({
+    mutationFn: (values: z.infer<typeof progressSchema>) =>
+      record({
+        data: {
+          organizationId,
+          studentId: values.studentId,
+          lessonId: lessonId ?? null,
+          learningObjectiveId: learningObjectiveId ?? null,
+          competencyId: competencyId ?? null,
+          masteryLevel: values.masteryLevel,
+          notes: values.notes || null,
+        },
+      }),
+    onSuccess: () => {
+      toast.success("Progress recorded");
+      setOpen(false);
+      form.reset({ studentId: studentId ?? "", masteryLevel: "developing", notes: "" });
+      void queryClient.invalidateQueries({ queryKey: ["curriculum", "progress"] });
+      onSaved?.();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  return (
+    <DialogShell
+      open={open}
+      onOpenChange={setOpen}
+      trigger={trigger}
+      title="Record progress"
+      description="Capture where the learner is right now. Assessments will add to this record."
+    >
+      <Form {...form}>
+        <form
+          className="space-y-4"
+          onSubmit={form.handleSubmit((values) => mutation.mutate(values))}
+        >
+          {studentId ? null : (
+            <FormField
+              control={form.control}
+              name="studentId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Student</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select a student" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {(students.data ?? []).map((student) => (
+                        <SelectItem key={student.id} value={student.id}>
+                          {student.first_name} {student.last_name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )}
+          <FormField
+            control={form.control}
+            name="masteryLevel"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Mastery level</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {MASTERY_LEVELS.map((level) => (
+                      <SelectItem key={level} value={level}>
+                        {MASTERY_LABELS[level]}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="notes"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Notes</FormLabel>
+                <FormControl>
+                  <Textarea rows={3} placeholder="Evidence, observations…" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <DialogFooter>
+            <Button type="submit" disabled={mutation.isPending}>
+              {mutation.isPending ? "Saving…" : "Record progress"}
+            </Button>
+          </DialogFooter>
+        </form>
+      </Form>
+    </DialogShell>
+  );
+}
+
+export { MASTERY_LABELS };

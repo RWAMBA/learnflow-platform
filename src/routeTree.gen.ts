@@ -21,6 +21,7 @@ import { Route as AuthenticatedAssignmentsIndexRouteImport } from './routes/_aut
 import { Route as AuthenticatedAssignmentsAssignmentIdRouteImport } from './routes/_authenticated/assignments.$assignmentId'
 import { Route as AuthenticatedAssignmentsNewRouteImport } from './routes/_authenticated/assignments.new'
 import { Route as AuthenticatedCurriculumIndexRouteImport } from './routes/_authenticated/curriculum.index'
+import { Route as AuthenticatedCurriculumProgressRouteImport } from './routes/_authenticated/curriculum.progress'
 import { Route as AuthenticatedMessagesIndexRouteImport } from './routes/_authenticated/messages.index'
 import { Route as AuthenticatedMessagesConversationIdRouteImport } from './routes/_authenticated/messages.$conversationId'
 import { Route as AuthenticatedOrganizationIndexRouteImport } from './routes/_authenticated/organization.index'
@@ -97,6 +98,12 @@ const AuthenticatedCurriculumIndexRoute =
     path: '/curriculum/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedCurriculumProgressRoute =
+  AuthenticatedCurriculumProgressRouteImport.update({
+    id: '/curriculum/progress',
+    path: '/curriculum/progress',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedMessagesIndexRoute =
   AuthenticatedMessagesIndexRouteImport.update({
     id: '/messages/',
@@ -168,6 +175,7 @@ export interface FileRoutesByFullPath {
   '/admin/tenants': typeof AuthenticatedAdminTenantsRoute
   '/assignments/$assignmentId': typeof AuthenticatedAssignmentsAssignmentIdRoute
   '/assignments/new': typeof AuthenticatedAssignmentsNewRoute
+  '/curriculum/progress': typeof AuthenticatedCurriculumProgressRoute
   '/messages/$conversationId': typeof AuthenticatedMessagesConversationIdRoute
   '/organization/billing': typeof AuthenticatedOrganizationBillingRoute
   '/students/$studentId': typeof AuthenticatedStudentsStudentIdRoute
@@ -191,6 +199,7 @@ export interface FileRoutesByTo {
   '/admin/tenants': typeof AuthenticatedAdminTenantsRoute
   '/assignments/$assignmentId': typeof AuthenticatedAssignmentsAssignmentIdRoute
   '/assignments/new': typeof AuthenticatedAssignmentsNewRoute
+  '/curriculum/progress': typeof AuthenticatedCurriculumProgressRoute
   '/messages/$conversationId': typeof AuthenticatedMessagesConversationIdRoute
   '/organization/billing': typeof AuthenticatedOrganizationBillingRoute
   '/students/$studentId': typeof AuthenticatedStudentsStudentIdRoute
@@ -216,6 +225,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/tenants': typeof AuthenticatedAdminTenantsRoute
   '/_authenticated/assignments/$assignmentId': typeof AuthenticatedAssignmentsAssignmentIdRoute
   '/_authenticated/assignments/new': typeof AuthenticatedAssignmentsNewRoute
+  '/_authenticated/curriculum/progress': typeof AuthenticatedCurriculumProgressRoute
   '/_authenticated/messages/$conversationId': typeof AuthenticatedMessagesConversationIdRoute
   '/_authenticated/organization/billing': typeof AuthenticatedOrganizationBillingRoute
   '/_authenticated/students/$studentId': typeof AuthenticatedStudentsStudentIdRoute
@@ -241,6 +251,7 @@ export interface FileRouteTypes {
     | '/admin/tenants'
     | '/assignments/$assignmentId'
     | '/assignments/new'
+    | '/curriculum/progress'
     | '/messages/$conversationId'
     | '/organization/billing'
     | '/students/$studentId'
@@ -264,6 +275,7 @@ export interface FileRouteTypes {
     | '/admin/tenants'
     | '/assignments/$assignmentId'
     | '/assignments/new'
+    | '/curriculum/progress'
     | '/messages/$conversationId'
     | '/organization/billing'
     | '/students/$studentId'
@@ -288,6 +300,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/tenants'
     | '/_authenticated/assignments/$assignmentId'
     | '/_authenticated/assignments/new'
+    | '/_authenticated/curriculum/progress'
     | '/_authenticated/messages/$conversationId'
     | '/_authenticated/organization/billing'
     | '/_authenticated/students/$studentId'
@@ -395,6 +408,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCurriculumIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/curriculum/progress': {
+      id: '/_authenticated/curriculum/progress'
+      path: '/curriculum/progress'
+      fullPath: '/curriculum/progress'
+      preLoaderRoute: typeof AuthenticatedCurriculumProgressRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/messages/': {
       id: '/_authenticated/messages/'
       path: '/messages'
@@ -475,6 +495,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminTenantsRoute: typeof AuthenticatedAdminTenantsRoute
   AuthenticatedAssignmentsAssignmentIdRoute: typeof AuthenticatedAssignmentsAssignmentIdRoute
   AuthenticatedAssignmentsNewRoute: typeof AuthenticatedAssignmentsNewRoute
+  AuthenticatedCurriculumProgressRoute: typeof AuthenticatedCurriculumProgressRoute
   AuthenticatedMessagesConversationIdRoute: typeof AuthenticatedMessagesConversationIdRoute
   AuthenticatedOrganizationBillingRoute: typeof AuthenticatedOrganizationBillingRoute
   AuthenticatedStudentsStudentIdRoute: typeof AuthenticatedStudentsStudentIdRoute
@@ -497,6 +518,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAssignmentsAssignmentIdRoute:
     AuthenticatedAssignmentsAssignmentIdRoute,
   AuthenticatedAssignmentsNewRoute: AuthenticatedAssignmentsNewRoute,
+  AuthenticatedCurriculumProgressRoute: AuthenticatedCurriculumProgressRoute,
   AuthenticatedMessagesConversationIdRoute:
     AuthenticatedMessagesConversationIdRoute,
   AuthenticatedOrganizationBillingRoute: AuthenticatedOrganizationBillingRoute,
