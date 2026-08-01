@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { AlertTriangle, ExternalLink, RefreshCw, RotateCcw } from "lucide-react";
+import { AlertTriangle, Download, ExternalLink, RefreshCw, RotateCcw } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,6 +34,7 @@ const HISTORY_LIMIT = 5;
 const LS_NAMESPACE = `platform-env-preflight:${PROJECT_REF ?? "unknown-project"}`;
 const LS_KEY_AUTO_RECHECK = `${LS_NAMESPACE}:auto-recheck`;
 const LS_KEY_INTERVAL_SECONDS = `${LS_NAMESPACE}:interval-seconds`;
+const LS_KEY_HISTORY = `${LS_NAMESPACE}:history`;
 
 interface CheckRecord {
   at: number;
@@ -98,6 +99,17 @@ function formatClock(at: number) {
   });
 }
 
+/** Verbose countdown text for screen readers ("2 minutes 5 seconds"). */
+function announceCountdown(ms: number) {
+  const total = Math.max(0, Math.ceil(ms / 1_000));
+  const minutes = Math.floor(total / 60);
+  const seconds = total % 60;
+  const parts: string[] = [];
+  if (minutes > 0) parts.push(`${minutes} minute${minutes === 1 ? "" : "s"}`);
+  if (seconds > 0 || minutes === 0) parts.push(`${seconds} second${seconds === 1 ? "" : "s"}`);
+  return parts.join(" ");
+}
+
 /**
  * Surfaces missing server-side configuration up front, so a blank screen from
  * a failed server action is explained before the user triggers it.
@@ -121,6 +133,24 @@ export function EnvPreflightBanner() {
     try {
       const savedAuto = window.localStorage.getItem(LS_KEY_AUTO_RECHECK);
       const savedSeconds = window.localStorage.getItem(LS_KEY_INTERVAL_SECONDS);
+      const savedHistory = window.localStorage.getItem(LS_KEY_HISTORY);
+      if (savedHistory) {
+        const parsedHistory: unknown = JSON.parse(savedHistory);
+        if (Array.isArray(parsedHistory)) {
+          setHistory(
+            parsedHistory
+              .filter(
+                (e): e is CheckRecord =>
+                  !!e &&
+                  typeof e === "object" &&
+                  typeof (e as CheckRecord).at === "number" &&
+                  typeof (e as CheckRecord).ok === "boolean" &&
+                  Array.isArray((e as CheckRecord).missing),
+              )
+              .slice(0, HISTORY_LIMIT),
+          );
+        }
+      }
       if (savedAuto != null) {
         setAutoRecheck(savedAuto === "true");
       }
@@ -185,6 +215,16 @@ export function EnvPreflightBanner() {
     setLastCheckedAt(dataUpdatedAt);
   }, [data, dataUpdatedAt]);
 
+  // Persist history per project ref.
+  useEffect(() => {
+    if (!hydrated || typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(LS_KEY_HISTORY, JSON.stringify(history));
+    } catch {
+      // ignore
+    }
+  }, [history, hydrated]);
+
   // Tick once per second while a countdown is visible.
   const countdownActive = autoRecheck && !!data && !data.ok;
   useEffect(() => {
@@ -204,6 +244,27 @@ export function EnvPreflightBanner() {
       // ignore
     }
   }, []);
+
+  const exportHistory = useCallback(() => {
+    const payload = {
+      projectRef: PROJECT_REF ?? null,
+      exportedAt: new Date().toISOString(),
+      checks: history.map((entry) => ({
+        at: new Date(entry.at).toISOString(),
+        ok: entry.ok,
+        missing: entry.missing,
+      })),
+    };
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `env-preflight-${PROJECT_REF ?? "project"}-${Date.now()}.json`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+  }, [history]);
 
   if (!data || data.ok) return null;
 
@@ -261,7 +322,17 @@ export function EnvPreflightBanner() {
                 aria-hidden="true"
                 className={`mr-2 size-4 ${isFetching ? "animate-spin" : ""}`}
               />
-              {isFetching ? "Re-checking…" : "Re-run check"}
+              {isFetching ? "Re-checking…" : "Run preflight check now"}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={history.length === 0}
+              onClick={exportHistory}
+            >
+              <Download aria-hidden="true" className="mr-2 size-4" />
+              Export results (JSON)
             </Button>
             <Button type="button" variant="ghost" size="sm" onClick={resetSettings}>
               <RotateCcw aria-hidden="true" className="mr-2 size-4" />
@@ -341,7 +412,7 @@ export function EnvPreflightBanner() {
             <p className="mt-2 text-xs text-muted-foreground">
               Re-checking automatically every {activeLabel} until all variables are configured.
               {countdownMs != null && (
-                <span className="ml-1" aria-live="polite">
+                <span className="ml-1" aria-hidden="true">
                   {isFetching ? "Checking now…" : `Next check in ${formatCountdown(countdownMs)}.`}
                 </span>
               )}
@@ -352,6 +423,19 @@ export function EnvPreflightBanner() {
               )}
             </p>
           )}
+          <p role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+            {isFetching
+              ? "Running Supabase environment preflight check now."
+              : `Preflight check complete. ${
+                  data.missing.length
+                } environment variable${data.missing.length === 1 ? "" : "s"} still missing: ${data.missing
+                  .map((m) => m.name)
+                  .join(", ")}.${
+                  autoRecheck && countdownMs != null
+                    ? ` Next automatic check in ${announceCountdown(countdownMs)}.`
+                    : ""
+                }`}
+          </p>
           {history.length > 0 && (
             <div className="mt-3 rounded-md border bg-card p-3">
               <p className="text-xs font-medium">Recent checks</p>
