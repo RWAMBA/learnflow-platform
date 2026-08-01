@@ -47,6 +47,23 @@ const objectiveInput = z.object({
   sequenceOrder: z.number().int().min(1).max(999),
 });
 
+const pathwayInput = z.object({
+  id: uuid.optional(),
+  organizationId: uuid,
+  gradeId: uuid,
+  name: z.string().trim().min(2).max(120),
+  description: z.string().trim().max(2000).nullable().optional(),
+  status: publishStatus,
+});
+
+const masteryLevel = z.enum([
+  "not_started",
+  "emerging",
+  "developing",
+  "proficient",
+  "mastered",
+]);
+
 type AuditContext = {
   supabase: {
     from: (table: string) => { insert: (values: unknown) => Promise<{ error: unknown }> };
@@ -170,7 +187,7 @@ export const setCurriculumStatus = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) =>
     z
       .object({
-        entity: z.enum(["subjects", "topics", "lessons"]),
+        entity: z.enum(["subjects", "topics", "lessons", "pathways"]),
         id: uuid,
         organizationId: uuid,
         status: publishStatus,
@@ -202,7 +219,7 @@ export const deleteCurriculumItem = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) =>
     z
       .object({
-        entity: z.enum(["subjects", "topics", "lessons", "learning_objectives"]),
+        entity: z.enum(["subjects", "topics", "lessons", "learning_objectives", "pathways"]),
         id: uuid,
         organizationId: uuid,
       })
