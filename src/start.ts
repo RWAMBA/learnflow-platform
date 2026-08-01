@@ -3,6 +3,15 @@ import { createStart, createCsrfMiddleware, createMiddleware } from "@tanstack/r
 import { renderErrorPage } from "./lib/error-page";
 import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
 
+// Runs before every server function: fails fast with an explicit list of the
+// missing Supabase variables instead of an opaque error from the first client
+// that happens to need one.
+const envPreflightMiddleware = createMiddleware({ type: "function" }).server(async ({ next }) => {
+  const { assertSupabaseEnv } = await import("./lib/env-preflight.server");
+  assertSupabaseEnv(["core"]);
+  return next();
+});
+
 const errorMiddleware = createMiddleware().server(async ({ next }) => {
   try {
     return await next();
@@ -26,6 +35,6 @@ const csrfMiddleware = createCsrfMiddleware({
 });
 
 export const startInstance = createStart(() => ({
-  functionMiddleware: [attachSupabaseAuth],
+  functionMiddleware: [envPreflightMiddleware, attachSupabaseAuth],
   requestMiddleware: [errorMiddleware, csrfMiddleware],
 }));

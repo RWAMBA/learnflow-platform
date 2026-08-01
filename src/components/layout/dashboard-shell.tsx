@@ -4,6 +4,7 @@ import { MainNav } from "./main-nav";
 import { NotificationBell } from "./notification-bell";
 import { ProfileMenu } from "./profile-menu";
 import { RoleSwitcher } from "./role-switcher";
+import { EnvPreflightBanner } from "@/components/shared/env-preflight-banner";
 
 /**
  * One shared shell for every role. Widgets and navigation are filtered by
@@ -34,6 +35,7 @@ export function DashboardShell({ children }: { children: ReactNode }) {
         </div>
       </header>
       <main id="main-content" className="mx-auto w-full max-w-7xl px-4 py-6">
+        <EnvPreflightBanner />
         {children}
       </main>
     </div>

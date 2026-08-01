@@ -67,6 +67,8 @@ export const joinOrganization = createServerFn({ method: "POST" })
 export const listJoinableOrganizations = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async () => {
+    const { assertSupabaseEnv } = await import("./env-preflight.server");
+    assertSupabaseEnv(["admin"]);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data, error } = await supabaseAdmin
       .from("organizations")
