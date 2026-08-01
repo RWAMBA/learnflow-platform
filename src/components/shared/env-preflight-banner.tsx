@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { AlertTriangle, ExternalLink } from "lucide-react";
+import { AlertTriangle, ExternalLink, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getSupabaseEnvPreflight } from "@/lib/env-preflight.functions";
 
@@ -46,7 +46,7 @@ const FALLBACK_STEPS = [
  */
 export function EnvPreflightBanner() {
   const preflight = useServerFn(getSupabaseEnvPreflight);
-  const { data } = useQuery({
+  const { data, refetch, isFetching } = useQuery({
     queryKey: ["supabase-env-preflight"],
     queryFn: () => preflight(),
     staleTime: 60_000,
@@ -82,12 +82,27 @@ export function EnvPreflightBanner() {
               </li>
             ))}
           </ul>
-          <Button asChild variant="outline" size="sm" className="mt-3">
-            <a href={SETUP_URL} target="_blank" rel="noreferrer noopener">
-              Open Supabase API keys
-              <ExternalLink aria-hidden="true" className="ml-2 size-4" />
-            </a>
-          </Button>
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Button asChild variant="outline" size="sm">
+              <a href={SETUP_URL} target="_blank" rel="noreferrer noopener">
+                Open Supabase API keys
+                <ExternalLink aria-hidden="true" className="ml-2 size-4" />
+              </a>
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              disabled={isFetching}
+              onClick={() => void refetch()}
+            >
+              <RefreshCw
+                aria-hidden="true"
+                className={`mr-2 size-4 ${isFetching ? "animate-spin" : ""}`}
+              />
+              {isFetching ? "Re-checking…" : "Re-run check"}
+            </Button>
+          </div>
         </div>
       </div>
     </div>
