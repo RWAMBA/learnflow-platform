@@ -1,12 +1,22 @@
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { AlertTriangle, Download, ExternalLink, RefreshCw, RotateCcw } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Download,
+  ExternalLink,
+  RefreshCw,
+  RotateCcw,
+  Trash2,
+  XCircle,
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { getSupabaseEnvPreflight } from "@/lib/env-preflight.functions";
+import { announceCountdown, buildHistoryCsv, type CheckRecord } from "@/lib/env-preflight-format";
 
 const PROJECT_REF = import.meta.env["VITE_SUPABASE_PROJECT_ID"] as string | undefined;
 
@@ -35,12 +45,6 @@ const LS_NAMESPACE = `platform-env-preflight:${PROJECT_REF ?? "unknown-project"}
 const LS_KEY_AUTO_RECHECK = `${LS_NAMESPACE}:auto-recheck`;
 const LS_KEY_INTERVAL_SECONDS = `${LS_NAMESPACE}:interval-seconds`;
 const LS_KEY_HISTORY = `${LS_NAMESPACE}:history`;
-
-interface CheckRecord {
-  at: number;
-  ok: boolean;
-  missing: string[];
-}
 
 /** Exact click-path for configuring each variable in Lovable Cloud. */
 const SETUP_STEPS: Record<string, string[]> = {
@@ -99,15 +103,16 @@ function formatClock(at: number) {
   });
 }
 
-/** Verbose countdown text for screen readers ("2 minutes 5 seconds"). */
-function announceCountdown(ms: number) {
-  const total = Math.max(0, Math.ceil(ms / 1_000));
-  const minutes = Math.floor(total / 60);
-  const seconds = total % 60;
-  const parts: string[] = [];
-  if (minutes > 0) parts.push(`${minutes} minute${minutes === 1 ? "" : "s"}`);
-  if (seconds > 0 || minutes === 0) parts.push(`${seconds} second${seconds === 1 ? "" : "s"}`);
-  return parts.join(" ");
+function downloadFile(contents: string, mimeType: string, extension: string) {
+  const blob = new Blob([contents], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `env-preflight-${PROJECT_REF ?? "project"}-${Date.now()}.${extension}`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
 }
 
 /**
@@ -255,16 +260,41 @@ export function EnvPreflightBanner() {
         missing: entry.missing,
       })),
     };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `env-preflight-${PROJECT_REF ?? "project"}-${Date.now()}.json`;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
+    downloadFile(JSON.stringify(payload, null, 2), "application/json", "json");
   }, [history]);
+
+  const exportHistoryCsv = useCallback(() => {
+    downloadFile(buildHistoryCsv(history), "text/csv", "csv");
+  }, [history]);
+
+  const clearHistory = useCallback(() => {
+    setHistory([]);
+    try {
+      window.localStorage.removeItem(LS_KEY_HISTORY);
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  // Feedback for a manually triggered check.
+  const [runState, setRunState] = useState<
+    | { status: "idle" }
+    | { status: "success"; missing: number }
+    | { status: "error"; message: string }
+  >({ status: "idle" });
+  const runNow = useCallback(async () => {
+    setRunState({ status: "idle" });
+    try {
+      const result = await refetch();
+      if (result.error) throw result.error;
+      setRunState({ status: "success", missing: result.data?.missing.length ?? 0 });
+    } catch (error) {
+      setRunState({
+        status: "error",
+        message: error instanceof Error ? error.message : "Preflight check failed.",
+      });
+    }
+  }, [refetch]);
 
   if (!data || data.ok) return null;
 
@@ -316,13 +346,13 @@ export function EnvPreflightBanner() {
               variant="secondary"
               size="sm"
               disabled={isFetching}
-              onClick={() => void refetch()}
+              onClick={() => void runNow()}
             >
               <RefreshCw
                 aria-hidden="true"
                 className={`mr-2 size-4 ${isFetching ? "animate-spin" : ""}`}
               />
-              {isFetching ? "Re-checking…" : "Run preflight check now"}
+              {isFetching ? "Running check…" : "Run preflight check now"}
             </Button>
             <Button
               type="button"
@@ -333,6 +363,26 @@ export function EnvPreflightBanner() {
             >
               <Download aria-hidden="true" className="mr-2 size-4" />
               Export results (JSON)
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={history.length === 0}
+              onClick={exportHistoryCsv}
+            >
+              <Download aria-hidden="true" className="mr-2 size-4" />
+              Export results (CSV)
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              disabled={history.length === 0}
+              onClick={clearHistory}
+            >
+              <Trash2 aria-hidden="true" className="mr-2 size-4" />
+              Clear history
             </Button>
             <Button type="button" variant="ghost" size="sm" onClick={resetSettings}>
               <RotateCcw aria-hidden="true" className="mr-2 size-4" />
@@ -423,18 +473,44 @@ export function EnvPreflightBanner() {
               )}
             </p>
           )}
+          {(isFetching || runState.status !== "idle") && (
+            <p className="mt-2 flex items-center gap-2 text-xs" data-testid="run-status">
+              {isFetching ? (
+                <>
+                  <RefreshCw aria-hidden="true" className="size-4 animate-spin" />
+                  <span className="text-muted-foreground">Running preflight check…</span>
+                </>
+              ) : runState.status === "success" ? (
+                <>
+                  <CheckCircle2 aria-hidden="true" className="size-4 text-primary" />
+                  <span className="text-muted-foreground">
+                    {runState.missing === 0
+                      ? "Check complete — all variables are configured."
+                      : `Check complete — ${runState.missing} variable${runState.missing === 1 ? "" : "s"} still missing.`}
+                  </span>
+                </>
+              ) : runState.status === "error" ? (
+                <>
+                  <XCircle aria-hidden="true" className="size-4 text-destructive" />
+                  <span className="text-destructive">Check failed — {runState.message}</span>
+                </>
+              ) : null}
+            </p>
+          )}
           <p role="status" aria-live="polite" aria-atomic="true" className="sr-only">
             {isFetching
               ? "Running Supabase environment preflight check now."
-              : `Preflight check complete. ${
-                  data.missing.length
-                } environment variable${data.missing.length === 1 ? "" : "s"} still missing: ${data.missing
-                  .map((m) => m.name)
-                  .join(", ")}.${
-                  autoRecheck && countdownMs != null
-                    ? ` Next automatic check in ${announceCountdown(countdownMs)}.`
-                    : ""
-                }`}
+              : runState.status === "error"
+                ? `Supabase environment preflight check failed. ${runState.message}`
+                : `Preflight check complete. ${
+                    data.missing.length
+                  } environment variable${data.missing.length === 1 ? "" : "s"} still missing: ${data.missing
+                    .map((m) => m.name)
+                    .join(", ")}.${
+                    autoRecheck && countdownMs != null
+                      ? ` Next automatic check in ${announceCountdown(countdownMs)}.`
+                      : ""
+                  }`}
           </p>
           {history.length > 0 && (
             <div className="mt-3 rounded-md border bg-card p-3">
