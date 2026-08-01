@@ -16,11 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { getSupabaseEnvPreflight } from "@/lib/env-preflight.functions";
-import {
-  announceCountdown,
-  buildHistoryCsv,
-  type CheckRecord,
-} from "@/lib/env-preflight-format";
+import { announceCountdown, buildHistoryCsv, type CheckRecord } from "@/lib/env-preflight-format";
 
 const PROJECT_REF = import.meta.env["VITE_SUPABASE_PROJECT_ID"] as string | undefined;
 
@@ -49,8 +45,6 @@ const LS_NAMESPACE = `platform-env-preflight:${PROJECT_REF ?? "unknown-project"}
 const LS_KEY_AUTO_RECHECK = `${LS_NAMESPACE}:auto-recheck`;
 const LS_KEY_INTERVAL_SECONDS = `${LS_NAMESPACE}:interval-seconds`;
 const LS_KEY_HISTORY = `${LS_NAMESPACE}:history`;
-
-
 
 /** Exact click-path for configuring each variable in Lovable Cloud. */
 const SETUP_STEPS: Record<string, string[]> = {
@@ -108,7 +102,6 @@ function formatClock(at: number) {
     second: "2-digit",
   });
 }
-
 
 function downloadFile(contents: string, mimeType: string, extension: string) {
   const blob = new Blob([contents], { type: mimeType });
