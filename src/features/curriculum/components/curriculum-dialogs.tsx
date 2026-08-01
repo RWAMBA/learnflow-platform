@@ -44,10 +44,9 @@ import { listStudents, studentKeys } from "@/features/students/api";
 
 const statusValues = ["draft", "published", "archived"] as const;
 
+// The status field is shared across several differently-typed forms.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-type AnyControl = import("react-hook-form").Control<any>;
-
-function StatusField({ control }: { control: AnyControl }) {
+function StatusField({ control }: { control: any }) {
   return (
     <FormField
       control={control}
