@@ -258,21 +258,31 @@ export function EnvPreflightBanner() {
   }, []);
 
   const exportHistory = useCallback(() => {
+    const records = history.slice(0, exportCount);
     const payload = {
       projectRef: PROJECT_REF ?? null,
       exportedAt: new Date().toISOString(),
-      checks: history.map((entry) => ({
+      count: records.length,
+      checks: records.map((entry) => ({
         at: new Date(entry.at).toISOString(),
         ok: entry.ok,
         missing: entry.missing,
       })),
     };
-    downloadFile(JSON.stringify(payload, null, 2), "application/json", "json");
-  }, [history]);
+    downloadFile(
+      JSON.stringify(payload, null, 2),
+      "application/json",
+      buildExportFilename(PROJECT_REF, exportCount, "json"),
+    );
+  }, [history, exportCount]);
 
   const exportHistoryCsv = useCallback(() => {
-    downloadFile(buildHistoryCsv(history), "text/csv", "csv");
-  }, [history]);
+    downloadFile(
+      buildHistoryCsv(history.slice(0, exportCount)),
+      "text/csv",
+      buildExportFilename(PROJECT_REF, exportCount, "csv"),
+    );
+  }, [history, exportCount]);
 
   const clearHistory = useCallback(() => {
     setHistory([]);
