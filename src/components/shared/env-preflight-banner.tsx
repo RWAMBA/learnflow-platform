@@ -1,8 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { AlertTriangle, ExternalLink, RefreshCw } from "lucide-react";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { getSupabaseEnvPreflight } from "@/lib/env-preflight.functions";
@@ -20,6 +21,10 @@ const INTERVAL_OPTIONS = [
   { label: "2 minutes", value: 120_000 },
   { label: "5 minutes", value: 300_000 },
 ];
+
+const CUSTOM_VALUE = "custom";
+const MIN_SECONDS = 5;
+const MAX_SECONDS = 3600;
 
 /** Exact click-path for configuring each variable in Lovable Cloud. */
 const SETUP_STEPS: Record<string, string[]> = {
@@ -51,6 +56,14 @@ const FALLBACK_STEPS = [
   "Paste the matching value from your Supabase project settings, save, and reload this page.",
 ];
 
+function formatInterval(ms: number) {
+  if (ms < 60_000) return `${ms / 1_000} seconds`;
+  if (ms % 60_000 === 0) return `${ms / 60_000} minute${ms === 60_000 ? "" : "s"}`;
+  const minutes = Math.floor(ms / 60_000);
+  const seconds = (ms % 60_000) / 1_000;
+  return `${minutes}m ${seconds}s`;
+}
+
 /**
  * Surfaces missing server-side configuration up front, so a blank screen from
  * a failed server action is explained before the user triggers it.
@@ -59,6 +72,12 @@ export function EnvPreflightBanner() {
   const preflight = useServerFn(getSupabaseEnvPreflight);
   const [autoRecheck, setAutoRecheck] = useState(true);
   const [intervalMs, setIntervalMs] = useState(120_000);
+  const [customSeconds, setCustomSeconds] = useState<string>("60");
+  const isCustom = useMemo(
+    () => !INTERVAL_OPTIONS.some((o) => o.value === intervalMs),
+    [intervalMs]
+  );
+
   const { data, refetch, isFetching } = useQuery({
     queryKey: ["supabase-env-preflight"],
     queryFn: () => preflight(),
@@ -74,7 +93,9 @@ export function EnvPreflightBanner() {
 
   if (!data || data.ok) return null;
 
-  const activeLabel = INTERVAL_OPTIONS.find((o) => o.value === intervalMs)?.label ?? "custom";
+  const activeLabel = INTERVAL_OPTIONS.find((o) => o.value === intervalMs)?.label ?? formatInterval(intervalMs);
+  const customParsed = Number(customSeconds);
+  const customValid = Number.isFinite(customParsed) && customParsed >= MIN_SECONDS && customParsed <= MAX_SECONDS;
 
   return (
     <div
@@ -133,14 +154,22 @@ export function EnvPreflightBanner() {
                 Auto re-check
               </Label>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Label htmlFor="env-preflight-interval" className="text-xs font-normal">
                 Every
               </Label>
               <select
                 id="env-preflight-interval"
-                value={intervalMs}
-                onChange={(e) => setIntervalMs(Number(e.target.value))}
+                value={isCustom ? CUSTOM_VALUE : intervalMs}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (value === CUSTOM_VALUE) {
+                    const parsed = Number(customSeconds);
+                    setIntervalMs(Number.isFinite(parsed) && parsed >= MIN_SECONDS ? parsed * 1_000 : 60_000);
+                  } else {
+                    setIntervalMs(Number(value));
+                  }
+                }}
                 disabled={!autoRecheck}
                 className="h-8 rounded-md border border-input bg-background px-2 py-1 text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-50"
                 aria-label="Auto re-check interval"
@@ -150,12 +179,43 @@ export function EnvPreflightBanner() {
                     {option.label}
                   </option>
                 ))}
+                <option value={CUSTOM_VALUE}>Custom…</option>
               </select>
+              {isCustom && (
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="env-preflight-custom-seconds"
+                    type="number"
+                    min={MIN_SECONDS}
+                    max={MAX_SECONDS}
+                    value={customSeconds}
+                    onChange={(e) => {
+                      const raw = e.target.value;
+                      setCustomSeconds(raw);
+                      const parsed = Number(raw);
+                      if (Number.isFinite(parsed) && parsed >= MIN_SECONDS && parsed <= MAX_SECONDS) {
+                        setIntervalMs(parsed * 1_000);
+                      }
+                    }}
+                    disabled={!autoRecheck}
+                    className="h-8 w-24 text-xs"
+                    aria-label="Custom interval in seconds"
+                  />
+                  <Label htmlFor="env-preflight-custom-seconds" className="text-xs font-normal">
+                    seconds
+                  </Label>
+                </div>
+              )}
             </div>
           </div>
           {autoRecheck && (
             <p className="mt-2 text-xs text-muted-foreground">
               Re-checking automatically every {activeLabel} until all variables are configured.
+              {isCustom && !customValid && (
+                <span className="ml-1 text-destructive">
+                  Enter a value between {MIN_SECONDS} and {MAX_SECONDS} seconds.
+                </span>
+              )}
             </p>
           )}
         </div>
