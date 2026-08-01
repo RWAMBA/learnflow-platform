@@ -311,7 +311,17 @@ export function EnvPreflightBanner() {
                 aria-hidden="true"
                 className={`mr-2 size-4 ${isFetching ? "animate-spin" : ""}`}
               />
-              {isFetching ? "Re-checking…" : "Re-run check"}
+              {isFetching ? "Re-checking…" : "Run preflight check now"}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={history.length === 0}
+              onClick={exportHistory}
+            >
+              <Download aria-hidden="true" className="mr-2 size-4" />
+              Export results (JSON)
             </Button>
             <Button type="button" variant="ghost" size="sm" onClick={resetSettings}>
               <RotateCcw aria-hidden="true" className="mr-2 size-4" />
@@ -391,7 +401,7 @@ export function EnvPreflightBanner() {
             <p className="mt-2 text-xs text-muted-foreground">
               Re-checking automatically every {activeLabel} until all variables are configured.
               {countdownMs != null && (
-                <span className="ml-1" aria-live="polite">
+                <span className="ml-1" aria-hidden="true">
                   {isFetching ? "Checking now…" : `Next check in ${formatCountdown(countdownMs)}.`}
                 </span>
               )}
@@ -402,6 +412,19 @@ export function EnvPreflightBanner() {
               )}
             </p>
           )}
+          <p role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+            {isFetching
+              ? "Running Supabase environment preflight check now."
+              : `Preflight check complete. ${
+                  data.missing.length
+                } environment variable${data.missing.length === 1 ? "" : "s"} still missing: ${data.missing
+                  .map((m) => m.name)
+                  .join(", ")}.${
+                  autoRecheck && countdownMs != null
+                    ? ` Next automatic check in ${announceCountdown(countdownMs)}.`
+                    : ""
+                }`}
+          </p>
           {history.length > 0 && (
             <div className="mt-3 rounded-md border bg-card p-3">
               <p className="text-xs font-medium">Recent checks</p>
