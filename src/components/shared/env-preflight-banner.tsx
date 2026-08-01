@@ -16,7 +16,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { getSupabaseEnvPreflight } from "@/lib/env-preflight.functions";
-import { announceCountdown, buildHistoryCsv, type CheckRecord } from "@/lib/env-preflight-format";
+import {
+  announceCountdown,
+  buildExportFilename,
+  buildHistoryCsv,
+  EXPORT_COUNT_OPTIONS,
+  type CheckRecord,
+} from "@/lib/env-preflight-format";
 
 const PROJECT_REF = import.meta.env["VITE_SUPABASE_PROJECT_ID"] as string | undefined;
 
@@ -38,7 +44,8 @@ const MAX_SECONDS = 3600;
 
 const DEFAULT_AUTO_RECHECK = true;
 const DEFAULT_INTERVAL_MS = 120_000;
-const HISTORY_LIMIT = 5;
+const HISTORY_LIMIT = Math.max(...EXPORT_COUNT_OPTIONS);
+const DEFAULT_EXPORT_COUNT = 5;
 
 /** Settings are namespaced per Supabase project ref so environments stay isolated. */
 const LS_NAMESPACE = `platform-env-preflight:${PROJECT_REF ?? "unknown-project"}`;
@@ -103,12 +110,12 @@ function formatClock(at: number) {
   });
 }
 
-function downloadFile(contents: string, mimeType: string, extension: string) {
+function downloadFile(contents: string, mimeType: string, filename: string) {
   const blob = new Blob([contents], { type: mimeType });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `env-preflight-${PROJECT_REF ?? "project"}-${Date.now()}.${extension}`;
+  link.download = filename;
   document.body.appendChild(link);
   link.click();
   link.remove();
