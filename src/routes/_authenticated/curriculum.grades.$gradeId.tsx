@@ -39,7 +39,8 @@ function GradePage() {
     queryFn: () => getGradeWithContent(gradeId),
   });
 
-  const refresh = () => void queryClient.invalidateQueries({ queryKey: curriculumKeys.grade(gradeId) });
+  const refresh = () =>
+    void queryClient.invalidateQueries({ queryKey: curriculumKeys.grade(gradeId) });
 
   return (
     <div>

@@ -11,8 +11,10 @@ export const curriculumKeys = {
   allSubjects: () => ["subjects", "all"] as const,
   stats: (organizationId: string) => ["curriculum", "stats", organizationId] as const,
   search: (params: unknown) => ["curriculum", "search", params] as const,
-  studentAssignments: (studentId: string) => ["curriculum", "student-assignments", studentId] as const,
-  subjectAssignments: (subjectId: string) => ["curriculum", "subject-assignments", subjectId] as const,
+  studentAssignments: (studentId: string) =>
+    ["curriculum", "student-assignments", studentId] as const,
+  subjectAssignments: (subjectId: string) =>
+    ["curriculum", "subject-assignments", subjectId] as const,
 };
 
 export async function listCurricula() {
@@ -73,7 +75,9 @@ export async function getSubjectWithContent(subjectId: string) {
       .order("sequence_order"),
     supabase
       .from("lessons")
-      .select("id, title, sequence_order, content_type, status, topic_id, authoring_organization_id")
+      .select(
+        "id, title, sequence_order, content_type, status, topic_id, authoring_organization_id",
+      )
       .eq("subject_id", subjectId)
       .order("sequence_order"),
     supabase.from("competencies").select("id, name, description").eq("subject_id", subjectId),

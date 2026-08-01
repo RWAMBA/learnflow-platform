@@ -56,7 +56,8 @@ function LessonPage() {
     Boolean(organizationId) &&
     query.data?.lesson?.authoring_organization_id === organizationId;
 
-  const refresh = () => void queryClient.invalidateQueries({ queryKey: curriculumKeys.lesson(lessonId) });
+  const refresh = () =>
+    void queryClient.invalidateQueries({ queryKey: curriculumKeys.lesson(lessonId) });
 
   const changeStatus = useServerFn(setCurriculumStatus);
   const removeItem = useServerFn(deleteCurriculumItem);
@@ -91,7 +92,11 @@ function LessonPage() {
     <div>
       <PageHeader
         title={lesson?.title ?? "Lesson"}
-        description={lesson?.subject?.name ? `${lesson.subject.name} · ${lesson.subject.grade?.name ?? ""}` : undefined}
+        description={
+          lesson?.subject?.name
+            ? `${lesson.subject.name} · ${lesson.subject.grade?.name ?? ""}`
+            : undefined
+        }
         actions={
           mayAuthor && lesson ? (
             <div className="flex flex-wrap gap-2">
@@ -114,7 +119,9 @@ function LessonPage() {
               />
               <Button
                 disabled={statusMutation.isPending}
-                onClick={() => statusMutation.mutate(lesson.status === "published" ? "draft" : "published")}
+                onClick={() =>
+                  statusMutation.mutate(lesson.status === "published" ? "draft" : "published")
+                }
               >
                 {lesson.status === "published" ? "Unpublish" : "Publish"}
               </Button>
@@ -171,7 +178,9 @@ function LessonPage() {
                   {body ? (
                     <p className="whitespace-pre-wrap leading-relaxed">{body}</p>
                   ) : (
-                    <p className="text-muted-foreground">No content has been added to this lesson yet.</p>
+                    <p className="text-muted-foreground">
+                      No content has been added to this lesson yet.
+                    </p>
                   )}
                   {data.lesson.storage_path ? (
                     <p className="mt-3 text-sm text-muted-foreground">

@@ -74,8 +74,11 @@ function SubjectPage() {
   const removeAssignment = useServerFn(removeCurriculumAssignment);
 
   const statusMutation = useMutation({
-    mutationFn: (input: { entity: "topics" | "lessons"; id: string; status: "draft" | "published" | "archived" }) =>
-      changeStatus({ data: { ...input, organizationId } }),
+    mutationFn: (input: {
+      entity: "topics" | "lessons";
+      id: string;
+      status: "draft" | "published" | "archived";
+    }) => changeStatus({ data: { ...input, organizationId } }),
     onSuccess: () => {
       toast.success("Status updated");
       refresh();
@@ -208,7 +211,9 @@ function SubjectPage() {
                             {topic.sequence_order}. {topic.title}
                           </h2>
                           {topic.description ? (
-                            <p className="mt-1 text-sm text-muted-foreground">{topic.description}</p>
+                            <p className="mt-1 text-sm text-muted-foreground">
+                              {topic.description}
+                            </p>
                           ) : null}
                         </div>
                         <div className="flex flex-wrap items-center gap-2">
@@ -245,7 +250,9 @@ function SubjectPage() {
                                 variant="ghost"
                                 size="sm"
                                 disabled={deleteMutation.isPending}
-                                onClick={() => deleteMutation.mutate({ entity: "topics", id: topic.id })}
+                                onClick={() =>
+                                  deleteMutation.mutate({ entity: "topics", id: topic.id })
+                                }
                               >
                                 Delete
                               </Button>
@@ -260,7 +267,9 @@ function SubjectPage() {
                         topics={topics}
                         mayAuthor={mayAuthor}
                         onRefresh={refresh}
-                        onStatus={(id, status) => statusMutation.mutate({ entity: "lessons", id, status })}
+                        onStatus={(id, status) =>
+                          statusMutation.mutate({ entity: "lessons", id, status })
+                        }
                         onDelete={(id) => deleteMutation.mutate({ entity: "lessons", id })}
                       />
                     </section>
@@ -280,7 +289,9 @@ function SubjectPage() {
                         topics={topics}
                         mayAuthor={mayAuthor}
                         onRefresh={refresh}
-                        onStatus={(id, status) => statusMutation.mutate({ entity: "lessons", id, status })}
+                        onStatus={(id, status) =>
+                          statusMutation.mutate({ entity: "lessons", id, status })
+                        }
                         onDelete={(id) => deleteMutation.mutate({ entity: "lessons", id })}
                       />
                     </section>
@@ -430,7 +441,9 @@ function LessonList({
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => onStatus(lesson.id, lesson.status === "published" ? "draft" : "published")}
+                  onClick={() =>
+                    onStatus(lesson.id, lesson.status === "published" ? "draft" : "published")
+                  }
                 >
                   {lesson.status === "published" ? "Unpublish" : "Publish"}
                 </Button>

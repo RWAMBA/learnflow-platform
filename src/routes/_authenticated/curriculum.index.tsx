@@ -37,10 +37,14 @@ export const Route = createFileRoute("/_authenticated/curriculum/")({
       { title: "Curriculum — the Platform" },
       {
         name: "description",
-        content: "Browse grades, pathways, subjects, topics and lessons, and search the whole curriculum.",
+        content:
+          "Browse grades, pathways, subjects, topics and lessons, and search the whole curriculum.",
       },
       { property: "og:title", content: "Curriculum — the Platform" },
-      { property: "og:description", content: "Browse and search grades, subjects, topics and lessons." },
+      {
+        property: "og:description",
+        content: "Browse and search grades, subjects, topics and lessons.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -166,7 +170,9 @@ function CurriculumDashboard() {
             onRetry={() => void grades.refetch()}
             skeleton={<ListSkeleton rows={3} />}
             isEmpty={(rows) => rows.length === 0}
-            empty={<EmptyState title="No grades yet" description="No curriculum grades are available." />}
+            empty={
+              <EmptyState title="No grades yet" description="No curriculum grades are available." />
+            }
           >
             {(rows) => (
               <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">

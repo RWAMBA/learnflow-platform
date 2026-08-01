@@ -176,7 +176,10 @@ export function SubjectFormDialog({
       description="Subjects group topics and lessons inside a grade."
     >
       <Form {...form}>
-        <form className="space-y-4" onSubmit={form.handleSubmit((values) => mutation.mutate(values))}>
+        <form
+          className="space-y-4"
+          onSubmit={form.handleSubmit((values) => mutation.mutate(values))}
+        >
           <FormField
             control={form.control}
             name="name"
@@ -274,7 +277,13 @@ export function TopicFormDialog({
 }: {
   organizationId: string;
   subjectId: string;
-  topic?: { id: string; title: string; description: string | null; sequence_order: number; status: string };
+  topic?: {
+    id: string;
+    title: string;
+    description: string | null;
+    sequence_order: number;
+    status: string;
+  };
   nextOrder: number;
   trigger: ReactNode;
   onSaved?: () => void;
@@ -321,7 +330,10 @@ export function TopicFormDialog({
       description="Topics sequence the lessons inside a subject."
     >
       <Form {...form}>
-        <form className="space-y-4" onSubmit={form.handleSubmit((values) => mutation.mutate(values))}>
+        <form
+          className="space-y-4"
+          onSubmit={form.handleSubmit((values) => mutation.mutate(values))}
+        >
           <FormField
             control={form.control}
             name="title"
@@ -459,7 +471,10 @@ export function LessonFormDialog({
       description="Lessons hold the learning content students work through."
     >
       <Form {...form}>
-        <form className="space-y-4" onSubmit={form.handleSubmit((values) => mutation.mutate(values))}>
+        <form
+          className="space-y-4"
+          onSubmit={form.handleSubmit((values) => mutation.mutate(values))}
+        >
           <FormField
             control={form.control}
             name="title"
@@ -580,7 +595,12 @@ export function ObjectiveFormDialog({
   organizationId: string;
   lessonId: string;
   competencies: { id: string; name: string }[];
-  objective?: { id: string; description: string; competency_id: string | null; sequence_order: number };
+  objective?: {
+    id: string;
+    description: string;
+    competency_id: string | null;
+    sequence_order: number;
+  };
   nextOrder: number;
   trigger: ReactNode;
   onSaved?: () => void;
@@ -626,7 +646,10 @@ export function ObjectiveFormDialog({
       description="Objectives are what the learner should be able to do after the lesson."
     >
       <Form {...form}>
-        <form className="space-y-4" onSubmit={form.handleSubmit((values) => mutation.mutate(values))}>
+        <form
+          className="space-y-4"
+          onSubmit={form.handleSubmit((values) => mutation.mutate(values))}
+        >
           <FormField
             control={form.control}
             name="description"
@@ -634,7 +657,11 @@ export function ObjectiveFormDialog({
               <FormItem>
                 <FormLabel>Objective</FormLabel>
                 <FormControl>
-                  <Textarea rows={3} {...field} placeholder="Add fractions with unlike denominators" />
+                  <Textarea
+                    rows={3}
+                    {...field}
+                    placeholder="Add fractions with unlike denominators"
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -736,7 +763,9 @@ export function AssignSubjectDialog({
       description="Selected students will see this subject in their curriculum."
     >
       <div className="space-y-3">
-        {students.isPending ? <p className="text-sm text-muted-foreground">Loading students…</p> : null}
+        {students.isPending ? (
+          <p className="text-sm text-muted-foreground">Loading students…</p>
+        ) : null}
         {students.error ? (
           <p className="text-sm text-destructive">We couldn't load your students.</p>
         ) : null}
@@ -753,13 +782,17 @@ export function AssignSubjectDialog({
                   checked={checked}
                   onCheckedChange={(value) =>
                     setSelected((prev) =>
-                      value === true ? [...prev, student.id] : prev.filter((id) => id !== student.id),
+                      value === true
+                        ? [...prev, student.id]
+                        : prev.filter((id) => id !== student.id),
                     )
                   }
                 />
                 <label htmlFor={`assign-${student.id}`} className="text-sm">
                   {student.first_name} {student.last_name}
-                  <span className="ml-2 text-muted-foreground">{student.grade?.name ?? "No grade"}</span>
+                  <span className="ml-2 text-muted-foreground">
+                    {student.grade?.name ?? "No grade"}
+                  </span>
                 </label>
               </li>
             );

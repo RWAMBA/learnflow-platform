@@ -63,7 +63,7 @@ async function writeAudit(
     afterState?: unknown;
   },
 ) {
-  const supabase = (context.supabase as AuditContext["supabase"]);
+  const supabase = context.supabase as AuditContext["supabase"];
   await supabase.from("audit_logs").insert({
     actor_user_id: context.userId,
     organization_id: input.organizationId,
@@ -285,9 +285,7 @@ export const assignSubjectToStudents = createServerFn({ method: "POST" })
 
 export const removeCurriculumAssignment = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) =>
-    z.object({ id: uuid, organizationId: uuid }).parse(input),
-  )
+  .inputValidator((input: unknown) => z.object({ id: uuid, organizationId: uuid }).parse(input))
   .handler(async ({ data, context }) => {
     const { supabase } = context;
     const { error } = await supabase
