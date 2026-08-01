@@ -208,7 +208,7 @@ function CurriculumDashboard() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Search lessons</CardTitle>
+          <CardTitle className="text-base">Search the curriculum</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
@@ -222,7 +222,7 @@ function CurriculumDashboard() {
                 <Input
                   id="curriculum-search"
                   className="pl-9"
-                  placeholder="Lesson title…"
+                  placeholder="Subject, topic or lesson…"
                   value={term}
                   onChange={(event) => {
                     setTerm(event.target.value);
@@ -277,6 +277,26 @@ function CurriculumDashboard() {
             />
           </div>
 
+          <fieldset className="flex flex-wrap items-center gap-4">
+            <legend className="sr-only">Content kinds</legend>
+            {KIND_OPTIONS.map((option) => (
+              <label key={option.value} className="flex items-center gap-2 text-sm">
+                <Checkbox
+                  checked={kinds.includes(option.value)}
+                  onCheckedChange={(value) => {
+                    setKinds((prev) =>
+                      value === true
+                        ? [...prev, option.value]
+                        : prev.filter((kind) => kind !== option.value),
+                    );
+                    setPage(1);
+                  }}
+                />
+                {option.label}
+              </label>
+            ))}
+          </fieldset>
+
           <QueryState
             isPending={results.isPending}
             error={results.error}
@@ -286,7 +306,7 @@ function CurriculumDashboard() {
             isEmpty={(value) => value.rows.length === 0}
             empty={
               <EmptyState
-                title="No lessons match"
+                title="No curriculum items match"
                 description="Try a different search term or clear the filters."
               />
             }
@@ -294,25 +314,54 @@ function CurriculumDashboard() {
             {(value) => (
               <div className="space-y-3">
                 <ul className="divide-y rounded-md border">
-                  {value.rows.map((lesson) => (
-                    <li key={lesson.id}>
-                      <Link
-                        to="/curriculum/lessons/$lessonId"
-                        params={{ lessonId: lesson.id }}
-                        className="flex flex-col gap-1 p-3 transition-colors hover:bg-accent sm:flex-row sm:items-center sm:justify-between"
-                      >
-                        <span className="font-medium">{lesson.title}</span>
-                        <span className="flex items-center gap-2 text-sm text-muted-foreground">
-                          {lesson.subject?.grade?.name ?? "—"} · {lesson.subject?.name}
-                          <CurriculumStatusBadge status={lesson.status} />
+                  {value.rows.map((row) => {
+                    const inner = (
+                      <>
+                        <span className="font-medium">
+                          <span className="mr-2 rounded bg-muted px-2 py-0.5 text-xs uppercase text-muted-foreground">
+                            {row.kind}
+                          </span>
+                          {row.title}
                         </span>
-                      </Link>
-                    </li>
-                  ))}
+                        <span className="flex items-center gap-2 text-sm text-muted-foreground">
+                          {row.grade_name ?? "—"}
+                          {row.subtitle ? ` · ${row.subtitle}` : ""}
+                          {row.content_type ? (
+                            <span className="text-xs uppercase">{row.content_type}</span>
+                          ) : null}
+                          <CurriculumStatusBadge status={row.status} />
+                        </span>
+                      </>
+                    );
+                    const className =
+                      "flex flex-col gap-1 p-3 transition-colors hover:bg-accent sm:flex-row sm:items-center sm:justify-between";
+                    return (
+                      <li key={`${row.kind}-${row.id}`}>
+                        {row.kind === "lesson" ? (
+                          <Link
+                            to="/curriculum/lessons/$lessonId"
+                            params={{ lessonId: row.id }}
+                            className={className}
+                          >
+                            {inner}
+                          </Link>
+                        ) : (
+                          <Link
+                            to="/curriculum/subjects/$subjectId"
+                            params={{ subjectId: row.subject_id }}
+                            className={className}
+                          >
+                            {inner}
+                          </Link>
+                        )}
+                      </li>
+                    );
+                  })}
                 </ul>
                 <div className="flex items-center justify-between gap-3">
                   <p className="text-sm text-muted-foreground" aria-live="polite">
-                    Page {page} of {totalPages} · {value.total} lesson{value.total === 1 ? "" : "s"}
+                    Page {page} of {totalPages} · {value.total} result
+                    {value.total === 1 ? "" : "s"}
                   </p>
                   <div className="flex gap-2">
                     <Button
