@@ -11,11 +11,27 @@ export const curriculumKeys = {
   allSubjects: () => ["subjects", "all"] as const,
   stats: (organizationId: string) => ["curriculum", "stats", organizationId] as const,
   search: (params: unknown) => ["curriculum", "search", params] as const,
+  pathways: (gradeId: string) => ["curriculum", "pathways", gradeId] as const,
+  progress: (studentId: string) => ["curriculum", "progress", studentId] as const,
+  lessonProgress: (studentId: string, lessonId: string) =>
+    ["curriculum", "progress", studentId, lessonId] as const,
   studentAssignments: (studentId: string) =>
     ["curriculum", "student-assignments", studentId] as const,
   subjectAssignments: (subjectId: string) =>
     ["curriculum", "subject-assignments", subjectId] as const,
 };
+
+export const MASTERY_LEVELS = [
+  "not_started",
+  "emerging",
+  "developing",
+  "proficient",
+  "mastered",
+] as const;
+export type MasteryLevel = (typeof MASTERY_LEVELS)[number];
+
+/** Mastery levels that count a lesson as complete for progress percentages. */
+const COMPLETED_LEVELS: string[] = ["proficient", "mastered"];
 
 export async function listCurricula() {
   const { data, error } = await supabase.from("curricula").select("id, code, name").order("name");
