@@ -57,7 +57,11 @@ export async function getGradeWithContent(gradeId: string) {
       .select("id, name, sequence_order, pathway_required, curriculum:curricula(id, name)")
       .eq("id", gradeId)
       .maybeSingle(),
-    supabase.from("pathways").select("id, name").eq("grade_id", gradeId).order("name"),
+    supabase
+      .from("pathways")
+      .select("id, name, description, status, authoring_organization_id, published_at")
+      .eq("grade_id", gradeId)
+      .order("name"),
     supabase
       .from("subjects")
       .select("id, name, code, description, status, pathway_id, authoring_organization_id")
