@@ -1,6 +1,15 @@
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { AlertTriangle, Download, ExternalLink, RefreshCw, RotateCcw } from "lucide-react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Download,
+  ExternalLink,
+  RefreshCw,
+  RotateCcw,
+  Trash2,
+  XCircle,
+} from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -36,7 +45,7 @@ const LS_KEY_AUTO_RECHECK = `${LS_NAMESPACE}:auto-recheck`;
 const LS_KEY_INTERVAL_SECONDS = `${LS_NAMESPACE}:interval-seconds`;
 const LS_KEY_HISTORY = `${LS_NAMESPACE}:history`;
 
-interface CheckRecord {
+export interface CheckRecord {
   at: number;
   ok: boolean;
   missing: string[];
@@ -100,7 +109,7 @@ function formatClock(at: number) {
 }
 
 /** Verbose countdown text for screen readers ("2 minutes 5 seconds"). */
-function announceCountdown(ms: number) {
+export function announceCountdown(ms: number) {
   const total = Math.max(0, Math.ceil(ms / 1_000));
   const minutes = Math.floor(total / 60);
   const seconds = total % 60;
@@ -108,6 +117,34 @@ function announceCountdown(ms: number) {
   if (minutes > 0) parts.push(`${minutes} minute${minutes === 1 ? "" : "s"}`);
   if (seconds > 0 || minutes === 0) parts.push(`${seconds} second${seconds === 1 ? "" : "s"}`);
   return parts.join(" ");
+}
+
+/** CSV export of recent checks. Exported for tests. */
+export function buildHistoryCsv(records: CheckRecord[]): string {
+  const escape = (value: string) => `"${value.replace(/"/g, '""')}"`;
+  const rows = [
+    ["checked_at", "status", "missing_variables"].join(","),
+    ...records.map((entry) =>
+      [
+        escape(new Date(entry.at).toISOString()),
+        escape(entry.ok ? "ok" : "missing"),
+        escape(entry.missing.join(" ")),
+      ].join(","),
+    ),
+  ];
+  return rows.join("\n");
+}
+
+function downloadFile(contents: string, mimeType: string, extension: string) {
+  const blob = new Blob([contents], { type: mimeType });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `env-preflight-${PROJECT_REF ?? "project"}-${Date.now()}.${extension}`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
 }
 
 /**
