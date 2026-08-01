@@ -6,15 +6,20 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { getSupabaseEnvPreflight } from "@/lib/env-preflight.functions";
-/** How often to silently re-check while configuration is still incomplete. */
-const AUTO_RECHECK_INTERVAL_MS = 120_000;
-
 
 const PROJECT_REF = import.meta.env['VITE_SUPABASE_PROJECT_ID'] as string | undefined;
 
 const SETUP_URL = PROJECT_REF
   ? `https://supabase.com/dashboard/project/${PROJECT_REF}/settings/api-keys`
   : "https://supabase.com/dashboard/projects";
+
+/** Preset auto-recheck intervals. */
+const INTERVAL_OPTIONS = [
+  { label: "30 seconds", value: 30_000 },
+  { label: "1 minute", value: 60_000 },
+  { label: "2 minutes", value: 120_000 },
+  { label: "5 minutes", value: 300_000 },
+];
 
 /** Exact click-path for configuring each variable in Lovable Cloud. */
 const SETUP_STEPS: Record<string, string[]> = {
@@ -53,6 +58,7 @@ const FALLBACK_STEPS = [
 export function EnvPreflightBanner() {
   const preflight = useServerFn(getSupabaseEnvPreflight);
   const [autoRecheck, setAutoRecheck] = useState(true);
+  const [intervalMs, setIntervalMs] = useState(120_000);
   const { data, refetch, isFetching } = useQuery({
     queryKey: ["supabase-env-preflight"],
     queryFn: () => preflight(),
@@ -61,12 +67,14 @@ export function EnvPreflightBanner() {
     // Poll only while something is still missing; stop once the env is healthy.
     refetchInterval: (query) =>
       autoRecheck && query.state.data && !query.state.data.ok
-        ? AUTO_RECHECK_INTERVAL_MS
+        ? intervalMs
         : false,
     refetchIntervalInBackground: false,
   });
 
   if (!data || data.ok) return null;
+
+  const activeLabel = INTERVAL_OPTIONS.find((o) => o.value === intervalMs)?.label ?? "custom";
 
   return (
     <div
@@ -95,7 +103,7 @@ export function EnvPreflightBanner() {
               </li>
             ))}
           </ul>
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="mt-3 flex flex-wrap items-center gap-2">
             <Button asChild variant="outline" size="sm">
               <a href={SETUP_URL} target="_blank" rel="noreferrer noopener">
                 Open Supabase API keys
@@ -122,10 +130,34 @@ export function EnvPreflightBanner() {
                 onCheckedChange={setAutoRecheck}
               />
               <Label htmlFor="env-preflight-auto-recheck" className="text-xs font-normal">
-                Auto re-check every 2 minutes
+                Auto re-check
               </Label>
             </div>
+            <div className="flex items-center gap-2">
+              <Label htmlFor="env-preflight-interval" className="text-xs font-normal">
+                Every
+              </Label>
+              <select
+                id="env-preflight-interval"
+                value={intervalMs}
+                onChange={(e) => setIntervalMs(Number(e.target.value))}
+                disabled={!autoRecheck}
+                className="h-8 rounded-md border border-input bg-background px-2 py-1 text-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:opacity-50"
+                aria-label="Auto re-check interval"
+              >
+                {INTERVAL_OPTIONS.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
+          {autoRecheck && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              Re-checking automatically every {activeLabel} until all variables are configured.
+            </p>
+          )}
         </div>
       </div>
     </div>
