@@ -19,6 +19,25 @@ export function announceCountdown(ms: number) {
 }
 
 /** CSV export of recent checks. */
+export const EXPORT_COUNT_OPTIONS = [5, 10, 25] as const;
+
+/**
+ * Timestamped, human-identifiable export filename, e.g.
+ * `env-preflight-abc123-last-10-2026-08-01T10-12-30Z.csv`.
+ */
+export function buildExportFilename(
+  projectRef: string | undefined,
+  count: number,
+  extension: "json" | "csv",
+  at: Date = new Date(),
+): string {
+  const stamp = at
+    .toISOString()
+    .replace(/\.\d{3}Z$/, "Z")
+    .replace(/[:]/g, "-");
+  return `env-preflight-${projectRef ?? "project"}-last-${count}-${stamp}.${extension}`;
+}
+
 export function buildHistoryCsv(records: CheckRecord[]): string {
   const escape = (value: string) => `"${value.replace(/"/g, '""')}"`;
   const rows = [
