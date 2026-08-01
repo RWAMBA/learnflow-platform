@@ -310,7 +310,9 @@ export function EnvPreflightBanner() {
 
   // Feedback for a manually triggered check.
   const [runState, setRunState] = useState<
-    { status: "idle" } | { status: "success"; missing: number } | { status: "error"; message: string }
+    | { status: "idle" }
+    | { status: "success"; missing: number }
+    | { status: "error"; message: string }
   >({ status: "idle" });
   const runNow = useCallback(async () => {
     setRunState({ status: "idle" });
@@ -533,14 +535,14 @@ export function EnvPreflightBanner() {
               : runState.status === "error"
                 ? `Supabase environment preflight check failed. ${runState.message}`
                 : `Preflight check complete. ${
-                  data.missing.length
-                } environment variable${data.missing.length === 1 ? "" : "s"} still missing: ${data.missing
-                  .map((m) => m.name)
-                  .join(", ")}.${
-                  autoRecheck && countdownMs != null
-                    ? ` Next automatic check in ${announceCountdown(countdownMs)}.`
-                    : ""
-                }`}
+                    data.missing.length
+                  } environment variable${data.missing.length === 1 ? "" : "s"} still missing: ${data.missing
+                    .map((m) => m.name)
+                    .join(", ")}.${
+                    autoRecheck && countdownMs != null
+                      ? ` Next automatic check in ${announceCountdown(countdownMs)}.`
+                      : ""
+                  }`}
           </p>
           {history.length > 0 && (
             <div className="mt-3 rounded-md border bg-card p-3">
