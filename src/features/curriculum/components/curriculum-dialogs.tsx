@@ -44,7 +44,10 @@ import { listStudents, studentKeys } from "@/features/students/api";
 
 const statusValues = ["draft", "published", "archived"] as const;
 
-function StatusField({ control }: { control: any }) {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyControl = import("react-hook-form").Control<any>;
+
+function StatusField({ control }: { control: AnyControl }) {
   return (
     <FormField
       control={control}
