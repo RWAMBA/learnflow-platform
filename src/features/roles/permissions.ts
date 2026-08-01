@@ -15,6 +15,14 @@ export const can = {
   viewOrganizationRollup: (role: RoleCode | undefined) => role === "org_admin",
 };
 
+/** Curriculum authoring is limited to educators and organization admins. */
+export const canAuthorCurriculum = (role: RoleCode | undefined) =>
+  role === "teacher" || role === "tutor" || role === "org_admin";
+
+/** Who may attach a subject to a student's learning plan. */
+export const canAssignCurriculum = (role: RoleCode | undefined) =>
+  role === "teacher" || role === "tutor" || role === "org_admin" || role === "parent_guardian";
+
 /**
  * Family tenants merge the administrator widgets into the parent widget set
  * instead of rendering a separate administrator dashboard.
