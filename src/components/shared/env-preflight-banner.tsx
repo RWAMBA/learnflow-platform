@@ -1,14 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
-import { AlertTriangle, ExternalLink, RefreshCw } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { AlertTriangle, ExternalLink, RefreshCw, RotateCcw } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { getSupabaseEnvPreflight } from "@/lib/env-preflight.functions";
 
-const PROJECT_REF = import.meta.env['VITE_SUPABASE_PROJECT_ID'] as string | undefined;
+const PROJECT_REF = import.meta.env["VITE_SUPABASE_PROJECT_ID"] as string | undefined;
 
 const SETUP_URL = PROJECT_REF
   ? `https://supabase.com/dashboard/project/${PROJECT_REF}/settings/api-keys`
@@ -26,8 +26,20 @@ const CUSTOM_VALUE = "custom";
 const MIN_SECONDS = 5;
 const MAX_SECONDS = 3600;
 
-const LS_KEY_AUTO_RECHECK = "platform-env-preflight-auto-recheck";
-const LS_KEY_INTERVAL_SECONDS = "platform-env-preflight-interval-seconds";
+const DEFAULT_AUTO_RECHECK = true;
+const DEFAULT_INTERVAL_MS = 120_000;
+const HISTORY_LIMIT = 5;
+
+/** Settings are namespaced per Supabase project ref so environments stay isolated. */
+const LS_NAMESPACE = `platform-env-preflight:${PROJECT_REF ?? "unknown-project"}`;
+const LS_KEY_AUTO_RECHECK = `${LS_NAMESPACE}:auto-recheck`;
+const LS_KEY_INTERVAL_SECONDS = `${LS_NAMESPACE}:interval-seconds`;
+
+interface CheckRecord {
+  at: number;
+  ok: boolean;
+  missing: string[];
+}
 
 /** Exact click-path for configuring each variable in Lovable Cloud. */
 const SETUP_STEPS: Record<string, string[]> = {
@@ -71,19 +83,36 @@ function clampSeconds(value: number) {
   return Math.min(MAX_SECONDS, Math.max(MIN_SECONDS, Math.floor(value)));
 }
 
+function formatCountdown(ms: number) {
+  const total = Math.max(0, Math.ceil(ms / 1_000));
+  const minutes = Math.floor(total / 60);
+  const seconds = total % 60;
+  return minutes > 0 ? `${minutes}m ${String(seconds).padStart(2, "0")}s` : `${seconds}s`;
+}
+
+function formatClock(at: number) {
+  return new Date(at).toLocaleTimeString(undefined, {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
 /**
  * Surfaces missing server-side configuration up front, so a blank screen from
  * a failed server action is explained before the user triggers it.
  */
 export function EnvPreflightBanner() {
   const preflight = useServerFn(getSupabaseEnvPreflight);
-  const [autoRecheck, setAutoRecheck] = useState(true);
-  const [intervalMs, setIntervalMs] = useState(120_000);
+  const [autoRecheck, setAutoRecheck] = useState(DEFAULT_AUTO_RECHECK);
+  const [intervalMs, setIntervalMs] = useState(DEFAULT_INTERVAL_MS);
   const [customSeconds, setCustomSeconds] = useState<string>("60");
   const [hydrated, setHydrated] = useState(false);
+  const [history, setHistory] = useState<CheckRecord[]>([]);
+  const [now, setNow] = useState(() => Date.now());
   const isCustom = useMemo(
     () => !INTERVAL_OPTIONS.some((o) => o.value === intervalMs),
-    [intervalMs]
+    [intervalMs],
   );
 
   // Hydrate persisted preferences on the client only.
@@ -129,24 +158,63 @@ export function EnvPreflightBanner() {
     }
   }, [intervalMs, hydrated]);
 
-  const { data, refetch, isFetching } = useQuery({
+  const { data, refetch, isFetching, dataUpdatedAt } = useQuery({
     queryKey: ["supabase-env-preflight"],
     queryFn: () => preflight(),
     staleTime: 60_000,
     retry: false,
     // Poll only while something is still missing; stop once the env is healthy.
     refetchInterval: (query) =>
-      autoRecheck && query.state.data && !query.state.data.ok
-        ? intervalMs
-        : false,
+      autoRecheck && query.state.data && !query.state.data.ok ? intervalMs : false,
     refetchIntervalInBackground: false,
   });
 
+  // Record each completed check so the user can see what was missing over time.
+  const lastRecordedRef = useRef<number | null>(null);
+  const [lastCheckedAt, setLastCheckedAt] = useState<number | null>(null);
+  useEffect(() => {
+    if (!data || !dataUpdatedAt) return;
+    if (lastRecordedRef.current === dataUpdatedAt) return;
+    lastRecordedRef.current = dataUpdatedAt;
+    setHistory((prev) =>
+      [{ at: dataUpdatedAt, ok: data.ok, missing: data.missing.map((m) => m.name) }, ...prev].slice(
+        0,
+        HISTORY_LIMIT,
+      ),
+    );
+    setLastCheckedAt(dataUpdatedAt);
+  }, [data, dataUpdatedAt]);
+
+  // Tick once per second while a countdown is visible.
+  const countdownActive = autoRecheck && !!data && !data.ok;
+  useEffect(() => {
+    if (!countdownActive) return;
+    const id = window.setInterval(() => setNow(Date.now()), 1_000);
+    return () => window.clearInterval(id);
+  }, [countdownActive]);
+
+  const resetSettings = useCallback(() => {
+    setAutoRecheck(DEFAULT_AUTO_RECHECK);
+    setIntervalMs(DEFAULT_INTERVAL_MS);
+    setCustomSeconds("60");
+    try {
+      window.localStorage.removeItem(LS_KEY_AUTO_RECHECK);
+      window.localStorage.removeItem(LS_KEY_INTERVAL_SECONDS);
+    } catch {
+      // ignore
+    }
+  }, []);
+
   if (!data || data.ok) return null;
 
-  const activeLabel = INTERVAL_OPTIONS.find((o) => o.value === intervalMs)?.label ?? formatInterval(intervalMs);
+  const nextRunAt = lastCheckedAt != null ? lastCheckedAt + intervalMs : null;
+  const countdownMs = nextRunAt != null ? nextRunAt - now : null;
+
+  const activeLabel =
+    INTERVAL_OPTIONS.find((o) => o.value === intervalMs)?.label ?? formatInterval(intervalMs);
   const customParsed = Number(customSeconds);
-  const customValid = Number.isFinite(customParsed) && customParsed >= MIN_SECONDS && customParsed <= MAX_SECONDS;
+  const customValid =
+    Number.isFinite(customParsed) && customParsed >= MIN_SECONDS && customParsed <= MAX_SECONDS;
 
   return (
     <div
@@ -195,6 +263,10 @@ export function EnvPreflightBanner() {
               />
               {isFetching ? "Re-checking…" : "Re-run check"}
             </Button>
+            <Button type="button" variant="ghost" size="sm" onClick={resetSettings}>
+              <RotateCcw aria-hidden="true" className="mr-2 size-4" />
+              Reset settings
+            </Button>
             <div className="flex items-center gap-2">
               <Switch
                 id="env-preflight-auto-recheck"
@@ -216,7 +288,9 @@ export function EnvPreflightBanner() {
                   const value = e.target.value;
                   if (value === CUSTOM_VALUE) {
                     const parsed = Number(customSeconds);
-                    setIntervalMs(Number.isFinite(parsed) && parsed >= MIN_SECONDS ? parsed * 1_000 : 60_000);
+                    setIntervalMs(
+                      Number.isFinite(parsed) && parsed >= MIN_SECONDS ? parsed * 1_000 : 60_000,
+                    );
                   } else {
                     setIntervalMs(Number(value));
                   }
@@ -244,7 +318,11 @@ export function EnvPreflightBanner() {
                       const raw = e.target.value;
                       setCustomSeconds(raw);
                       const parsed = Number(raw);
-                      if (Number.isFinite(parsed) && parsed >= MIN_SECONDS && parsed <= MAX_SECONDS) {
+                      if (
+                        Number.isFinite(parsed) &&
+                        parsed >= MIN_SECONDS &&
+                        parsed <= MAX_SECONDS
+                      ) {
                         setIntervalMs(parsed * 1_000);
                       }
                     }}
@@ -262,12 +340,32 @@ export function EnvPreflightBanner() {
           {autoRecheck && (
             <p className="mt-2 text-xs text-muted-foreground">
               Re-checking automatically every {activeLabel} until all variables are configured.
+              {countdownMs != null && (
+                <span className="ml-1" aria-live="polite">
+                  {isFetching ? "Checking now…" : `Next check in ${formatCountdown(countdownMs)}.`}
+                </span>
+              )}
               {isCustom && !customValid && (
                 <span className="ml-1 text-destructive">
                   Enter a value between {MIN_SECONDS} and {MAX_SECONDS} seconds.
                 </span>
               )}
             </p>
+          )}
+          {history.length > 0 && (
+            <div className="mt-3 rounded-md border bg-card p-3">
+              <p className="text-xs font-medium">Recent checks</p>
+              <ul className="mt-2 space-y-1 text-xs text-muted-foreground">
+                {history.map((entry) => (
+                  <li key={entry.at} className="flex flex-wrap gap-x-2">
+                    <span className="font-mono">{formatClock(entry.at)}</span>
+                    <span>
+                      {entry.ok ? "All variables present" : `Missing: ${entry.missing.join(", ")}`}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           )}
         </div>
       </div>
