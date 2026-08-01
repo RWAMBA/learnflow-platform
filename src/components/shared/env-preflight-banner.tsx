@@ -292,16 +292,39 @@ export function EnvPreflightBanner() {
         missing: entry.missing,
       })),
     };
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `env-preflight-${PROJECT_REF ?? "project"}-${Date.now()}.json`;
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    URL.revokeObjectURL(url);
+    downloadFile(JSON.stringify(payload, null, 2), "application/json", "json");
   }, [history]);
+
+  const exportHistoryCsv = useCallback(() => {
+    downloadFile(buildHistoryCsv(history), "text/csv", "csv");
+  }, [history]);
+
+  const clearHistory = useCallback(() => {
+    setHistory([]);
+    try {
+      window.localStorage.removeItem(LS_KEY_HISTORY);
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  // Feedback for a manually triggered check.
+  const [runState, setRunState] = useState<
+    { status: "idle" } | { status: "success"; missing: number } | { status: "error"; message: string }
+  >({ status: "idle" });
+  const runNow = useCallback(async () => {
+    setRunState({ status: "idle" });
+    try {
+      const result = await refetch();
+      if (result.error) throw result.error;
+      setRunState({ status: "success", missing: result.data?.missing.length ?? 0 });
+    } catch (error) {
+      setRunState({
+        status: "error",
+        message: error instanceof Error ? error.message : "Preflight check failed.",
+      });
+    }
+  }, [refetch]);
 
   if (!data || data.ok) return null;
 
