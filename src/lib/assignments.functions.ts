@@ -108,15 +108,6 @@ export const submitAssignment = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-const legacyGradeSchema = z.object({
-  assignmentId: z.string().uuid(),
-  gradedByUserRoleId: z.string().uuid(),
-  score: z.number().min(0).max(100).optional(),
-  feedback: z.string().trim().max(2000).optional(),
-  masteryLevel: z.enum(["emerging", "developing", "proficient", "advanced"]),
-  competencyIds: z.array(z.string().uuid()).default([]),
-});
-
 /**
  * Multi-step: grading writes an assessment, the progress records for each
  * covered competency, moves the assignment to `graded`, and notifies the
