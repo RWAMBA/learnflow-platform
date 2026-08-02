@@ -133,7 +133,7 @@ function Page() {
         empty={<EmptyState title="Assignment not found" />}
       >
         {(data) => (
-          <div className="grid gap-6 lg:grid-cols-3">
+          data && <div className="grid gap-6 lg:grid-cols-3">
             <Card className="lg:col-span-2">
               <CardHeader className="flex flex-row items-start justify-between gap-3">
                 <div>
