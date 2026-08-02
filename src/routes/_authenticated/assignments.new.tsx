@@ -225,7 +225,11 @@ function Page() {
                 <Button type="submit" disabled={mutation.isPending || !activeRole}>
                   {mutation.isPending ? "Assigning…" : "Assign work"}
                 </Button>
-                <Button type="button" variant="outline" onClick={() => void navigate({ to: "/assignments" })}>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => void navigate({ to: "/assignments" })}
+                >
                   Cancel
                 </Button>
               </div>

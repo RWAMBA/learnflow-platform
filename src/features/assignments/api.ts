@@ -35,9 +35,7 @@ export async function listAssignmentsForOrganization(organizationId: string) {
 export async function getAssignment(assignmentId: string) {
   const { data, error } = await supabase
     .from("assignments")
-    .select(
-      `${ASSIGNMENT_SELECT}, assessments(id, result, graded_at, graded_by_user_role_id)`,
-    )
+    .select(`${ASSIGNMENT_SELECT}, assessments(id, result, graded_at, graded_by_user_role_id)`)
     .eq("id", assignmentId)
     .maybeSingle();
   if (error) throw error;
@@ -74,7 +72,9 @@ export async function updateAssignmentStatus(assignmentId: string, status: Assig
 export async function listProgressForStudent(studentId: string) {
   const { data, error } = await supabase
     .from("progress_records")
-    .select("id, mastery_level, recorded_at, competency:competencies(id, name, subject:subjects(id, name))")
+    .select(
+      "id, mastery_level, recorded_at, competency:competencies(id, name, subject:subjects(id, name))",
+    )
     .eq("student_id", studentId)
     .order("recorded_at", { ascending: false });
   if (error) throw error;

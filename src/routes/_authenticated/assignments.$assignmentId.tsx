@@ -132,181 +132,186 @@ function Page() {
         isEmpty={(data) => !data}
         empty={<EmptyState title="Assignment not found" />}
       >
-        {(data) => (
-          data && <div className="grid gap-6 lg:grid-cols-3">
-            <Card className="lg:col-span-2">
-              <CardHeader className="flex flex-row items-start justify-between gap-3">
-                <div>
-                  <CardTitle>{data.lesson?.title ?? "Lesson"}</CardTitle>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    {data.student?.first_name} {data.student?.last_name} ·{" "}
-                    {data.lesson?.subject?.name ?? "—"}
-                  </p>
-                </div>
-                <AssignmentStatusBadge status={data.status} dueAt={data.due_at} />
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <dl className="grid gap-3 sm:grid-cols-2">
+        {(data) =>
+          data && (
+            <div className="grid gap-6 lg:grid-cols-3">
+              <Card className="lg:col-span-2">
+                <CardHeader className="flex flex-row items-start justify-between gap-3">
                   <div>
-                    <dt className="text-sm text-muted-foreground">Due</dt>
-                    <dd>{formatDateTime(data.due_at)}</dd>
+                    <CardTitle>{data.lesson?.title ?? "Lesson"}</CardTitle>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {data.student?.first_name} {data.student?.last_name} ·{" "}
+                      {data.lesson?.subject?.name ?? "—"}
+                    </p>
                   </div>
-                  <div>
-                    <dt className="text-sm text-muted-foreground">Assigned</dt>
-                    <dd>{formatDateTime(data.created_at)}</dd>
-                  </div>
-                </dl>
-                {data.instructions ? (
-                  <div>
-                    <h2 className="text-sm font-medium">Instructions</h2>
-                    <p className="mt-1 whitespace-pre-wrap text-sm">{data.instructions}</p>
-                  </div>
-                ) : null}
-                {data.lesson?.id ? (
-                  <Button asChild variant="outline">
-                    <Link to="/curriculum/lessons/$lessonId" params={{ lessonId: data.lesson.id }}>
-                      Open lesson
-                    </Link>
-                  </Button>
-                ) : null}
-
-                {isStudent && data.status !== "graded" ? (
-                  <div className="flex flex-wrap gap-2 border-t pt-4">
-                    <Button
-                      variant="outline"
-                      disabled={statusMutation.isPending || data.status === "in_progress"}
-                      onClick={() => statusMutation.mutate("in_progress")}
-                    >
-                      Start work
-                    </Button>
-                    <Button
-                      disabled={statusMutation.isPending || data.status === "submitted"}
-                      onClick={() => statusMutation.mutate("submitted")}
-                    >
-                      {data.status === "submitted" ? "Submitted" : "Submit work"}
-                    </Button>
-                  </div>
-                ) : null}
-              </CardContent>
-            </Card>
-
-            <div className="space-y-6">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-base">Assessment</CardTitle>
+                  <AssignmentStatusBadge status={data.status} dueAt={data.due_at} />
                 </CardHeader>
-                <CardContent className="space-y-3">
-                  {data.assessments?.length ? (
-                    data.assessments.map((assessment) => {
-                      const result = (assessment.result ?? {}) as {
-                        score?: number | null;
-                        feedback?: string | null;
-                        mastery_level?: string | null;
-                      };
-                      return (
-                        <div key={assessment.id} className="rounded-md border p-3 text-sm">
-                          <div className="flex items-center justify-between gap-2">
-                            <span className="font-medium">
-                              {result.score == null ? "No score" : `${result.score}%`}
-                            </span>
-                            {result.mastery_level ? (
-                              <MasteryBadge level={result.mastery_level} />
-                            ) : null}
-                          </div>
-                          {result.feedback ? (
-                            <p className="mt-2 whitespace-pre-wrap text-muted-foreground">
-                              {result.feedback}
-                            </p>
-                          ) : null}
-                          <p className="mt-2 text-xs text-muted-foreground">
-                            {formatDateTime(assessment.graded_at)}
-                          </p>
-                        </div>
-                      );
-                    })
-                  ) : (
-                    <EmptyState title="Not graded yet" />
-                  )}
+                <CardContent className="space-y-4">
+                  <dl className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <dt className="text-sm text-muted-foreground">Due</dt>
+                      <dd>{formatDateTime(data.due_at)}</dd>
+                    </div>
+                    <div>
+                      <dt className="text-sm text-muted-foreground">Assigned</dt>
+                      <dd>{formatDateTime(data.created_at)}</dd>
+                    </div>
+                  </dl>
+                  {data.instructions ? (
+                    <div>
+                      <h2 className="text-sm font-medium">Instructions</h2>
+                      <p className="mt-1 whitespace-pre-wrap text-sm">{data.instructions}</p>
+                    </div>
+                  ) : null}
+                  {data.lesson?.id ? (
+                    <Button asChild variant="outline">
+                      <Link
+                        to="/curriculum/lessons/$lessonId"
+                        params={{ lessonId: data.lesson.id }}
+                      >
+                        Open lesson
+                      </Link>
+                    </Button>
+                  ) : null}
+
+                  {isStudent && data.status !== "graded" ? (
+                    <div className="flex flex-wrap gap-2 border-t pt-4">
+                      <Button
+                        variant="outline"
+                        disabled={statusMutation.isPending || data.status === "in_progress"}
+                        onClick={() => statusMutation.mutate("in_progress")}
+                      >
+                        Start work
+                      </Button>
+                      <Button
+                        disabled={statusMutation.isPending || data.status === "submitted"}
+                        onClick={() => statusMutation.mutate("submitted")}
+                      >
+                        {data.status === "submitted" ? "Submitted" : "Submit work"}
+                      </Button>
+                    </div>
+                  ) : null}
                 </CardContent>
               </Card>
 
-              {mayGrade ? (
+              <div className="space-y-6">
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-base">Grade this work</CardTitle>
+                    <CardTitle className="text-base">Assessment</CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="score">Score (%)</Label>
-                      <Input
-                        id="score"
-                        type="number"
-                        min={0}
-                        max={100}
-                        value={score}
-                        onChange={(event) => setScore(event.target.value)}
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="mastery">Mastery level</Label>
-                      <Select
-                        value={masteryLevel}
-                        onValueChange={(value) => setMasteryLevel(value as typeof masteryLevel)}
-                      >
-                        <SelectTrigger id="mastery">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {MASTERY.map((level) => (
-                            <SelectItem key={level} value={level}>
-                              {level}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    {competencies.data?.length ? (
-                      <fieldset className="space-y-2">
-                        <legend className="text-sm font-medium">Rubric — competencies met</legend>
-                        {competencies.data.map((competency) => (
-                          <label key={competency.id} className="flex items-start gap-2 text-sm">
-                            <Checkbox
-                              checked={competencyIds.includes(competency.id)}
-                              onCheckedChange={(value) =>
-                                setCompetencyIds((previous) =>
-                                  value
-                                    ? [...previous, competency.id]
-                                    : previous.filter((id) => id !== competency.id),
-                                )
-                              }
-                            />
-                            <span>{competency.name}</span>
-                          </label>
-                        ))}
-                      </fieldset>
-                    ) : null}
-                    <div className="space-y-2">
-                      <Label htmlFor="feedback">Feedback</Label>
-                      <Textarea
-                        id="feedback"
-                        rows={4}
-                        value={feedback}
-                        onChange={(event) => setFeedback(event.target.value)}
-                      />
-                    </div>
-                    <Button
-                      className="w-full"
-                      disabled={gradeMutation.isPending || !activeRole}
-                      onClick={() => gradeMutation.mutate()}
-                    >
-                      {gradeMutation.isPending ? "Saving…" : "Save grade"}
-                    </Button>
+                  <CardContent className="space-y-3">
+                    {data.assessments?.length ? (
+                      data.assessments.map((assessment) => {
+                        const result = (assessment.result ?? {}) as {
+                          score?: number | null;
+                          feedback?: string | null;
+                          mastery_level?: string | null;
+                        };
+                        return (
+                          <div key={assessment.id} className="rounded-md border p-3 text-sm">
+                            <div className="flex items-center justify-between gap-2">
+                              <span className="font-medium">
+                                {result.score == null ? "No score" : `${result.score}%`}
+                              </span>
+                              {result.mastery_level ? (
+                                <MasteryBadge level={result.mastery_level} />
+                              ) : null}
+                            </div>
+                            {result.feedback ? (
+                              <p className="mt-2 whitespace-pre-wrap text-muted-foreground">
+                                {result.feedback}
+                              </p>
+                            ) : null}
+                            <p className="mt-2 text-xs text-muted-foreground">
+                              {formatDateTime(assessment.graded_at)}
+                            </p>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <EmptyState title="Not graded yet" />
+                    )}
                   </CardContent>
                 </Card>
-              ) : null}
+
+                {mayGrade ? (
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="text-base">Grade this work</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="score">Score (%)</Label>
+                        <Input
+                          id="score"
+                          type="number"
+                          min={0}
+                          max={100}
+                          value={score}
+                          onChange={(event) => setScore(event.target.value)}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="mastery">Mastery level</Label>
+                        <Select
+                          value={masteryLevel}
+                          onValueChange={(value) => setMasteryLevel(value as typeof masteryLevel)}
+                        >
+                          <SelectTrigger id="mastery">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {MASTERY.map((level) => (
+                              <SelectItem key={level} value={level}>
+                                {level}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      {competencies.data?.length ? (
+                        <fieldset className="space-y-2">
+                          <legend className="text-sm font-medium">Rubric — competencies met</legend>
+                          {competencies.data.map((competency) => (
+                            <label key={competency.id} className="flex items-start gap-2 text-sm">
+                              <Checkbox
+                                checked={competencyIds.includes(competency.id)}
+                                onCheckedChange={(value) =>
+                                  setCompetencyIds((previous) =>
+                                    value
+                                      ? [...previous, competency.id]
+                                      : previous.filter((id) => id !== competency.id),
+                                  )
+                                }
+                              />
+                              <span>{competency.name}</span>
+                            </label>
+                          ))}
+                        </fieldset>
+                      ) : null}
+                      <div className="space-y-2">
+                        <Label htmlFor="feedback">Feedback</Label>
+                        <Textarea
+                          id="feedback"
+                          rows={4}
+                          value={feedback}
+                          onChange={(event) => setFeedback(event.target.value)}
+                        />
+                      </div>
+                      <Button
+                        className="w-full"
+                        disabled={gradeMutation.isPending || !activeRole}
+                        onClick={() => gradeMutation.mutate()}
+                      >
+                        {gradeMutation.isPending ? "Saving…" : "Save grade"}
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ) : null}
+              </div>
             </div>
-          </div>
-        )}
+          )
+        }
       </QueryState>
     </div>
   );
