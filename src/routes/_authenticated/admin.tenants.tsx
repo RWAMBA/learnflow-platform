@@ -9,12 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  adminKeys,
-  listAuditLogs,
-  listSecurityEvents,
-  listTenants,
-} from "@/features/admin/api";
+import { adminKeys, listAuditLogs, listSecurityEvents, listTenants } from "@/features/admin/api";
 import { useRoleContext } from "@/features/roles/role-context";
 import { formatDate, formatDateTime } from "@/lib/format";
 
@@ -143,7 +138,9 @@ function Page() {
             data={auditLogs.data}
             onRetry={() => void auditLogs.refetch()}
             isEmpty={(data) => data.length === 0}
-            empty={<EmptyState title="No activity yet" description="Audited actions appear here." />}
+            empty={
+              <EmptyState title="No activity yet" description="Audited actions appear here." />
+            }
           >
             {(rows) => (
               <ul className="space-y-2">
@@ -167,9 +164,7 @@ function Page() {
             data={securityEvents.data}
             onRetry={() => void securityEvents.refetch()}
             isEmpty={(data) => data.length === 0}
-            empty={
-              <EmptyState title="No security events" description="Nothing needs attention." />
-            }
+            empty={<EmptyState title="No security events" description="Nothing needs attention." />}
           >
             {(rows) => (
               <ul className="space-y-2">

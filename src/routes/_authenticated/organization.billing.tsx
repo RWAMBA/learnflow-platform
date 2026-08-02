@@ -6,10 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useRoleContext } from "@/features/roles/role-context";
-import {
-  getOrganizationSubscription,
-  subscriptionKeys,
-} from "@/features/subscription/api";
+import { getOrganizationSubscription, subscriptionKeys } from "@/features/subscription/api";
 import {
   getOrganizationUsage,
   listActivePlans,
@@ -84,7 +81,10 @@ function Page() {
               {current ? (
                 <>
                   <p className="text-sm text-muted-foreground">
-                    {formatCurrency(current.plan?.price_amount ?? null, current.plan?.price_currency ?? "KES")}{" "}
+                    {formatCurrency(
+                      current.plan?.price_amount ?? null,
+                      current.plan?.price_currency ?? "KES",
+                    )}{" "}
                     · started {formatDate(current.started_at)}
                     {current.ended_at ? ` · ends ${formatDate(current.ended_at)}` : ""}
                   </p>
