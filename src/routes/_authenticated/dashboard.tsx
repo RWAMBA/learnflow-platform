@@ -83,7 +83,7 @@ function ParentDashboard({ userId }: { userId: string }) {
     queryKey: studentKeys.forViewer(userId),
     queryFn: () => listLinkedStudentsForParent(userId),
   });
-  const studentIds = (linked.data ?? []).map((row) => row.student!.id);
+  const studentIds = (linked.data ?? []).map((row) => row.student?.id).filter((id): id is string => Boolean(id));
 
   return (
     <>
@@ -101,7 +101,7 @@ function EducatorDashboard({ userId, kind }: { userId: string; kind: "teacher" |
     queryKey: ["roster", userId, kind],
     queryFn: () => listRosterForEducator(userId, kind),
   });
-  const studentIds = (roster.data ?? []).map((row) => row.student!.id);
+  const studentIds = (roster.data ?? []).map((row) => row.student?.id).filter((id): id is string => Boolean(id));
 
   return (
     <>
