@@ -1,5 +1,4 @@
 import { useQuery } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import {
   AlertTriangle,
   CheckCircle2,
@@ -15,7 +14,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { getSupabaseEnvPreflight } from "@/lib/env-preflight.functions";
 import {
   announceCountdown,
   buildExportFilename,
@@ -23,6 +21,25 @@ import {
   EXPORT_COUNT_OPTIONS,
   type CheckRecord,
 } from "@/lib/env-preflight-format";
+
+interface PreflightResult {
+  ok: boolean;
+  missing: Array<{ name: string; purpose: string }>;
+  variables: Array<{ name: string; present: boolean; scope: string }>;
+}
+
+/**
+ * Plain fetch against a server route rather than a server function: server
+ * functions run the env preflight middleware, so a missing variable would make
+ * the very check that reports it fail.
+ */
+async function fetchPreflight(): Promise<PreflightResult> {
+  const response = await fetch("/api/env-preflight", {
+    headers: { accept: "application/json" },
+  });
+  if (!response.ok) throw new Error(`Preflight check failed (${response.status})`);
+  return (await response.json()) as PreflightResult;
+}
 
 const PROJECT_REF = import.meta.env["VITE_SUPABASE_PROJECT_ID"] as string | undefined;
 
@@ -127,7 +144,6 @@ function downloadFile(contents: string, mimeType: string, filename: string) {
  * a failed server action is explained before the user triggers it.
  */
 export function EnvPreflightBanner() {
-  const preflight = useServerFn(getSupabaseEnvPreflight);
   const [autoRecheck, setAutoRecheck] = useState(DEFAULT_AUTO_RECHECK);
   const [intervalMs, setIntervalMs] = useState(DEFAULT_INTERVAL_MS);
   const [customSeconds, setCustomSeconds] = useState<string>("60");
@@ -203,7 +219,7 @@ export function EnvPreflightBanner() {
 
   const { data, refetch, isFetching, dataUpdatedAt } = useQuery({
     queryKey: ["supabase-env-preflight"],
-    queryFn: () => preflight(),
+    queryFn: fetchPreflight,
     staleTime: 60_000,
     retry: false,
     // Poll only while something is still missing; stop once the env is healthy.
