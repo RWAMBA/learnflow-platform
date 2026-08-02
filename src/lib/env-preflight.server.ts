@@ -4,28 +4,9 @@
  * they are present.
  */
 
-export type EnvScope = "core" | "admin";
+import { REQUIRED_ENV, type EnvScope, type EnvVarStatus } from "./env-preflight-vars";
 
-export interface EnvVarStatus {
-  name: string;
-  present: boolean;
-  scope: EnvScope;
-  purpose: string;
-}
-
-const REQUIRED_ENV: Array<{ name: string; scope: EnvScope; purpose: string }> = [
-  { name: "SUPABASE_URL", scope: "core", purpose: "Server-side Supabase API endpoint" },
-  {
-    name: "SUPABASE_PUBLISHABLE_KEY",
-    scope: "core",
-    purpose: "Authenticated server functions (RLS as the signed-in user)",
-  },
-  {
-    name: "SUPABASE_SERVICE_ROLE_KEY",
-    scope: "admin",
-    purpose: "Privileged operations such as onboarding organization lookup",
-  },
-];
+export type { EnvScope, EnvVarStatus };
 
 export function inspectSupabaseEnv(): EnvVarStatus[] {
   return REQUIRED_ENV.map((entry) => ({
