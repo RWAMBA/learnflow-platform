@@ -5,12 +5,11 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const preflightMock = vi.fn();
 
-vi.mock("@tanstack/react-start", () => ({
-  useServerFn: () => preflightMock,
-}));
-
-vi.mock("@/lib/env-preflight.functions", () => ({
-  getSupabaseEnvPreflight: vi.fn(),
+// The banner fetches the /api/env-preflight server route directly.
+vi.stubGlobal("fetch", async () => ({
+  ok: true,
+  status: 200,
+  json: async () => preflightMock(),
 }));
 
 import { announceCountdown, buildHistoryCsv } from "@/lib/env-preflight-format";
