@@ -6,6 +6,7 @@ export const assignmentKeys = {
   list: (scope: string) => ["assignments", scope] as const,
   detail: (assignmentId: string) => ["assignment", assignmentId] as const,
   forStudent: (studentId: string) => ["assignments", "student", studentId] as const,
+  lessons: (scope: string) => ["assignments", "lessons", scope] as const,
 };
 
 const ASSIGNMENT_SELECT =
@@ -76,6 +77,30 @@ export async function listProgressForStudent(studentId: string) {
     .select("id, mastery_level, recorded_at, competency:competencies(id, name, subject:subjects(id, name))")
     .eq("student_id", studentId)
     .order("recorded_at", { ascending: false });
+  if (error) throw error;
+  return data;
+}
+
+/** Published lessons that may be handed out as work. */
+export async function listAssignableLessons() {
+  const { data, error } = await supabase
+    .from("lessons")
+    .select("id, title, content_type, subject:subjects(id, name)")
+    .eq("status", "published")
+    .order("title")
+    .limit(500);
+  if (error) throw error;
+  return data;
+}
+
+/** Competencies attached to the subject a lesson belongs to (rubric rows). */
+export async function listCompetenciesForSubject(subjectId: string | null | undefined) {
+  if (!subjectId) return [];
+  const { data, error } = await supabase
+    .from("competencies")
+    .select("id, name, description")
+    .eq("subject_id", subjectId)
+    .order("name");
   if (error) throw error;
   return data;
 }
