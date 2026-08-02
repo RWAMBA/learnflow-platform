@@ -11,6 +11,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "test": "vitest run",
+    "test:rls": "vitest run src/lib/rls-recursion.test.ts && node scripts/check-rls-recursion.mjs",
     "test:e2e": "playwright test"
   },
   "dependencies": {
