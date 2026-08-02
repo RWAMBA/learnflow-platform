@@ -227,7 +227,8 @@ function Page() {
                         <p className="font-medium">
                           {row.others
                             .map(
-                              (participant) => participant.user_role?.profile?.full_name ?? "Member",
+                              (participant) =>
+                                participant.user_role?.profile?.full_name ?? "Member",
                             )
                             .join(", ") || "Conversation"}
                         </p>

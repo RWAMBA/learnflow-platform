@@ -8,11 +8,7 @@ import { QueryState } from "@/components/shared/query-state";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useRoleContext } from "@/features/roles/role-context";
-import {
-  listMessages,
-  markConversationRead,
-  messagingKeys,
-} from "@/features/messaging/api";
+import { listMessages, markConversationRead, messagingKeys } from "@/features/messaging/api";
 import { sendMessage } from "@/lib/messaging.functions";
 import { formatDateTime } from "@/lib/format";
 import { ROLE_LABELS, type RoleCode } from "@/features/roles/types";
@@ -58,8 +54,7 @@ function Page() {
   }, [query.data]);
 
   const send = useMutation({
-    mutationFn: () =>
-      sendMessage({ data: { conversationId, senderUserRoleId: userRoleId, body } }),
+    mutationFn: () => sendMessage({ data: { conversationId, senderUserRoleId: userRoleId, body } }),
     onSuccess: () => {
       setBody("");
       void queryClient.invalidateQueries({ queryKey: messagingKeys.messages(conversationId) });
@@ -94,10 +89,7 @@ function Page() {
             {messages.map((message) => {
               const mine = message.sender_user_role_id === userRoleId;
               return (
-                <li
-                  key={message.id}
-                  className={cn("flex", mine ? "justify-end" : "justify-start")}
-                >
+                <li key={message.id} className={cn("flex", mine ? "justify-end" : "justify-start")}>
                   <div
                     className={cn(
                       "max-w-[85%] rounded-lg px-4 py-3 sm:max-w-[70%]",
