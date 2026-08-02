@@ -38,6 +38,7 @@ export const NOTIFICATION_LABELS: Record<string, string> = {
   new_message: "New message",
   assignment_due: "Assignment due",
   assignment_overdue: "Assignment overdue",
+  assignment_submitted: "Assignment submitted",
   assignment_graded: "New progress record",
   relationship_invitation: "Relationship invitation",
 };
