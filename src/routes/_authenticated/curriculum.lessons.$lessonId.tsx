@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ListSkeleton, QueryState } from "@/components/shared/query-state";
@@ -15,6 +15,14 @@ import {
   RecordProgressDialog,
 } from "@/features/curriculum/components/curriculum-dialogs";
 import { curriculumKeys, getLesson, getSubjectWithContent } from "@/features/curriculum/api";
+import {
+  findLessonNeighbours,
+  hierarchyKeys,
+  listLessonPrerequisites,
+  listSubjectLessonSequence,
+} from "@/features/curriculum/hierarchy-api";
+import { LessonPlanningDialog } from "@/features/curriculum/components/hierarchy-dialogs";
+import { ResourcesPanel } from "@/features/curriculum/components/resources-panel";
 import { canAssignCurriculum, canAuthorCurriculum } from "@/features/roles/permissions";
 import { useRoleContext } from "@/features/roles/role-context";
 import { deleteCurriculumItem, setCurriculumStatus } from "@/lib/curriculum.functions";
@@ -52,6 +60,19 @@ function LessonPage() {
     queryFn: () => getSubjectWithContent(subjectId),
   });
 
+  const sequence = useQuery({
+    queryKey: hierarchyKeys.sequence(subjectId),
+    enabled: Boolean(subjectId),
+    queryFn: () => listSubjectLessonSequence(subjectId),
+  });
+
+  const prerequisites = useQuery({
+    queryKey: hierarchyKeys.prerequisites(lessonId),
+    queryFn: () => listLessonPrerequisites(lessonId),
+  });
+
+  const neighbours = findLessonNeighbours(sequence.data ?? [], lessonId);
+
   const mayAuthor =
     canAuthorCurriculum(activeRole?.roleCode) &&
     Boolean(organizationId) &&
@@ -59,8 +80,10 @@ function LessonPage() {
 
   const mayRecordProgress = canAssignCurriculum(activeRole?.roleCode) && Boolean(organizationId);
 
-  const refresh = () =>
+  const refresh = () => {
     void queryClient.invalidateQueries({ queryKey: curriculumKeys.lesson(lessonId) });
+    void queryClient.invalidateQueries({ queryKey: hierarchyKeys.prerequisites(lessonId) });
+  };
 
   const changeStatus = useServerFn(setCurriculumStatus);
   const removeItem = useServerFn(deleteCurriculumItem);
@@ -112,6 +135,20 @@ function LessonPage() {
               ) : null}
               {mayAuthor ? (
                 <>
+                  <LessonPlanningDialog
+                    organizationId={organizationId}
+                    lessonId={lesson.id}
+                    lesson={{
+                      summary: lesson.summary ?? null,
+                      estimated_minutes: lesson.estimated_minutes ?? null,
+                    }}
+                    siblingLessons={sequence.data ?? []}
+                    currentPrerequisiteId={
+                      prerequisites.data?.[0]?.prerequisite_lesson_id ?? null
+                    }
+                    onSaved={refresh}
+                    trigger={<Button variant="outline">Lesson planning</Button>}
+                  />
                   <LessonFormDialog
                     organizationId={organizationId}
                     subjectId={lesson.subject!.id}
