@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Plus, UserPlus } from "lucide-react";
+import { Copy, Plus, UserPlus } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ListSkeleton, QueryState } from "@/components/shared/query-state";
@@ -15,6 +15,9 @@ import {
   LessonFormDialog,
   TopicFormDialog,
 } from "@/features/curriculum/components/curriculum-dialogs";
+import { DuplicateSubjectDialog } from "@/features/curriculum/components/hierarchy-dialogs";
+import { StrandsSection } from "@/features/curriculum/components/strands-section";
+import { ResourcesPanel } from "@/features/curriculum/components/resources-panel";
 import {
   curriculumKeys,
   getSubjectWithContent,
@@ -156,6 +159,19 @@ function SubjectPage() {
                 }
               />
             ) : null}
+            {canAuthorCurriculum(activeRole?.roleCode) && organizationId ? (
+              <DuplicateSubjectDialog
+                organizationId={organizationId}
+                subjectId={subjectId}
+                defaultName={query.data?.subject?.name ?? "Subject"}
+                onSaved={refresh}
+                trigger={
+                  <Button variant="outline">
+                    <Copy aria-hidden="true" className="size-4" /> Duplicate
+                  </Button>
+                }
+              />
+            ) : null}
           </div>
         }
       />
@@ -184,6 +200,20 @@ function SubjectPage() {
                 <Badge variant="secondary">{data.subject.pathway.name}</Badge>
               ) : null}
             </div>
+
+            <StrandsSection
+              organizationId={organizationId}
+              subjectId={subjectId}
+              competencies={data.competencies ?? []}
+              mayAuthor={mayAuthor}
+            />
+
+            <ResourcesPanel
+              organizationId={organizationId}
+              entityType="subject"
+              entityId={subjectId}
+              mayAuthor={mayAuthor}
+            />
 
             <Card>
               <CardHeader>

@@ -125,7 +125,7 @@ export async function getLesson(lessonId: string) {
     supabase
       .from("lessons")
       .select(
-        "id, title, sequence_order, content_type, content_body, storage_path, status, published_at, topic_id, authoring_organization_id, topic:topics(id, title), subject:subjects(id, name, grade:grades(id, name))",
+        "id, title, sequence_order, content_type, content_body, storage_path, status, published_at, topic_id, summary, estimated_minutes, sub_strand_id, learning_outcome_id, authoring_organization_id, topic:topics(id, title), subject:subjects(id, name, grade:grades(id, name))",
       )
       .eq("id", lessonId)
       .maybeSingle(),

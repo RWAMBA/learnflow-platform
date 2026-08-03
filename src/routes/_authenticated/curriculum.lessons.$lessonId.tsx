@@ -2,7 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
-import { Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Plus } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
 import { ListSkeleton, QueryState } from "@/components/shared/query-state";
@@ -15,6 +15,14 @@ import {
   RecordProgressDialog,
 } from "@/features/curriculum/components/curriculum-dialogs";
 import { curriculumKeys, getLesson, getSubjectWithContent } from "@/features/curriculum/api";
+import {
+  findLessonNeighbours,
+  hierarchyKeys,
+  listLessonPrerequisites,
+  listSubjectLessonSequence,
+} from "@/features/curriculum/hierarchy-api";
+import { LessonPlanningDialog } from "@/features/curriculum/components/hierarchy-dialogs";
+import { ResourcesPanel } from "@/features/curriculum/components/resources-panel";
 import { canAssignCurriculum, canAuthorCurriculum } from "@/features/roles/permissions";
 import { useRoleContext } from "@/features/roles/role-context";
 import { deleteCurriculumItem, setCurriculumStatus } from "@/lib/curriculum.functions";
@@ -52,6 +60,19 @@ function LessonPage() {
     queryFn: () => getSubjectWithContent(subjectId),
   });
 
+  const sequence = useQuery({
+    queryKey: hierarchyKeys.sequence(subjectId),
+    enabled: Boolean(subjectId),
+    queryFn: () => listSubjectLessonSequence(subjectId),
+  });
+
+  const prerequisites = useQuery({
+    queryKey: hierarchyKeys.prerequisites(lessonId),
+    queryFn: () => listLessonPrerequisites(lessonId),
+  });
+
+  const neighbours = findLessonNeighbours(sequence.data ?? [], lessonId);
+
   const mayAuthor =
     canAuthorCurriculum(activeRole?.roleCode) &&
     Boolean(organizationId) &&
@@ -59,8 +80,10 @@ function LessonPage() {
 
   const mayRecordProgress = canAssignCurriculum(activeRole?.roleCode) && Boolean(organizationId);
 
-  const refresh = () =>
+  const refresh = () => {
     void queryClient.invalidateQueries({ queryKey: curriculumKeys.lesson(lessonId) });
+    void queryClient.invalidateQueries({ queryKey: hierarchyKeys.prerequisites(lessonId) });
+  };
 
   const changeStatus = useServerFn(setCurriculumStatus);
   const removeItem = useServerFn(deleteCurriculumItem);
@@ -112,6 +135,18 @@ function LessonPage() {
               ) : null}
               {mayAuthor ? (
                 <>
+                  <LessonPlanningDialog
+                    organizationId={organizationId}
+                    lessonId={lesson.id}
+                    lesson={{
+                      summary: lesson.summary ?? null,
+                      estimated_minutes: lesson.estimated_minutes ?? null,
+                    }}
+                    siblingLessons={sequence.data ?? []}
+                    currentPrerequisiteId={prerequisites.data?.[0]?.prerequisite_lesson_id ?? null}
+                    onSaved={refresh}
+                    trigger={<Button variant="outline">Lesson planning</Button>}
+                  />
                   <LessonFormDialog
                     organizationId={organizationId}
                     subjectId={lesson.subject!.id}
@@ -189,6 +224,23 @@ function LessonPage() {
                   <CardTitle className="text-base">Lesson content</CardTitle>
                 </CardHeader>
                 <CardContent>
+                  {data.lesson.summary ? (
+                    <p className="mb-3 rounded-md bg-muted/50 p-3 text-sm">{data.lesson.summary}</p>
+                  ) : null}
+                  {data.lesson.estimated_minutes ? (
+                    <p className="mb-3 text-sm text-muted-foreground">
+                      Estimated completion time: {data.lesson.estimated_minutes} minutes
+                    </p>
+                  ) : null}
+                  {(prerequisites.data ?? []).length > 0 ? (
+                    <p className="mb-3 text-sm text-muted-foreground">
+                      Prerequisite:{" "}
+                      {(prerequisites.data ?? [])
+                        .map((row) => row.prerequisite?.title)
+                        .filter(Boolean)
+                        .join(", ")}
+                    </p>
+                  ) : null}
                   {body ? (
                     <p className="whitespace-pre-wrap leading-relaxed">{body}</p>
                   ) : (
@@ -203,6 +255,40 @@ function LessonPage() {
                   ) : null}
                 </CardContent>
               </Card>
+
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                {neighbours.previous ? (
+                  <Button asChild variant="outline">
+                    <Link
+                      to="/curriculum/lessons/$lessonId"
+                      params={{ lessonId: neighbours.previous.id }}
+                    >
+                      <ChevronLeft aria-hidden="true" className="size-4" />
+                      {neighbours.previous.title}
+                    </Link>
+                  </Button>
+                ) : (
+                  <span />
+                )}
+                {neighbours.next ? (
+                  <Button asChild variant="outline">
+                    <Link
+                      to="/curriculum/lessons/$lessonId"
+                      params={{ lessonId: neighbours.next.id }}
+                    >
+                      {neighbours.next.title}
+                      <ChevronRight aria-hidden="true" className="size-4" />
+                    </Link>
+                  </Button>
+                ) : null}
+              </div>
+
+              <ResourcesPanel
+                organizationId={organizationId}
+                entityType="lesson"
+                entityId={lessonId}
+                mayAuthor={mayAuthor}
+              />
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between gap-3">

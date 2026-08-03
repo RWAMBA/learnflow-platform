@@ -22,7 +22,10 @@ import { Route as AuthenticatedAssignmentsIndexRouteImport } from './routes/_aut
 import { Route as AuthenticatedAssignmentsAssignmentIdRouteImport } from './routes/_authenticated/assignments.$assignmentId'
 import { Route as AuthenticatedAssignmentsNewRouteImport } from './routes/_authenticated/assignments.new'
 import { Route as AuthenticatedCurriculumIndexRouteImport } from './routes/_authenticated/curriculum.index'
+import { Route as AuthenticatedCurriculumAnalyticsRouteImport } from './routes/_authenticated/curriculum.analytics'
+import { Route as AuthenticatedCurriculumPlanRouteImport } from './routes/_authenticated/curriculum.plan'
 import { Route as AuthenticatedCurriculumProgressRouteImport } from './routes/_authenticated/curriculum.progress'
+import { Route as AuthenticatedCurriculumVersionsRouteImport } from './routes/_authenticated/curriculum.versions'
 import { Route as AuthenticatedMessagesIndexRouteImport } from './routes/_authenticated/messages.index'
 import { Route as AuthenticatedMessagesConversationIdRouteImport } from './routes/_authenticated/messages.$conversationId'
 import { Route as AuthenticatedOrganizationIndexRouteImport } from './routes/_authenticated/organization.index'
@@ -104,10 +107,28 @@ const AuthenticatedCurriculumIndexRoute =
     path: '/curriculum/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedCurriculumAnalyticsRoute =
+  AuthenticatedCurriculumAnalyticsRouteImport.update({
+    id: '/curriculum/analytics',
+    path: '/curriculum/analytics',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedCurriculumPlanRoute =
+  AuthenticatedCurriculumPlanRouteImport.update({
+    id: '/curriculum/plan',
+    path: '/curriculum/plan',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCurriculumProgressRoute =
   AuthenticatedCurriculumProgressRouteImport.update({
     id: '/curriculum/progress',
     path: '/curriculum/progress',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedCurriculumVersionsRoute =
+  AuthenticatedCurriculumVersionsRouteImport.update({
+    id: '/curriculum/versions',
+    path: '/curriculum/versions',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedMessagesIndexRoute =
@@ -182,7 +203,10 @@ export interface FileRoutesByFullPath {
   '/admin/tenants': typeof AuthenticatedAdminTenantsRoute
   '/assignments/$assignmentId': typeof AuthenticatedAssignmentsAssignmentIdRoute
   '/assignments/new': typeof AuthenticatedAssignmentsNewRoute
+  '/curriculum/analytics': typeof AuthenticatedCurriculumAnalyticsRoute
+  '/curriculum/plan': typeof AuthenticatedCurriculumPlanRoute
   '/curriculum/progress': typeof AuthenticatedCurriculumProgressRoute
+  '/curriculum/versions': typeof AuthenticatedCurriculumVersionsRoute
   '/messages/$conversationId': typeof AuthenticatedMessagesConversationIdRoute
   '/organization/billing': typeof AuthenticatedOrganizationBillingRoute
   '/students/$studentId': typeof AuthenticatedStudentsStudentIdRoute
@@ -207,7 +231,10 @@ export interface FileRoutesByTo {
   '/admin/tenants': typeof AuthenticatedAdminTenantsRoute
   '/assignments/$assignmentId': typeof AuthenticatedAssignmentsAssignmentIdRoute
   '/assignments/new': typeof AuthenticatedAssignmentsNewRoute
+  '/curriculum/analytics': typeof AuthenticatedCurriculumAnalyticsRoute
+  '/curriculum/plan': typeof AuthenticatedCurriculumPlanRoute
   '/curriculum/progress': typeof AuthenticatedCurriculumProgressRoute
+  '/curriculum/versions': typeof AuthenticatedCurriculumVersionsRoute
   '/messages/$conversationId': typeof AuthenticatedMessagesConversationIdRoute
   '/organization/billing': typeof AuthenticatedOrganizationBillingRoute
   '/students/$studentId': typeof AuthenticatedStudentsStudentIdRoute
@@ -234,7 +261,10 @@ export interface FileRoutesById {
   '/_authenticated/admin/tenants': typeof AuthenticatedAdminTenantsRoute
   '/_authenticated/assignments/$assignmentId': typeof AuthenticatedAssignmentsAssignmentIdRoute
   '/_authenticated/assignments/new': typeof AuthenticatedAssignmentsNewRoute
+  '/_authenticated/curriculum/analytics': typeof AuthenticatedCurriculumAnalyticsRoute
+  '/_authenticated/curriculum/plan': typeof AuthenticatedCurriculumPlanRoute
   '/_authenticated/curriculum/progress': typeof AuthenticatedCurriculumProgressRoute
+  '/_authenticated/curriculum/versions': typeof AuthenticatedCurriculumVersionsRoute
   '/_authenticated/messages/$conversationId': typeof AuthenticatedMessagesConversationIdRoute
   '/_authenticated/organization/billing': typeof AuthenticatedOrganizationBillingRoute
   '/_authenticated/students/$studentId': typeof AuthenticatedStudentsStudentIdRoute
@@ -261,7 +291,10 @@ export interface FileRouteTypes {
     | '/admin/tenants'
     | '/assignments/$assignmentId'
     | '/assignments/new'
+    | '/curriculum/analytics'
+    | '/curriculum/plan'
     | '/curriculum/progress'
+    | '/curriculum/versions'
     | '/messages/$conversationId'
     | '/organization/billing'
     | '/students/$studentId'
@@ -286,7 +319,10 @@ export interface FileRouteTypes {
     | '/admin/tenants'
     | '/assignments/$assignmentId'
     | '/assignments/new'
+    | '/curriculum/analytics'
+    | '/curriculum/plan'
     | '/curriculum/progress'
+    | '/curriculum/versions'
     | '/messages/$conversationId'
     | '/organization/billing'
     | '/students/$studentId'
@@ -312,7 +348,10 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/tenants'
     | '/_authenticated/assignments/$assignmentId'
     | '/_authenticated/assignments/new'
+    | '/_authenticated/curriculum/analytics'
+    | '/_authenticated/curriculum/plan'
     | '/_authenticated/curriculum/progress'
+    | '/_authenticated/curriculum/versions'
     | '/_authenticated/messages/$conversationId'
     | '/_authenticated/organization/billing'
     | '/_authenticated/students/$studentId'
@@ -428,11 +467,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCurriculumIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/curriculum/analytics': {
+      id: '/_authenticated/curriculum/analytics'
+      path: '/curriculum/analytics'
+      fullPath: '/curriculum/analytics'
+      preLoaderRoute: typeof AuthenticatedCurriculumAnalyticsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/curriculum/plan': {
+      id: '/_authenticated/curriculum/plan'
+      path: '/curriculum/plan'
+      fullPath: '/curriculum/plan'
+      preLoaderRoute: typeof AuthenticatedCurriculumPlanRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/curriculum/progress': {
       id: '/_authenticated/curriculum/progress'
       path: '/curriculum/progress'
       fullPath: '/curriculum/progress'
       preLoaderRoute: typeof AuthenticatedCurriculumProgressRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/curriculum/versions': {
+      id: '/_authenticated/curriculum/versions'
+      path: '/curriculum/versions'
+      fullPath: '/curriculum/versions'
+      preLoaderRoute: typeof AuthenticatedCurriculumVersionsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/messages/': {
@@ -515,7 +575,10 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminTenantsRoute: typeof AuthenticatedAdminTenantsRoute
   AuthenticatedAssignmentsAssignmentIdRoute: typeof AuthenticatedAssignmentsAssignmentIdRoute
   AuthenticatedAssignmentsNewRoute: typeof AuthenticatedAssignmentsNewRoute
+  AuthenticatedCurriculumAnalyticsRoute: typeof AuthenticatedCurriculumAnalyticsRoute
+  AuthenticatedCurriculumPlanRoute: typeof AuthenticatedCurriculumPlanRoute
   AuthenticatedCurriculumProgressRoute: typeof AuthenticatedCurriculumProgressRoute
+  AuthenticatedCurriculumVersionsRoute: typeof AuthenticatedCurriculumVersionsRoute
   AuthenticatedMessagesConversationIdRoute: typeof AuthenticatedMessagesConversationIdRoute
   AuthenticatedOrganizationBillingRoute: typeof AuthenticatedOrganizationBillingRoute
   AuthenticatedStudentsStudentIdRoute: typeof AuthenticatedStudentsStudentIdRoute
@@ -538,7 +601,10 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAssignmentsAssignmentIdRoute:
     AuthenticatedAssignmentsAssignmentIdRoute,
   AuthenticatedAssignmentsNewRoute: AuthenticatedAssignmentsNewRoute,
+  AuthenticatedCurriculumAnalyticsRoute: AuthenticatedCurriculumAnalyticsRoute,
+  AuthenticatedCurriculumPlanRoute: AuthenticatedCurriculumPlanRoute,
   AuthenticatedCurriculumProgressRoute: AuthenticatedCurriculumProgressRoute,
+  AuthenticatedCurriculumVersionsRoute: AuthenticatedCurriculumVersionsRoute,
   AuthenticatedMessagesConversationIdRoute:
     AuthenticatedMessagesConversationIdRoute,
   AuthenticatedOrganizationBillingRoute: AuthenticatedOrganizationBillingRoute,
@@ -570,13 +636,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
