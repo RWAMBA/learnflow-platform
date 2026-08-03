@@ -117,7 +117,9 @@ export async function listSubjectLessonSequence(subjectId: string) {
 export async function listLessonPrerequisites(lessonId: string) {
   const { data, error } = await supabase
     .from("lesson_prerequisites")
-    .select("id, prerequisite_lesson_id, prerequisite:lessons!lesson_prerequisites_prerequisite_lesson_id_fkey(id, title, sequence_order)")
+    .select(
+      "id, prerequisite_lesson_id, prerequisite:lessons!lesson_prerequisites_prerequisite_lesson_id_fkey(id, title, sequence_order)",
+    )
     .eq("lesson_id", lessonId);
   if (error) throw error;
   return data ?? [];
@@ -213,7 +215,10 @@ export async function getStudentLearningPlan(studentId: string) {
 
   const prereqMap = new Map<string, string[]>();
   for (const row of prerequisites.data ?? []) {
-    prereqMap.set(row.lesson_id, [...(prereqMap.get(row.lesson_id) ?? []), row.prerequisite_lesson_id]);
+    prereqMap.set(row.lesson_id, [
+      ...(prereqMap.get(row.lesson_id) ?? []),
+      row.prerequisite_lesson_id,
+    ]);
   }
 
   return (assignments ?? [])
@@ -270,7 +275,9 @@ export interface CurriculumAnalytics {
 }
 
 /** Curriculum coverage + mastery roll-up for the active organization. */
-export async function getCurriculumAnalytics(organizationId: string | null): Promise<CurriculumAnalytics> {
+export async function getCurriculumAnalytics(
+  organizationId: string | null,
+): Promise<CurriculumAnalytics> {
   const countLessons = (status: string) => {
     let query = supabase
       .from("lessons")
@@ -293,7 +300,17 @@ export async function getCurriculumAnalytics(organizationId: string | null): Pro
       supabase.from("progress_records").select("mastery_level, lesson_id").limit(2000),
     ]);
 
-  for (const result of [published, draft, review, archived, strands, subStrands, outcomes, resources, progress]) {
+  for (const result of [
+    published,
+    draft,
+    review,
+    archived,
+    strands,
+    subStrands,
+    outcomes,
+    resources,
+    progress,
+  ]) {
     if (result.error) throw result.error;
   }
 

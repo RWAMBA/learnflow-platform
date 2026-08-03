@@ -56,10 +56,8 @@ export function StrandsSection({
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (input: {
-      entity: "strands" | "sub_strands" | "learning_outcomes";
-      id: string;
-    }) => removeItem({ data: { ...input, organizationId } }),
+    mutationFn: (input: { entity: "strands" | "sub_strands" | "learning_outcomes"; id: string }) =>
+      removeItem({ data: { ...input, organizationId } }),
     onSuccess: () => {
       toast.success("Removed");
       refresh();
@@ -109,8 +107,7 @@ export function StrandsSection({
           {(rows) => (
             <div className="space-y-5">
               {rows.map((strand) => {
-                const ownsStrand =
-                  mayAuthor && strand.authoring_organization_id === organizationId;
+                const ownsStrand = mayAuthor && strand.authoring_organization_id === organizationId;
                 return (
                   <section key={strand.id} className="rounded-lg border p-4">
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">

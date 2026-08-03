@@ -12,7 +12,8 @@ export const Route = createFileRoute("/_authenticated/curriculum/analytics")({
       { title: "Curriculum analytics — the Platform" },
       {
         name: "description",
-        content: "Curriculum coverage, publishing status, lesson completion and competency mastery.",
+        content:
+          "Curriculum coverage, publishing status, lesson completion and competency mastery.",
       },
       { property: "og:title", content: "Curriculum analytics — the Platform" },
       {

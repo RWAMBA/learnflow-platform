@@ -44,12 +44,13 @@ export const Route = createFileRoute("/_authenticated/curriculum/plan")({
   component: LearningPlanPage,
 });
 
-const STATE_META: Record<LessonState, { label: string; icon: typeof CheckCircle2; tone: string }> = {
-  completed: { label: "Completed", icon: CheckCircle2, tone: "text-success" },
-  current: { label: "Current lesson", icon: PlayCircle, tone: "text-primary" },
-  upcoming: { label: "Upcoming", icon: CircleDashed, tone: "text-muted-foreground" },
-  locked: { label: "Locked", icon: Lock, tone: "text-muted-foreground" },
-};
+const STATE_META: Record<LessonState, { label: string; icon: typeof CheckCircle2; tone: string }> =
+  {
+    completed: { label: "Completed", icon: CheckCircle2, tone: "text-success" },
+    current: { label: "Current lesson", icon: PlayCircle, tone: "text-primary" },
+    upcoming: { label: "Upcoming", icon: CircleDashed, tone: "text-muted-foreground" },
+    locked: { label: "Locked", icon: Lock, tone: "text-muted-foreground" },
+  };
 
 function LearningPlanPage() {
   const { activeRole } = useRoleContext();

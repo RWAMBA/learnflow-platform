@@ -529,7 +529,9 @@ export const duplicateSubject = createServerFn({ method: "POST" })
         .eq("subject_id", data.subjectId),
       supabase
         .from("lessons")
-        .select("title, sequence_order, content_type, content_body, summary, estimated_minutes, topic_id")
+        .select(
+          "title, sequence_order, content_type, content_body, summary, estimated_minutes, topic_id",
+        )
         .eq("subject_id", data.subjectId),
     ]);
 

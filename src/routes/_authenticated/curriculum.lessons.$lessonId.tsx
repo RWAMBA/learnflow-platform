@@ -143,9 +143,7 @@ function LessonPage() {
                       estimated_minutes: lesson.estimated_minutes ?? null,
                     }}
                     siblingLessons={sequence.data ?? []}
-                    currentPrerequisiteId={
-                      prerequisites.data?.[0]?.prerequisite_lesson_id ?? null
-                    }
+                    currentPrerequisiteId={prerequisites.data?.[0]?.prerequisite_lesson_id ?? null}
                     onSaved={refresh}
                     trigger={<Button variant="outline">Lesson planning</Button>}
                   />

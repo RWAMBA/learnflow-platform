@@ -1,7 +1,15 @@
 import { useMemo, useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { BookOpen, GitBranch, GraduationCap, Layers, LineChart, ListChecks, Search } from "lucide-react";
+import {
+  BookOpen,
+  GitBranch,
+  GraduationCap,
+  Layers,
+  LineChart,
+  ListChecks,
+  Search,
+} from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
