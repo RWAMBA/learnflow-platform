@@ -283,6 +283,137 @@ export type Database = {
         }
         Relationships: []
       }
+      curriculum_resources: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          entity_id: string
+          entity_type: string
+          id: string
+          organization_id: string | null
+          resource_type: string
+          storage_path: string | null
+          title: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          entity_id: string
+          entity_type: string
+          id?: string
+          organization_id?: string | null
+          resource_type: string
+          storage_path?: string | null
+          title: string
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          organization_id?: string | null
+          resource_type?: string
+          storage_path?: string | null
+          title?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "curriculum_resources_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "curriculum_resources_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      curriculum_versions: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          curriculum_id: string
+          id: string
+          label: string
+          notes: string | null
+          organization_id: string | null
+          parent_version_id: string | null
+          published_at: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          curriculum_id: string
+          id?: string
+          label: string
+          notes?: string | null
+          organization_id?: string | null
+          parent_version_id?: string | null
+          published_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          curriculum_id?: string
+          id?: string
+          label?: string
+          notes?: string | null
+          organization_id?: string | null
+          parent_version_id?: string | null
+          published_at?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "curriculum_versions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "curriculum_versions_curriculum_id_fkey"
+            columns: ["curriculum_id"]
+            isOneToOne: false
+            referencedRelation: "curricula"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "curriculum_versions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "curriculum_versions_parent_version_id_fkey"
+            columns: ["parent_version_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       grades: {
         Row: {
           created_at: string
@@ -363,6 +494,100 @@ export type Database = {
           },
         ]
       }
+      learning_outcomes: {
+        Row: {
+          authoring_organization_id: string | null
+          competency_id: string | null
+          created_at: string
+          description: string
+          id: string
+          sequence_order: number
+          status: string
+          sub_strand_id: string
+          updated_at: string
+        }
+        Insert: {
+          authoring_organization_id?: string | null
+          competency_id?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          sequence_order?: number
+          status?: string
+          sub_strand_id: string
+          updated_at?: string
+        }
+        Update: {
+          authoring_organization_id?: string | null
+          competency_id?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          sequence_order?: number
+          status?: string
+          sub_strand_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_outcomes_authoring_organization_id_fkey"
+            columns: ["authoring_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "learning_outcomes_competency_id_fkey"
+            columns: ["competency_id"]
+            isOneToOne: false
+            referencedRelation: "competencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "learning_outcomes_sub_strand_id_fkey"
+            columns: ["sub_strand_id"]
+            isOneToOne: false
+            referencedRelation: "sub_strands"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lesson_prerequisites: {
+        Row: {
+          created_at: string
+          id: string
+          lesson_id: string
+          prerequisite_lesson_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lesson_id: string
+          prerequisite_lesson_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lesson_id?: string
+          prerequisite_lesson_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_prerequisites_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lesson_prerequisites_prerequisite_lesson_id_fkey"
+            columns: ["prerequisite_lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lessons: {
         Row: {
           author_type: string
@@ -370,13 +595,18 @@ export type Database = {
           content_body: Json | null
           content_type: string
           created_at: string
+          curriculum_version_id: string | null
+          estimated_minutes: number | null
           id: string
+          learning_outcome_id: string | null
           published_at: string | null
           search_vector: unknown
           sequence_order: number
           status: string
           storage_path: string | null
+          sub_strand_id: string | null
           subject_id: string
+          summary: string | null
           title: string
           topic_id: string | null
           updated_at: string
@@ -387,13 +617,18 @@ export type Database = {
           content_body?: Json | null
           content_type: string
           created_at?: string
+          curriculum_version_id?: string | null
+          estimated_minutes?: number | null
           id?: string
+          learning_outcome_id?: string | null
           published_at?: string | null
           search_vector?: unknown
           sequence_order: number
           status?: string
           storage_path?: string | null
+          sub_strand_id?: string | null
           subject_id: string
+          summary?: string | null
           title: string
           topic_id?: string | null
           updated_at?: string
@@ -404,13 +639,18 @@ export type Database = {
           content_body?: Json | null
           content_type?: string
           created_at?: string
+          curriculum_version_id?: string | null
+          estimated_minutes?: number | null
           id?: string
+          learning_outcome_id?: string | null
           published_at?: string | null
           search_vector?: unknown
           sequence_order?: number
           status?: string
           storage_path?: string | null
+          sub_strand_id?: string | null
           subject_id?: string
+          summary?: string | null
           title?: string
           topic_id?: string | null
           updated_at?: string
@@ -421,6 +661,27 @@ export type Database = {
             columns: ["authoring_organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lessons_curriculum_version_id_fkey"
+            columns: ["curriculum_version_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lessons_learning_outcome_id_fkey"
+            columns: ["learning_outcome_id"]
+            isOneToOne: false
+            referencedRelation: "learning_outcomes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lessons_sub_strand_id_fkey"
+            columns: ["sub_strand_id"]
+            isOneToOne: false
+            referencedRelation: "sub_strands"
             referencedColumns: ["id"]
           },
           {
@@ -1112,6 +1373,70 @@ export type Database = {
           },
         ]
       }
+      strands: {
+        Row: {
+          authoring_organization_id: string | null
+          created_at: string
+          curriculum_version_id: string | null
+          description: string | null
+          id: string
+          published_at: string | null
+          sequence_order: number
+          status: string
+          subject_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          authoring_organization_id?: string | null
+          created_at?: string
+          curriculum_version_id?: string | null
+          description?: string | null
+          id?: string
+          published_at?: string | null
+          sequence_order?: number
+          status?: string
+          subject_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          authoring_organization_id?: string | null
+          created_at?: string
+          curriculum_version_id?: string | null
+          description?: string | null
+          id?: string
+          published_at?: string | null
+          sequence_order?: number
+          status?: string
+          subject_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "strands_authoring_organization_id_fkey"
+            columns: ["authoring_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "strands_curriculum_version_id_fkey"
+            columns: ["curriculum_version_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "strands_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       student_curriculum_assignments: {
         Row: {
           assigned_by: string | null
@@ -1251,6 +1576,60 @@ export type Database = {
             columns: ["user_role_id"]
             isOneToOne: true
             referencedRelation: "user_roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sub_strands: {
+        Row: {
+          authoring_organization_id: string | null
+          created_at: string
+          description: string | null
+          id: string
+          published_at: string | null
+          sequence_order: number
+          status: string
+          strand_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          authoring_organization_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          published_at?: string | null
+          sequence_order?: number
+          status?: string
+          strand_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          authoring_organization_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          published_at?: string | null
+          sequence_order?: number
+          status?: string
+          strand_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sub_strands_authoring_organization_id_fkey"
+            columns: ["authoring_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sub_strands_strand_id_fkey"
+            columns: ["strand_id"]
+            isOneToOne: false
+            referencedRelation: "strands"
             referencedColumns: ["id"]
           },
         ]
