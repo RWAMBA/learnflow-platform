@@ -201,18 +201,24 @@ function SubjectPage() {
               ) : null}
             </div>
 
+            <StrandsSection
+              organizationId={organizationId}
+              subjectId={subjectId}
+              competencies={data.competencies ?? []}
+              mayAuthor={mayAuthor}
+            />
+
+            <ResourcesPanel
+              organizationId={organizationId}
+              entityType="subject"
+              entityId={subjectId}
+              mayAuthor={mayAuthor}
+            />
+
             <Card>
               <CardHeader>
                 <CardTitle className="text-base">Curriculum hierarchy</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-5">
-                <StrandsSection
-                  organizationId={organizationId}
-                  subjectId={subjectId}
-                  competencies={data.competencies ?? []}
-                  mayAuthor={mayAuthor}
-                />
-              </CardContent>
               <CardContent className="space-y-5">
                 {topics.length === 0 && lessons.length === 0 ? (
                   <EmptyState
