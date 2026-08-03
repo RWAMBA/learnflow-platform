@@ -226,6 +226,23 @@ function LessonPage() {
                   <CardTitle className="text-base">Lesson content</CardTitle>
                 </CardHeader>
                 <CardContent>
+                  {data.lesson.summary ? (
+                    <p className="mb-3 rounded-md bg-muted/50 p-3 text-sm">{data.lesson.summary}</p>
+                  ) : null}
+                  {data.lesson.estimated_minutes ? (
+                    <p className="mb-3 text-sm text-muted-foreground">
+                      Estimated completion time: {data.lesson.estimated_minutes} minutes
+                    </p>
+                  ) : null}
+                  {(prerequisites.data ?? []).length > 0 ? (
+                    <p className="mb-3 text-sm text-muted-foreground">
+                      Prerequisite:{" "}
+                      {(prerequisites.data ?? [])
+                        .map((row) => row.prerequisite?.title)
+                        .filter(Boolean)
+                        .join(", ")}
+                    </p>
+                  ) : null}
                   {body ? (
                     <p className="whitespace-pre-wrap leading-relaxed">{body}</p>
                   ) : (
@@ -240,6 +257,40 @@ function LessonPage() {
                   ) : null}
                 </CardContent>
               </Card>
+
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                {neighbours.previous ? (
+                  <Button asChild variant="outline">
+                    <Link
+                      to="/curriculum/lessons/$lessonId"
+                      params={{ lessonId: neighbours.previous.id }}
+                    >
+                      <ChevronLeft aria-hidden="true" className="size-4" />
+                      {neighbours.previous.title}
+                    </Link>
+                  </Button>
+                ) : (
+                  <span />
+                )}
+                {neighbours.next ? (
+                  <Button asChild variant="outline">
+                    <Link
+                      to="/curriculum/lessons/$lessonId"
+                      params={{ lessonId: neighbours.next.id }}
+                    >
+                      {neighbours.next.title}
+                      <ChevronRight aria-hidden="true" className="size-4" />
+                    </Link>
+                  </Button>
+                ) : null}
+              </div>
+
+              <ResourcesPanel
+                organizationId={organizationId}
+                entityType="lesson"
+                entityId={lessonId}
+                mayAuthor={mayAuthor}
+              />
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between gap-3">
