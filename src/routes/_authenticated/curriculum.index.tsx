@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { BookOpen, GraduationCap, Layers, LineChart, Search } from "lucide-react";
+import { BookOpen, GitBranch, GraduationCap, Layers, LineChart, ListChecks, Search } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -117,11 +117,28 @@ function CurriculumDashboard() {
         title="Curriculum"
         description="Grades, pathways, subjects, topics and lessons — searchable across the whole library."
         actions={
-          <Button asChild variant="outline">
-            <Link to="/curriculum/progress">
-              <LineChart aria-hidden="true" className="size-4" /> Progress
-            </Link>
-          </Button>
+          <div className="flex flex-wrap gap-2">
+            <Button asChild variant="outline">
+              <Link to="/curriculum/plan">
+                <ListChecks aria-hidden="true" className="size-4" /> Learning plan
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link to="/curriculum/versions">
+                <GitBranch aria-hidden="true" className="size-4" /> Versions
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link to="/curriculum/analytics">
+                <LineChart aria-hidden="true" className="size-4" /> Analytics
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link to="/curriculum/progress">
+                <LineChart aria-hidden="true" className="size-4" /> Progress
+              </Link>
+            </Button>
+          </div>
         }
       />
 
@@ -262,6 +279,7 @@ function CurriculumDashboard() {
               options={[
                 { value: "all", label: "Any status" },
                 { value: "published", label: "Published" },
+                { value: "review", label: "In review" },
                 { value: "draft", label: "Draft" },
                 { value: "archived", label: "Archived" },
               ]}
