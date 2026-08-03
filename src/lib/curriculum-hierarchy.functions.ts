@@ -163,9 +163,16 @@ export const setHierarchyStatus = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ data, context }) => {
-    const patch: Record<string, unknown> = { status: data.status };
-    if (data.entity !== "learning_outcomes") patch['published_at'] = publishedAt(data.status);
-    const { error } = await context.supabase.from(data.entity).update(patch).eq("id", data.id);
+    const { error } =
+      data.entity === "learning_outcomes"
+        ? await context.supabase
+            .from("learning_outcomes")
+            .update({ status: data.status })
+            .eq("id", data.id)
+        : await context.supabase
+            .from(data.entity)
+            .update({ status: data.status, published_at: publishedAt(data.status) })
+            .eq("id", data.id);
     if (error) throw new Error(error.message);
     await writeCurriculumAudit(context, {
       organizationId: data.organizationId,
