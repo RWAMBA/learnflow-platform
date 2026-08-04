@@ -96,7 +96,7 @@ function Page() {
     mutationFn: (questions: unknown[]) =>
       importer({ data: { organizationId: organizationId!, questions: questions as never } }),
     onSuccess: (result) => {
-      toast.success(`Imported ${result.count} question(s)`);
+      toast.success(`Imported ${result.imported} question(s)`);
       void queryClient.invalidateQueries({ queryKey: ["question-bank"] });
     },
     onError: (error: unknown) =>
