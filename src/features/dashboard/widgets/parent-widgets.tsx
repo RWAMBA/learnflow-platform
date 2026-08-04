@@ -32,7 +32,7 @@ export function ChildrenWidget({ userId }: { userId: string }) {
         data={query.data}
         onRetry={() => void query.refetch()}
         skeleton={<ListSkeleton rows={2} />}
-        isEmpty={(data) => data.length === 0}
+        isEmpty={(data) => data.filter((row) => row.student).length === 0}
         empty={
           <EmptyState
             icon={GraduationCap}
@@ -46,26 +46,31 @@ export function ChildrenWidget({ userId }: { userId: string }) {
           />
         }
       >
-        {(links) => (
+        {(rows) => {
+          const links = rows.filter(
+            (row): row is typeof row & { student: NonNullable<typeof row.student> } => Boolean(row.student),
+          );
+          return (
           <ul className="grid gap-2 sm:grid-cols-2">
             {links.map((link) => (
               <li key={link.id}>
                 <Link
                   to="/students/$studentId"
-                  params={{ studentId: link.student!.id }}
+                  params={{ studentId: link.student.id }}
                   className="block rounded-lg border p-3 transition-colors duration-200 hover:bg-accent"
                 >
                   <span className="block font-medium">
-                    {link.student?.first_name} {link.student?.last_name}
+                    {link.student.first_name} {link.student.last_name}
                   </span>
                   <span className="block text-sm text-muted-foreground">
-                    {link.student?.grade?.name ?? "No grade set"} · {link.permission_level}
+                    {link.student.grade?.name ?? "No grade set"} · {link.permission_level}
                   </span>
                 </Link>
               </li>
             ))}
           </ul>
-        )}
+          );
+        }}
       </QueryState>
     </WidgetCard>
   );
