@@ -38,6 +38,7 @@ import { Route as AuthenticatedOrganizationBillingRouteImport } from './routes/_
 import { Route as AuthenticatedStudentsIndexRouteImport } from './routes/_authenticated/students.index'
 import { Route as AuthenticatedStudentsStudentIdRouteImport } from './routes/_authenticated/students.$studentId'
 import { Route as AuthenticatedStudentsNewRouteImport } from './routes/_authenticated/students.new'
+import { Route as AuthenticatedAssessmentsGradeSubmissionIdRouteImport } from './routes/_authenticated/assessments.grade.$submissionId'
 import { Route as AuthenticatedAssessmentsTakeSubmissionIdRouteImport } from './routes/_authenticated/assessments.take.$submissionId'
 import { Route as AuthenticatedCurriculumGradesGradeIdRouteImport } from './routes/_authenticated/curriculum.grades.$gradeId'
 import { Route as AuthenticatedCurriculumLessonsLessonIdRouteImport } from './routes/_authenticated/curriculum.lessons.$lessonId'
@@ -209,6 +210,12 @@ const AuthenticatedStudentsNewRoute =
     path: '/students/new',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAssessmentsGradeSubmissionIdRoute =
+  AuthenticatedAssessmentsGradeSubmissionIdRouteImport.update({
+    id: '/assessments/grade/$submissionId',
+    path: '/assessments/grade/$submissionId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAssessmentsTakeSubmissionIdRoute =
   AuthenticatedAssessmentsTakeSubmissionIdRouteImport.update({
     id: '/assessments/take/$submissionId',
@@ -263,6 +270,7 @@ export interface FileRoutesByFullPath {
   '/messages/': typeof AuthenticatedMessagesIndexRoute
   '/organization/': typeof AuthenticatedOrganizationIndexRoute
   '/students/': typeof AuthenticatedStudentsIndexRoute
+  '/assessments/grade/$submissionId': typeof AuthenticatedAssessmentsGradeSubmissionIdRoute
   '/assessments/take/$submissionId': typeof AuthenticatedAssessmentsTakeSubmissionIdRoute
   '/curriculum/grades/$gradeId': typeof AuthenticatedCurriculumGradesGradeIdRoute
   '/curriculum/lessons/$lessonId': typeof AuthenticatedCurriculumLessonsLessonIdRoute
@@ -297,6 +305,7 @@ export interface FileRoutesByTo {
   '/messages': typeof AuthenticatedMessagesIndexRoute
   '/organization': typeof AuthenticatedOrganizationIndexRoute
   '/students': typeof AuthenticatedStudentsIndexRoute
+  '/assessments/grade/$submissionId': typeof AuthenticatedAssessmentsGradeSubmissionIdRoute
   '/assessments/take/$submissionId': typeof AuthenticatedAssessmentsTakeSubmissionIdRoute
   '/curriculum/grades/$gradeId': typeof AuthenticatedCurriculumGradesGradeIdRoute
   '/curriculum/lessons/$lessonId': typeof AuthenticatedCurriculumLessonsLessonIdRoute
@@ -333,6 +342,7 @@ export interface FileRoutesById {
   '/_authenticated/messages/': typeof AuthenticatedMessagesIndexRoute
   '/_authenticated/organization/': typeof AuthenticatedOrganizationIndexRoute
   '/_authenticated/students/': typeof AuthenticatedStudentsIndexRoute
+  '/_authenticated/assessments/grade/$submissionId': typeof AuthenticatedAssessmentsGradeSubmissionIdRoute
   '/_authenticated/assessments/take/$submissionId': typeof AuthenticatedAssessmentsTakeSubmissionIdRoute
   '/_authenticated/curriculum/grades/$gradeId': typeof AuthenticatedCurriculumGradesGradeIdRoute
   '/_authenticated/curriculum/lessons/$lessonId': typeof AuthenticatedCurriculumLessonsLessonIdRoute
@@ -369,6 +379,7 @@ export interface FileRouteTypes {
     | '/messages/'
     | '/organization/'
     | '/students/'
+    | '/assessments/grade/$submissionId'
     | '/assessments/take/$submissionId'
     | '/curriculum/grades/$gradeId'
     | '/curriculum/lessons/$lessonId'
@@ -403,6 +414,7 @@ export interface FileRouteTypes {
     | '/messages'
     | '/organization'
     | '/students'
+    | '/assessments/grade/$submissionId'
     | '/assessments/take/$submissionId'
     | '/curriculum/grades/$gradeId'
     | '/curriculum/lessons/$lessonId'
@@ -438,6 +450,7 @@ export interface FileRouteTypes {
     | '/_authenticated/messages/'
     | '/_authenticated/organization/'
     | '/_authenticated/students/'
+    | '/_authenticated/assessments/grade/$submissionId'
     | '/_authenticated/assessments/take/$submissionId'
     | '/_authenticated/curriculum/grades/$gradeId'
     | '/_authenticated/curriculum/lessons/$lessonId'
@@ -657,6 +670,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStudentsNewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/assessments/grade/$submissionId': {
+      id: '/_authenticated/assessments/grade/$submissionId'
+      path: '/assessments/grade/$submissionId'
+      fullPath: '/assessments/grade/$submissionId'
+      preLoaderRoute: typeof AuthenticatedAssessmentsGradeSubmissionIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/assessments/take/$submissionId': {
       id: '/_authenticated/assessments/take/$submissionId'
       path: '/assessments/take/$submissionId'
@@ -713,6 +733,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMessagesIndexRoute: typeof AuthenticatedMessagesIndexRoute
   AuthenticatedOrganizationIndexRoute: typeof AuthenticatedOrganizationIndexRoute
   AuthenticatedStudentsIndexRoute: typeof AuthenticatedStudentsIndexRoute
+  AuthenticatedAssessmentsGradeSubmissionIdRoute: typeof AuthenticatedAssessmentsGradeSubmissionIdRoute
   AuthenticatedAssessmentsTakeSubmissionIdRoute: typeof AuthenticatedAssessmentsTakeSubmissionIdRoute
   AuthenticatedCurriculumGradesGradeIdRoute: typeof AuthenticatedCurriculumGradesGradeIdRoute
   AuthenticatedCurriculumLessonsLessonIdRoute: typeof AuthenticatedCurriculumLessonsLessonIdRoute
@@ -748,6 +769,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMessagesIndexRoute: AuthenticatedMessagesIndexRoute,
   AuthenticatedOrganizationIndexRoute: AuthenticatedOrganizationIndexRoute,
   AuthenticatedStudentsIndexRoute: AuthenticatedStudentsIndexRoute,
+  AuthenticatedAssessmentsGradeSubmissionIdRoute:
+    AuthenticatedAssessmentsGradeSubmissionIdRoute,
   AuthenticatedAssessmentsTakeSubmissionIdRoute:
     AuthenticatedAssessmentsTakeSubmissionIdRoute,
   AuthenticatedCurriculumGradesGradeIdRoute:
