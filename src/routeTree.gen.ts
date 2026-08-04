@@ -18,6 +18,11 @@ import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authen
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as ApiEnvPreflightRouteImport } from './routes/api/env-preflight'
 import { Route as AuthenticatedAdminTenantsRouteImport } from './routes/_authenticated/admin.tenants'
+import { Route as AuthenticatedAssessmentsIndexRouteImport } from './routes/_authenticated/assessments.index'
+import { Route as AuthenticatedAssessmentsAssessmentIdRouteImport } from './routes/_authenticated/assessments.$assessmentId'
+import { Route as AuthenticatedAssessmentsAnalyticsRouteImport } from './routes/_authenticated/assessments.analytics'
+import { Route as AuthenticatedAssessmentsBankRouteImport } from './routes/_authenticated/assessments.bank'
+import { Route as AuthenticatedAssessmentsNewRouteImport } from './routes/_authenticated/assessments.new'
 import { Route as AuthenticatedAssignmentsIndexRouteImport } from './routes/_authenticated/assignments.index'
 import { Route as AuthenticatedAssignmentsAssignmentIdRouteImport } from './routes/_authenticated/assignments.$assignmentId'
 import { Route as AuthenticatedAssignmentsNewRouteImport } from './routes/_authenticated/assignments.new'
@@ -33,6 +38,8 @@ import { Route as AuthenticatedOrganizationBillingRouteImport } from './routes/_
 import { Route as AuthenticatedStudentsIndexRouteImport } from './routes/_authenticated/students.index'
 import { Route as AuthenticatedStudentsStudentIdRouteImport } from './routes/_authenticated/students.$studentId'
 import { Route as AuthenticatedStudentsNewRouteImport } from './routes/_authenticated/students.new'
+import { Route as AuthenticatedAssessmentsGradeSubmissionIdRouteImport } from './routes/_authenticated/assessments.grade.$submissionId'
+import { Route as AuthenticatedAssessmentsTakeSubmissionIdRouteImport } from './routes/_authenticated/assessments.take.$submissionId'
 import { Route as AuthenticatedCurriculumGradesGradeIdRouteImport } from './routes/_authenticated/curriculum.grades.$gradeId'
 import { Route as AuthenticatedCurriculumLessonsLessonIdRouteImport } from './routes/_authenticated/curriculum.lessons.$lessonId'
 import { Route as AuthenticatedCurriculumSubjectsSubjectIdRouteImport } from './routes/_authenticated/curriculum.subjects.$subjectId'
@@ -81,6 +88,36 @@ const AuthenticatedAdminTenantsRoute =
   AuthenticatedAdminTenantsRouteImport.update({
     id: '/admin/tenants',
     path: '/admin/tenants',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAssessmentsIndexRoute =
+  AuthenticatedAssessmentsIndexRouteImport.update({
+    id: '/assessments/',
+    path: '/assessments/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAssessmentsAssessmentIdRoute =
+  AuthenticatedAssessmentsAssessmentIdRouteImport.update({
+    id: '/assessments/$assessmentId',
+    path: '/assessments/$assessmentId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAssessmentsAnalyticsRoute =
+  AuthenticatedAssessmentsAnalyticsRouteImport.update({
+    id: '/assessments/analytics',
+    path: '/assessments/analytics',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAssessmentsBankRoute =
+  AuthenticatedAssessmentsBankRouteImport.update({
+    id: '/assessments/bank',
+    path: '/assessments/bank',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAssessmentsNewRoute =
+  AuthenticatedAssessmentsNewRouteImport.update({
+    id: '/assessments/new',
+    path: '/assessments/new',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedAssignmentsIndexRoute =
@@ -173,6 +210,18 @@ const AuthenticatedStudentsNewRoute =
     path: '/students/new',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedAssessmentsGradeSubmissionIdRoute =
+  AuthenticatedAssessmentsGradeSubmissionIdRouteImport.update({
+    id: '/assessments/grade/$submissionId',
+    path: '/assessments/grade/$submissionId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAssessmentsTakeSubmissionIdRoute =
+  AuthenticatedAssessmentsTakeSubmissionIdRouteImport.update({
+    id: '/assessments/take/$submissionId',
+    path: '/assessments/take/$submissionId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCurriculumGradesGradeIdRoute =
   AuthenticatedCurriculumGradesGradeIdRouteImport.update({
     id: '/curriculum/grades/$gradeId',
@@ -201,6 +250,10 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/api/env-preflight': typeof ApiEnvPreflightRoute
   '/admin/tenants': typeof AuthenticatedAdminTenantsRoute
+  '/assessments/$assessmentId': typeof AuthenticatedAssessmentsAssessmentIdRoute
+  '/assessments/analytics': typeof AuthenticatedAssessmentsAnalyticsRoute
+  '/assessments/bank': typeof AuthenticatedAssessmentsBankRoute
+  '/assessments/new': typeof AuthenticatedAssessmentsNewRoute
   '/assignments/$assignmentId': typeof AuthenticatedAssignmentsAssignmentIdRoute
   '/assignments/new': typeof AuthenticatedAssignmentsNewRoute
   '/curriculum/analytics': typeof AuthenticatedCurriculumAnalyticsRoute
@@ -211,11 +264,14 @@ export interface FileRoutesByFullPath {
   '/organization/billing': typeof AuthenticatedOrganizationBillingRoute
   '/students/$studentId': typeof AuthenticatedStudentsStudentIdRoute
   '/students/new': typeof AuthenticatedStudentsNewRoute
+  '/assessments/': typeof AuthenticatedAssessmentsIndexRoute
   '/assignments/': typeof AuthenticatedAssignmentsIndexRoute
   '/curriculum/': typeof AuthenticatedCurriculumIndexRoute
   '/messages/': typeof AuthenticatedMessagesIndexRoute
   '/organization/': typeof AuthenticatedOrganizationIndexRoute
   '/students/': typeof AuthenticatedStudentsIndexRoute
+  '/assessments/grade/$submissionId': typeof AuthenticatedAssessmentsGradeSubmissionIdRoute
+  '/assessments/take/$submissionId': typeof AuthenticatedAssessmentsTakeSubmissionIdRoute
   '/curriculum/grades/$gradeId': typeof AuthenticatedCurriculumGradesGradeIdRoute
   '/curriculum/lessons/$lessonId': typeof AuthenticatedCurriculumLessonsLessonIdRoute
   '/curriculum/subjects/$subjectId': typeof AuthenticatedCurriculumSubjectsSubjectIdRoute
@@ -229,6 +285,10 @@ export interface FileRoutesByTo {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/api/env-preflight': typeof ApiEnvPreflightRoute
   '/admin/tenants': typeof AuthenticatedAdminTenantsRoute
+  '/assessments/$assessmentId': typeof AuthenticatedAssessmentsAssessmentIdRoute
+  '/assessments/analytics': typeof AuthenticatedAssessmentsAnalyticsRoute
+  '/assessments/bank': typeof AuthenticatedAssessmentsBankRoute
+  '/assessments/new': typeof AuthenticatedAssessmentsNewRoute
   '/assignments/$assignmentId': typeof AuthenticatedAssignmentsAssignmentIdRoute
   '/assignments/new': typeof AuthenticatedAssignmentsNewRoute
   '/curriculum/analytics': typeof AuthenticatedCurriculumAnalyticsRoute
@@ -239,11 +299,14 @@ export interface FileRoutesByTo {
   '/organization/billing': typeof AuthenticatedOrganizationBillingRoute
   '/students/$studentId': typeof AuthenticatedStudentsStudentIdRoute
   '/students/new': typeof AuthenticatedStudentsNewRoute
+  '/assessments': typeof AuthenticatedAssessmentsIndexRoute
   '/assignments': typeof AuthenticatedAssignmentsIndexRoute
   '/curriculum': typeof AuthenticatedCurriculumIndexRoute
   '/messages': typeof AuthenticatedMessagesIndexRoute
   '/organization': typeof AuthenticatedOrganizationIndexRoute
   '/students': typeof AuthenticatedStudentsIndexRoute
+  '/assessments/grade/$submissionId': typeof AuthenticatedAssessmentsGradeSubmissionIdRoute
+  '/assessments/take/$submissionId': typeof AuthenticatedAssessmentsTakeSubmissionIdRoute
   '/curriculum/grades/$gradeId': typeof AuthenticatedCurriculumGradesGradeIdRoute
   '/curriculum/lessons/$lessonId': typeof AuthenticatedCurriculumLessonsLessonIdRoute
   '/curriculum/subjects/$subjectId': typeof AuthenticatedCurriculumSubjectsSubjectIdRoute
@@ -259,6 +322,10 @@ export interface FileRoutesById {
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/api/env-preflight': typeof ApiEnvPreflightRoute
   '/_authenticated/admin/tenants': typeof AuthenticatedAdminTenantsRoute
+  '/_authenticated/assessments/$assessmentId': typeof AuthenticatedAssessmentsAssessmentIdRoute
+  '/_authenticated/assessments/analytics': typeof AuthenticatedAssessmentsAnalyticsRoute
+  '/_authenticated/assessments/bank': typeof AuthenticatedAssessmentsBankRoute
+  '/_authenticated/assessments/new': typeof AuthenticatedAssessmentsNewRoute
   '/_authenticated/assignments/$assignmentId': typeof AuthenticatedAssignmentsAssignmentIdRoute
   '/_authenticated/assignments/new': typeof AuthenticatedAssignmentsNewRoute
   '/_authenticated/curriculum/analytics': typeof AuthenticatedCurriculumAnalyticsRoute
@@ -269,11 +336,14 @@ export interface FileRoutesById {
   '/_authenticated/organization/billing': typeof AuthenticatedOrganizationBillingRoute
   '/_authenticated/students/$studentId': typeof AuthenticatedStudentsStudentIdRoute
   '/_authenticated/students/new': typeof AuthenticatedStudentsNewRoute
+  '/_authenticated/assessments/': typeof AuthenticatedAssessmentsIndexRoute
   '/_authenticated/assignments/': typeof AuthenticatedAssignmentsIndexRoute
   '/_authenticated/curriculum/': typeof AuthenticatedCurriculumIndexRoute
   '/_authenticated/messages/': typeof AuthenticatedMessagesIndexRoute
   '/_authenticated/organization/': typeof AuthenticatedOrganizationIndexRoute
   '/_authenticated/students/': typeof AuthenticatedStudentsIndexRoute
+  '/_authenticated/assessments/grade/$submissionId': typeof AuthenticatedAssessmentsGradeSubmissionIdRoute
+  '/_authenticated/assessments/take/$submissionId': typeof AuthenticatedAssessmentsTakeSubmissionIdRoute
   '/_authenticated/curriculum/grades/$gradeId': typeof AuthenticatedCurriculumGradesGradeIdRoute
   '/_authenticated/curriculum/lessons/$lessonId': typeof AuthenticatedCurriculumLessonsLessonIdRoute
   '/_authenticated/curriculum/subjects/$subjectId': typeof AuthenticatedCurriculumSubjectsSubjectIdRoute
@@ -289,6 +359,10 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/api/env-preflight'
     | '/admin/tenants'
+    | '/assessments/$assessmentId'
+    | '/assessments/analytics'
+    | '/assessments/bank'
+    | '/assessments/new'
     | '/assignments/$assignmentId'
     | '/assignments/new'
     | '/curriculum/analytics'
@@ -299,11 +373,14 @@ export interface FileRouteTypes {
     | '/organization/billing'
     | '/students/$studentId'
     | '/students/new'
+    | '/assessments/'
     | '/assignments/'
     | '/curriculum/'
     | '/messages/'
     | '/organization/'
     | '/students/'
+    | '/assessments/grade/$submissionId'
+    | '/assessments/take/$submissionId'
     | '/curriculum/grades/$gradeId'
     | '/curriculum/lessons/$lessonId'
     | '/curriculum/subjects/$subjectId'
@@ -317,6 +394,10 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/api/env-preflight'
     | '/admin/tenants'
+    | '/assessments/$assessmentId'
+    | '/assessments/analytics'
+    | '/assessments/bank'
+    | '/assessments/new'
     | '/assignments/$assignmentId'
     | '/assignments/new'
     | '/curriculum/analytics'
@@ -327,11 +408,14 @@ export interface FileRouteTypes {
     | '/organization/billing'
     | '/students/$studentId'
     | '/students/new'
+    | '/assessments'
     | '/assignments'
     | '/curriculum'
     | '/messages'
     | '/organization'
     | '/students'
+    | '/assessments/grade/$submissionId'
+    | '/assessments/take/$submissionId'
     | '/curriculum/grades/$gradeId'
     | '/curriculum/lessons/$lessonId'
     | '/curriculum/subjects/$subjectId'
@@ -346,6 +430,10 @@ export interface FileRouteTypes {
     | '/_authenticated/onboarding'
     | '/api/env-preflight'
     | '/_authenticated/admin/tenants'
+    | '/_authenticated/assessments/$assessmentId'
+    | '/_authenticated/assessments/analytics'
+    | '/_authenticated/assessments/bank'
+    | '/_authenticated/assessments/new'
     | '/_authenticated/assignments/$assignmentId'
     | '/_authenticated/assignments/new'
     | '/_authenticated/curriculum/analytics'
@@ -356,11 +444,14 @@ export interface FileRouteTypes {
     | '/_authenticated/organization/billing'
     | '/_authenticated/students/$studentId'
     | '/_authenticated/students/new'
+    | '/_authenticated/assessments/'
     | '/_authenticated/assignments/'
     | '/_authenticated/curriculum/'
     | '/_authenticated/messages/'
     | '/_authenticated/organization/'
     | '/_authenticated/students/'
+    | '/_authenticated/assessments/grade/$submissionId'
+    | '/_authenticated/assessments/take/$submissionId'
     | '/_authenticated/curriculum/grades/$gradeId'
     | '/_authenticated/curriculum/lessons/$lessonId'
     | '/_authenticated/curriculum/subjects/$subjectId'
@@ -437,6 +528,41 @@ declare module '@tanstack/react-router' {
       path: '/admin/tenants'
       fullPath: '/admin/tenants'
       preLoaderRoute: typeof AuthenticatedAdminTenantsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/assessments/': {
+      id: '/_authenticated/assessments/'
+      path: '/assessments'
+      fullPath: '/assessments/'
+      preLoaderRoute: typeof AuthenticatedAssessmentsIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/assessments/$assessmentId': {
+      id: '/_authenticated/assessments/$assessmentId'
+      path: '/assessments/$assessmentId'
+      fullPath: '/assessments/$assessmentId'
+      preLoaderRoute: typeof AuthenticatedAssessmentsAssessmentIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/assessments/analytics': {
+      id: '/_authenticated/assessments/analytics'
+      path: '/assessments/analytics'
+      fullPath: '/assessments/analytics'
+      preLoaderRoute: typeof AuthenticatedAssessmentsAnalyticsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/assessments/bank': {
+      id: '/_authenticated/assessments/bank'
+      path: '/assessments/bank'
+      fullPath: '/assessments/bank'
+      preLoaderRoute: typeof AuthenticatedAssessmentsBankRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/assessments/new': {
+      id: '/_authenticated/assessments/new'
+      path: '/assessments/new'
+      fullPath: '/assessments/new'
+      preLoaderRoute: typeof AuthenticatedAssessmentsNewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/assignments/': {
@@ -544,6 +670,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStudentsNewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/assessments/grade/$submissionId': {
+      id: '/_authenticated/assessments/grade/$submissionId'
+      path: '/assessments/grade/$submissionId'
+      fullPath: '/assessments/grade/$submissionId'
+      preLoaderRoute: typeof AuthenticatedAssessmentsGradeSubmissionIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/assessments/take/$submissionId': {
+      id: '/_authenticated/assessments/take/$submissionId'
+      path: '/assessments/take/$submissionId'
+      fullPath: '/assessments/take/$submissionId'
+      preLoaderRoute: typeof AuthenticatedAssessmentsTakeSubmissionIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/curriculum/grades/$gradeId': {
       id: '/_authenticated/curriculum/grades/$gradeId'
       path: '/curriculum/grades/$gradeId'
@@ -573,6 +713,10 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedAdminTenantsRoute: typeof AuthenticatedAdminTenantsRoute
+  AuthenticatedAssessmentsAssessmentIdRoute: typeof AuthenticatedAssessmentsAssessmentIdRoute
+  AuthenticatedAssessmentsAnalyticsRoute: typeof AuthenticatedAssessmentsAnalyticsRoute
+  AuthenticatedAssessmentsBankRoute: typeof AuthenticatedAssessmentsBankRoute
+  AuthenticatedAssessmentsNewRoute: typeof AuthenticatedAssessmentsNewRoute
   AuthenticatedAssignmentsAssignmentIdRoute: typeof AuthenticatedAssignmentsAssignmentIdRoute
   AuthenticatedAssignmentsNewRoute: typeof AuthenticatedAssignmentsNewRoute
   AuthenticatedCurriculumAnalyticsRoute: typeof AuthenticatedCurriculumAnalyticsRoute
@@ -583,11 +727,14 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedOrganizationBillingRoute: typeof AuthenticatedOrganizationBillingRoute
   AuthenticatedStudentsStudentIdRoute: typeof AuthenticatedStudentsStudentIdRoute
   AuthenticatedStudentsNewRoute: typeof AuthenticatedStudentsNewRoute
+  AuthenticatedAssessmentsIndexRoute: typeof AuthenticatedAssessmentsIndexRoute
   AuthenticatedAssignmentsIndexRoute: typeof AuthenticatedAssignmentsIndexRoute
   AuthenticatedCurriculumIndexRoute: typeof AuthenticatedCurriculumIndexRoute
   AuthenticatedMessagesIndexRoute: typeof AuthenticatedMessagesIndexRoute
   AuthenticatedOrganizationIndexRoute: typeof AuthenticatedOrganizationIndexRoute
   AuthenticatedStudentsIndexRoute: typeof AuthenticatedStudentsIndexRoute
+  AuthenticatedAssessmentsGradeSubmissionIdRoute: typeof AuthenticatedAssessmentsGradeSubmissionIdRoute
+  AuthenticatedAssessmentsTakeSubmissionIdRoute: typeof AuthenticatedAssessmentsTakeSubmissionIdRoute
   AuthenticatedCurriculumGradesGradeIdRoute: typeof AuthenticatedCurriculumGradesGradeIdRoute
   AuthenticatedCurriculumLessonsLessonIdRoute: typeof AuthenticatedCurriculumLessonsLessonIdRoute
   AuthenticatedCurriculumSubjectsSubjectIdRoute: typeof AuthenticatedCurriculumSubjectsSubjectIdRoute
@@ -598,6 +745,12 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedAdminTenantsRoute: AuthenticatedAdminTenantsRoute,
+  AuthenticatedAssessmentsAssessmentIdRoute:
+    AuthenticatedAssessmentsAssessmentIdRoute,
+  AuthenticatedAssessmentsAnalyticsRoute:
+    AuthenticatedAssessmentsAnalyticsRoute,
+  AuthenticatedAssessmentsBankRoute: AuthenticatedAssessmentsBankRoute,
+  AuthenticatedAssessmentsNewRoute: AuthenticatedAssessmentsNewRoute,
   AuthenticatedAssignmentsAssignmentIdRoute:
     AuthenticatedAssignmentsAssignmentIdRoute,
   AuthenticatedAssignmentsNewRoute: AuthenticatedAssignmentsNewRoute,
@@ -610,11 +763,16 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedOrganizationBillingRoute: AuthenticatedOrganizationBillingRoute,
   AuthenticatedStudentsStudentIdRoute: AuthenticatedStudentsStudentIdRoute,
   AuthenticatedStudentsNewRoute: AuthenticatedStudentsNewRoute,
+  AuthenticatedAssessmentsIndexRoute: AuthenticatedAssessmentsIndexRoute,
   AuthenticatedAssignmentsIndexRoute: AuthenticatedAssignmentsIndexRoute,
   AuthenticatedCurriculumIndexRoute: AuthenticatedCurriculumIndexRoute,
   AuthenticatedMessagesIndexRoute: AuthenticatedMessagesIndexRoute,
   AuthenticatedOrganizationIndexRoute: AuthenticatedOrganizationIndexRoute,
   AuthenticatedStudentsIndexRoute: AuthenticatedStudentsIndexRoute,
+  AuthenticatedAssessmentsGradeSubmissionIdRoute:
+    AuthenticatedAssessmentsGradeSubmissionIdRoute,
+  AuthenticatedAssessmentsTakeSubmissionIdRoute:
+    AuthenticatedAssessmentsTakeSubmissionIdRoute,
   AuthenticatedCurriculumGradesGradeIdRoute:
     AuthenticatedCurriculumGradesGradeIdRoute,
   AuthenticatedCurriculumLessonsLessonIdRoute:
@@ -636,13 +794,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

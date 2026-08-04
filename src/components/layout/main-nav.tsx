@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import {
   BookOpen,
+  ClipboardCheck,
   ClipboardList,
   LayoutDashboard,
   MessagesSquare,
@@ -28,6 +29,7 @@ export function MainNav({ orientation = "horizontal" }: { orientation?: "horizon
     },
     { to: "/curriculum", label: "Curriculum", icon: BookOpen, visible: true },
     { to: "/assignments", label: "Assignments", icon: ClipboardList, visible: true },
+    { to: "/assessments", label: "Assessments", icon: ClipboardCheck, visible: true },
     { to: "/messages", label: "Messages", icon: MessagesSquare, visible: true },
     { to: "/admin/tenants", label: "Platform", icon: Shield, visible: viewer.isPlatformAdmin },
   ] as const;
