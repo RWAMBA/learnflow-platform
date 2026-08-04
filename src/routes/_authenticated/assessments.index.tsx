@@ -1,6 +1,9 @@
 import { useMemo, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
+import { toast } from "sonner";
 import { ClipboardCheck } from "lucide-react";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -21,6 +24,7 @@ import { assessmentKeys, listAssessments, listStudentAssessments } from "@/featu
 import { AssessmentStatusBadge } from "@/features/assessments/components/status-badge";
 import { ASSESSMENT_STATUSES, ASSESSMENT_STATUS_LABELS } from "@/features/assessments/constants";
 import { canAuthorAssessments } from "@/features/roles/permissions";
+import { startAttempt } from "@/lib/assessment-delivery.functions";
 import { formatDateTime } from "@/lib/format";
 
 const TITLE = "Assessments — the Platform";
@@ -43,6 +47,7 @@ export const Route = createFileRoute("/_authenticated/assessments/")({
 function Page() {
   const { activeRole } = useRoleContext();
   const currentStudent = useCurrentStudent();
+  const navigate = useNavigate();
   const organizationId = activeRole?.organizationId ?? null;
   const isStudent = activeRole?.roleCode === "student";
   const studentId = currentStudent.data?.id ?? null;
@@ -65,6 +70,19 @@ function Page() {
         studentId: studentId!,
         gradeId: currentStudent.data?.grade?.id ?? null,
       }),
+  });
+
+  const start = useServerFn(startAttempt);
+  const startMutation = useMutation({
+    mutationFn: (assessmentId: string) =>
+      start({ data: { assessmentId, studentId: studentId! } }),
+    onSuccess: (result) =>
+      void navigate({
+        to: "/assessments/take/$submissionId",
+        params: { submissionId: result.submissionId },
+      }),
+    onError: (error: unknown) =>
+      toast.error(error instanceof Error ? error.message : "Could not open this assessment"),
   });
 
   const rows = useMemo(() => {
@@ -157,7 +175,18 @@ function Page() {
                         {row.grade?.name ?? "All grades"} · Due {formatDateTime(row.due_at)}
                       </p>
                     </div>
-                    <AssessmentStatusBadge status={row.status} />
+                    <div className="flex items-center gap-2">
+                      <AssessmentStatusBadge status={row.status} />
+                      {isStudent && studentId ? (
+                        <Button
+                          size="sm"
+                          onClick={() => startMutation.mutate(row.id)}
+                          disabled={startMutation.isPending}
+                        >
+                          Start or resume
+                        </Button>
+                      ) : null}
+                    </div>
                   </CardContent>
                 </Card>
               </li>
