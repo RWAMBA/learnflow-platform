@@ -20,6 +20,7 @@ import { Route as ApiEnvPreflightRouteImport } from './routes/api/env-preflight'
 import { Route as AuthenticatedAdminTenantsRouteImport } from './routes/_authenticated/admin.tenants'
 import { Route as AuthenticatedAssessmentsIndexRouteImport } from './routes/_authenticated/assessments.index'
 import { Route as AuthenticatedAssessmentsAssessmentIdRouteImport } from './routes/_authenticated/assessments.$assessmentId'
+import { Route as AuthenticatedAssessmentsAnalyticsRouteImport } from './routes/_authenticated/assessments.analytics'
 import { Route as AuthenticatedAssessmentsBankRouteImport } from './routes/_authenticated/assessments.bank'
 import { Route as AuthenticatedAssessmentsNewRouteImport } from './routes/_authenticated/assessments.new'
 import { Route as AuthenticatedAssignmentsIndexRouteImport } from './routes/_authenticated/assignments.index'
@@ -97,6 +98,12 @@ const AuthenticatedAssessmentsAssessmentIdRoute =
   AuthenticatedAssessmentsAssessmentIdRouteImport.update({
     id: '/assessments/$assessmentId',
     path: '/assessments/$assessmentId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAssessmentsAnalyticsRoute =
+  AuthenticatedAssessmentsAnalyticsRouteImport.update({
+    id: '/assessments/analytics',
+    path: '/assessments/analytics',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedAssessmentsBankRoute =
@@ -230,6 +237,7 @@ export interface FileRoutesByFullPath {
   '/api/env-preflight': typeof ApiEnvPreflightRoute
   '/admin/tenants': typeof AuthenticatedAdminTenantsRoute
   '/assessments/$assessmentId': typeof AuthenticatedAssessmentsAssessmentIdRoute
+  '/assessments/analytics': typeof AuthenticatedAssessmentsAnalyticsRoute
   '/assessments/bank': typeof AuthenticatedAssessmentsBankRoute
   '/assessments/new': typeof AuthenticatedAssessmentsNewRoute
   '/assignments/$assignmentId': typeof AuthenticatedAssignmentsAssignmentIdRoute
@@ -262,6 +270,7 @@ export interface FileRoutesByTo {
   '/api/env-preflight': typeof ApiEnvPreflightRoute
   '/admin/tenants': typeof AuthenticatedAdminTenantsRoute
   '/assessments/$assessmentId': typeof AuthenticatedAssessmentsAssessmentIdRoute
+  '/assessments/analytics': typeof AuthenticatedAssessmentsAnalyticsRoute
   '/assessments/bank': typeof AuthenticatedAssessmentsBankRoute
   '/assessments/new': typeof AuthenticatedAssessmentsNewRoute
   '/assignments/$assignmentId': typeof AuthenticatedAssignmentsAssignmentIdRoute
@@ -296,6 +305,7 @@ export interface FileRoutesById {
   '/api/env-preflight': typeof ApiEnvPreflightRoute
   '/_authenticated/admin/tenants': typeof AuthenticatedAdminTenantsRoute
   '/_authenticated/assessments/$assessmentId': typeof AuthenticatedAssessmentsAssessmentIdRoute
+  '/_authenticated/assessments/analytics': typeof AuthenticatedAssessmentsAnalyticsRoute
   '/_authenticated/assessments/bank': typeof AuthenticatedAssessmentsBankRoute
   '/_authenticated/assessments/new': typeof AuthenticatedAssessmentsNewRoute
   '/_authenticated/assignments/$assignmentId': typeof AuthenticatedAssignmentsAssignmentIdRoute
@@ -330,6 +340,7 @@ export interface FileRouteTypes {
     | '/api/env-preflight'
     | '/admin/tenants'
     | '/assessments/$assessmentId'
+    | '/assessments/analytics'
     | '/assessments/bank'
     | '/assessments/new'
     | '/assignments/$assignmentId'
@@ -362,6 +373,7 @@ export interface FileRouteTypes {
     | '/api/env-preflight'
     | '/admin/tenants'
     | '/assessments/$assessmentId'
+    | '/assessments/analytics'
     | '/assessments/bank'
     | '/assessments/new'
     | '/assignments/$assignmentId'
@@ -395,6 +407,7 @@ export interface FileRouteTypes {
     | '/api/env-preflight'
     | '/_authenticated/admin/tenants'
     | '/_authenticated/assessments/$assessmentId'
+    | '/_authenticated/assessments/analytics'
     | '/_authenticated/assessments/bank'
     | '/_authenticated/assessments/new'
     | '/_authenticated/assignments/$assignmentId'
@@ -503,6 +516,13 @@ declare module '@tanstack/react-router' {
       path: '/assessments/$assessmentId'
       fullPath: '/assessments/$assessmentId'
       preLoaderRoute: typeof AuthenticatedAssessmentsAssessmentIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/assessments/analytics': {
+      id: '/_authenticated/assessments/analytics'
+      path: '/assessments/analytics'
+      fullPath: '/assessments/analytics'
+      preLoaderRoute: typeof AuthenticatedAssessmentsAnalyticsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/assessments/bank': {
@@ -654,6 +674,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedAdminTenantsRoute: typeof AuthenticatedAdminTenantsRoute
   AuthenticatedAssessmentsAssessmentIdRoute: typeof AuthenticatedAssessmentsAssessmentIdRoute
+  AuthenticatedAssessmentsAnalyticsRoute: typeof AuthenticatedAssessmentsAnalyticsRoute
   AuthenticatedAssessmentsBankRoute: typeof AuthenticatedAssessmentsBankRoute
   AuthenticatedAssessmentsNewRoute: typeof AuthenticatedAssessmentsNewRoute
   AuthenticatedAssignmentsAssignmentIdRoute: typeof AuthenticatedAssignmentsAssignmentIdRoute
@@ -684,6 +705,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminTenantsRoute: AuthenticatedAdminTenantsRoute,
   AuthenticatedAssessmentsAssessmentIdRoute:
     AuthenticatedAssessmentsAssessmentIdRoute,
+  AuthenticatedAssessmentsAnalyticsRoute:
+    AuthenticatedAssessmentsAnalyticsRoute,
   AuthenticatedAssessmentsBankRoute: AuthenticatedAssessmentsBankRoute,
   AuthenticatedAssessmentsNewRoute: AuthenticatedAssessmentsNewRoute,
   AuthenticatedAssignmentsAssignmentIdRoute:
