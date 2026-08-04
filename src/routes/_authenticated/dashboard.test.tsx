@@ -63,7 +63,7 @@ vi.mock("@/features/roles/role-context", () => ({
 }));
 
 const { Route } = await import("./dashboard");
-const DashboardPage = (Route as unknown as { options: { component: () => JSX.Element } }).options.component;
+const DashboardPage = (Route as unknown as { options: { component: () => React.ReactElement } }).options.component;
 
 function renderDashboard() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
