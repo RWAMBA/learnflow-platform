@@ -14,6 +14,501 @@ export type Database = {
   }
   public: {
     Tables: {
+      assessment_competencies: {
+        Row: {
+          assessment_id: string
+          competency_id: string
+          created_at: string
+          id: string
+          weight: number
+        }
+        Insert: {
+          assessment_id: string
+          competency_id: string
+          created_at?: string
+          id?: string
+          weight?: number
+        }
+        Update: {
+          assessment_id?: string
+          competency_id?: string
+          created_at?: string
+          id?: string
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_competencies_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "assessment_definitions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_competencies_competency_id_fkey"
+            columns: ["competency_id"]
+            isOneToOne: false
+            referencedRelation: "competencies"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assessment_definitions: {
+        Row: {
+          allow_review: boolean
+          assessment_type_id: string | null
+          attempts_allowed: number
+          auto_grade: boolean
+          available_from: string | null
+          available_until: string | null
+          cloned_from_id: string | null
+          created_at: string
+          created_by: string | null
+          curriculum_id: string | null
+          curriculum_version_id: string | null
+          description: string | null
+          due_at: string | null
+          estimated_minutes: number | null
+          grade_id: string | null
+          id: string
+          instructions: string | null
+          is_template: boolean
+          late_penalty_percent: number
+          late_submission_allowed: boolean
+          lesson_id: string | null
+          max_score: number
+          organization_id: string
+          parent_visible: boolean
+          passing_score: number | null
+          published_at: string | null
+          randomize_options: boolean
+          randomize_questions: boolean
+          rubric_id: string | null
+          status: string
+          strand_id: string | null
+          student_instructions: string | null
+          sub_strand_id: string | null
+          subject_id: string | null
+          teacher_notes: string | null
+          time_limit_minutes: number | null
+          title: string
+          updated_at: string
+          weighting: number
+        }
+        Insert: {
+          allow_review?: boolean
+          assessment_type_id?: string | null
+          attempts_allowed?: number
+          auto_grade?: boolean
+          available_from?: string | null
+          available_until?: string | null
+          cloned_from_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          curriculum_id?: string | null
+          curriculum_version_id?: string | null
+          description?: string | null
+          due_at?: string | null
+          estimated_minutes?: number | null
+          grade_id?: string | null
+          id?: string
+          instructions?: string | null
+          is_template?: boolean
+          late_penalty_percent?: number
+          late_submission_allowed?: boolean
+          lesson_id?: string | null
+          max_score?: number
+          organization_id: string
+          parent_visible?: boolean
+          passing_score?: number | null
+          published_at?: string | null
+          randomize_options?: boolean
+          randomize_questions?: boolean
+          rubric_id?: string | null
+          status?: string
+          strand_id?: string | null
+          student_instructions?: string | null
+          sub_strand_id?: string | null
+          subject_id?: string | null
+          teacher_notes?: string | null
+          time_limit_minutes?: number | null
+          title: string
+          updated_at?: string
+          weighting?: number
+        }
+        Update: {
+          allow_review?: boolean
+          assessment_type_id?: string | null
+          attempts_allowed?: number
+          auto_grade?: boolean
+          available_from?: string | null
+          available_until?: string | null
+          cloned_from_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          curriculum_id?: string | null
+          curriculum_version_id?: string | null
+          description?: string | null
+          due_at?: string | null
+          estimated_minutes?: number | null
+          grade_id?: string | null
+          id?: string
+          instructions?: string | null
+          is_template?: boolean
+          late_penalty_percent?: number
+          late_submission_allowed?: boolean
+          lesson_id?: string | null
+          max_score?: number
+          organization_id?: string
+          parent_visible?: boolean
+          passing_score?: number | null
+          published_at?: string | null
+          randomize_options?: boolean
+          randomize_questions?: boolean
+          rubric_id?: string | null
+          status?: string
+          strand_id?: string | null
+          student_instructions?: string | null
+          sub_strand_id?: string | null
+          subject_id?: string | null
+          teacher_notes?: string | null
+          time_limit_minutes?: number | null
+          title?: string
+          updated_at?: string
+          weighting?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_definitions_assessment_type_id_fkey"
+            columns: ["assessment_type_id"]
+            isOneToOne: false
+            referencedRelation: "assessment_types"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_definitions_cloned_from_id_fkey"
+            columns: ["cloned_from_id"]
+            isOneToOne: false
+            referencedRelation: "assessment_definitions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_definitions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_definitions_curriculum_id_fkey"
+            columns: ["curriculum_id"]
+            isOneToOne: false
+            referencedRelation: "curricula"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_definitions_curriculum_version_id_fkey"
+            columns: ["curriculum_version_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_definitions_grade_id_fkey"
+            columns: ["grade_id"]
+            isOneToOne: false
+            referencedRelation: "grades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_definitions_lesson_id_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_definitions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_definitions_rubric_fk"
+            columns: ["rubric_id"]
+            isOneToOne: false
+            referencedRelation: "rubrics"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_definitions_strand_id_fkey"
+            columns: ["strand_id"]
+            isOneToOne: false
+            referencedRelation: "strands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_definitions_sub_strand_id_fkey"
+            columns: ["sub_strand_id"]
+            isOneToOne: false
+            referencedRelation: "sub_strands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_definitions_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assessment_learning_outcomes: {
+        Row: {
+          assessment_id: string
+          created_at: string
+          id: string
+          learning_outcome_id: string
+          weight: number
+        }
+        Insert: {
+          assessment_id: string
+          created_at?: string
+          id?: string
+          learning_outcome_id: string
+          weight?: number
+        }
+        Update: {
+          assessment_id?: string
+          created_at?: string
+          id?: string
+          learning_outcome_id?: string
+          weight?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_learning_outcomes_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "assessment_definitions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_learning_outcomes_learning_outcome_id_fkey"
+            columns: ["learning_outcome_id"]
+            isOneToOne: false
+            referencedRelation: "learning_outcomes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assessment_questions: {
+        Row: {
+          assessment_id: string
+          created_at: string
+          id: string
+          points_override: number | null
+          question_id: string
+          required: boolean
+          sequence_order: number
+        }
+        Insert: {
+          assessment_id: string
+          created_at?: string
+          id?: string
+          points_override?: number | null
+          question_id: string
+          required?: boolean
+          sequence_order?: number
+        }
+        Update: {
+          assessment_id?: string
+          created_at?: string
+          id?: string
+          points_override?: number | null
+          question_id?: string
+          required?: boolean
+          sequence_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_questions_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "assessment_definitions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_questions_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "question_bank_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assessment_submissions: {
+        Row: {
+          assessment_id: string
+          attempt_number: number
+          autosave: Json
+          created_at: string
+          feedback: string | null
+          grade_label: string | null
+          graded_at: string | null
+          graded_by: string | null
+          id: string
+          is_late: boolean
+          last_saved_at: string
+          organization_id: string
+          percentage: number | null
+          reviewed_at: string | null
+          score: number | null
+          started_at: string
+          status: string
+          student_id: string
+          submitted_at: string | null
+          time_spent_seconds: number
+          updated_at: string
+        }
+        Insert: {
+          assessment_id: string
+          attempt_number?: number
+          autosave?: Json
+          created_at?: string
+          feedback?: string | null
+          grade_label?: string | null
+          graded_at?: string | null
+          graded_by?: string | null
+          id?: string
+          is_late?: boolean
+          last_saved_at?: string
+          organization_id: string
+          percentage?: number | null
+          reviewed_at?: string | null
+          score?: number | null
+          started_at?: string
+          status?: string
+          student_id: string
+          submitted_at?: string | null
+          time_spent_seconds?: number
+          updated_at?: string
+        }
+        Update: {
+          assessment_id?: string
+          attempt_number?: number
+          autosave?: Json
+          created_at?: string
+          feedback?: string | null
+          grade_label?: string | null
+          graded_at?: string | null
+          graded_by?: string | null
+          id?: string
+          is_late?: boolean
+          last_saved_at?: string
+          organization_id?: string
+          percentage?: number | null
+          reviewed_at?: string | null
+          score?: number | null
+          started_at?: string
+          status?: string
+          student_id?: string
+          submitted_at?: string | null
+          time_spent_seconds?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_submissions_assessment_id_fkey"
+            columns: ["assessment_id"]
+            isOneToOne: false
+            referencedRelation: "assessment_definitions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_submissions_graded_by_fkey"
+            columns: ["graded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_submissions_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_submissions_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      assessment_types: {
+        Row: {
+          category: string
+          code: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_active: boolean
+          is_system: boolean
+          name: string
+          organization_id: string | null
+          sequence_order: number
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          code: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_system?: boolean
+          name: string
+          organization_id?: string | null
+          sequence_order?: number
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          code?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          is_system?: boolean
+          name?: string
+          organization_id?: string | null
+          sequence_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_types_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessment_types_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assessments: {
         Row: {
           assignment_id: string
@@ -1304,6 +1799,148 @@ export type Database = {
           },
         ]
       }
+      question_bank_items: {
+        Row: {
+          answer_key: Json | null
+          body: Json
+          category: string | null
+          competency_id: string | null
+          created_at: string
+          created_by: string | null
+          difficulty: string
+          explanation: string | null
+          grade_id: string | null
+          id: string
+          learning_outcome_id: string | null
+          organization_id: string
+          parent_question_id: string | null
+          points: number
+          prompt: string
+          question_type: string
+          status: string
+          strand_id: string | null
+          sub_strand_id: string | null
+          subject_id: string | null
+          tags: string[]
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          answer_key?: Json | null
+          body?: Json
+          category?: string | null
+          competency_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          difficulty?: string
+          explanation?: string | null
+          grade_id?: string | null
+          id?: string
+          learning_outcome_id?: string | null
+          organization_id: string
+          parent_question_id?: string | null
+          points?: number
+          prompt: string
+          question_type: string
+          status?: string
+          strand_id?: string | null
+          sub_strand_id?: string | null
+          subject_id?: string | null
+          tags?: string[]
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          answer_key?: Json | null
+          body?: Json
+          category?: string | null
+          competency_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          difficulty?: string
+          explanation?: string | null
+          grade_id?: string | null
+          id?: string
+          learning_outcome_id?: string | null
+          organization_id?: string
+          parent_question_id?: string | null
+          points?: number
+          prompt?: string
+          question_type?: string
+          status?: string
+          strand_id?: string | null
+          sub_strand_id?: string | null
+          subject_id?: string | null
+          tags?: string[]
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "question_bank_items_competency_id_fkey"
+            columns: ["competency_id"]
+            isOneToOne: false
+            referencedRelation: "competencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_bank_items_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_bank_items_grade_id_fkey"
+            columns: ["grade_id"]
+            isOneToOne: false
+            referencedRelation: "grades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_bank_items_learning_outcome_id_fkey"
+            columns: ["learning_outcome_id"]
+            isOneToOne: false
+            referencedRelation: "learning_outcomes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_bank_items_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_bank_items_parent_question_id_fkey"
+            columns: ["parent_question_id"]
+            isOneToOne: false
+            referencedRelation: "question_bank_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_bank_items_strand_id_fkey"
+            columns: ["strand_id"]
+            isOneToOne: false
+            referencedRelation: "strands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_bank_items_sub_strand_id_fkey"
+            columns: ["sub_strand_id"]
+            isOneToOne: false
+            referencedRelation: "sub_strands"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "question_bank_items_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       roles: {
         Row: {
           code: string
@@ -1324,6 +1961,166 @@ export type Database = {
           name?: string
         }
         Relationships: []
+      }
+      rubric_criteria: {
+        Row: {
+          competency_id: string | null
+          created_at: string
+          description: string | null
+          id: string
+          learning_outcome_id: string | null
+          max_points: number
+          rubric_id: string
+          sequence_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          competency_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          learning_outcome_id?: string | null
+          max_points?: number
+          rubric_id: string
+          sequence_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          competency_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          learning_outcome_id?: string | null
+          max_points?: number
+          rubric_id?: string
+          sequence_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rubric_criteria_competency_id_fkey"
+            columns: ["competency_id"]
+            isOneToOne: false
+            referencedRelation: "competencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rubric_criteria_learning_outcome_id_fkey"
+            columns: ["learning_outcome_id"]
+            isOneToOne: false
+            referencedRelation: "learning_outcomes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rubric_criteria_rubric_id_fkey"
+            columns: ["rubric_id"]
+            isOneToOne: false
+            referencedRelation: "rubrics"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rubric_levels: {
+        Row: {
+          created_at: string
+          criterion_id: string
+          descriptor: string | null
+          id: string
+          label: string
+          points: number
+          sequence_order: number
+        }
+        Insert: {
+          created_at?: string
+          criterion_id: string
+          descriptor?: string | null
+          id?: string
+          label: string
+          points?: number
+          sequence_order?: number
+        }
+        Update: {
+          created_at?: string
+          criterion_id?: string
+          descriptor?: string | null
+          id?: string
+          label?: string
+          points?: number
+          sequence_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rubric_levels_criterion_id_fkey"
+            columns: ["criterion_id"]
+            isOneToOne: false
+            referencedRelation: "rubric_criteria"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rubrics: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          is_template: boolean
+          organization_id: string
+          status: string
+          subject_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_template?: boolean
+          organization_id: string
+          status?: string
+          subject_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          is_template?: boolean
+          organization_id?: string
+          status?: string
+          subject_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rubrics_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rubrics_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rubrics_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       security_events: {
         Row: {
@@ -1697,6 +2494,128 @@ export type Database = {
             columns: ["pathway_id"]
             isOneToOne: false
             referencedRelation: "pathways"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      submission_answers: {
+        Row: {
+          answer: Json
+          awarded_points: number | null
+          created_at: string
+          feedback: string | null
+          graded_at: string | null
+          graded_by: string | null
+          id: string
+          is_correct: boolean | null
+          question_id: string
+          storage_path: string | null
+          submission_id: string
+          updated_at: string
+        }
+        Insert: {
+          answer?: Json
+          awarded_points?: number | null
+          created_at?: string
+          feedback?: string | null
+          graded_at?: string | null
+          graded_by?: string | null
+          id?: string
+          is_correct?: boolean | null
+          question_id: string
+          storage_path?: string | null
+          submission_id: string
+          updated_at?: string
+        }
+        Update: {
+          answer?: Json
+          awarded_points?: number | null
+          created_at?: string
+          feedback?: string | null
+          graded_at?: string | null
+          graded_by?: string | null
+          id?: string
+          is_correct?: boolean | null
+          question_id?: string
+          storage_path?: string | null
+          submission_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "submission_answers_graded_by_fkey"
+            columns: ["graded_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "submission_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "question_bank_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "submission_answers_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "assessment_submissions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      submission_rubric_scores: {
+        Row: {
+          comment: string | null
+          created_at: string
+          criterion_id: string
+          id: string
+          level_id: string | null
+          points: number
+          submission_id: string
+          updated_at: string
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          criterion_id: string
+          id?: string
+          level_id?: string | null
+          points?: number
+          submission_id: string
+          updated_at?: string
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          criterion_id?: string
+          id?: string
+          level_id?: string | null
+          points?: number
+          submission_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "submission_rubric_scores_criterion_id_fkey"
+            columns: ["criterion_id"]
+            isOneToOne: false
+            referencedRelation: "rubric_criteria"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "submission_rubric_scores_level_id_fkey"
+            columns: ["level_id"]
+            isOneToOne: false
+            referencedRelation: "rubric_levels"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "submission_rubric_scores_submission_id_fkey"
+            columns: ["submission_id"]
+            isOneToOne: false
+            referencedRelation: "assessment_submissions"
             referencedColumns: ["id"]
           },
         ]

@@ -23,6 +23,21 @@ export const canAuthorCurriculum = (role: RoleCode | undefined) =>
 export const canAssignCurriculum = (role: RoleCode | undefined) =>
   role === "teacher" || role === "tutor" || role === "org_admin" || role === "parent_guardian";
 
+/** Assessment authoring: builder, question bank, rubrics, lifecycle changes. */
+export const canAuthorAssessments = (role: RoleCode | undefined) =>
+  role === "teacher" || role === "tutor" || role === "org_admin";
+
+/** Who may mark submissions and moderate marks. */
+export const canGradeAssessments = (role: RoleCode | undefined) =>
+  role === "teacher" || role === "tutor" || role === "org_admin";
+
+/** Who may sit an assessment. */
+export const canTakeAssessments = (role: RoleCode | undefined) => role === "student";
+
+/** Who may see organization-wide assessment analytics. */
+export const canViewAssessmentAnalytics = (role: RoleCode | undefined) =>
+  role === "teacher" || role === "tutor" || role === "org_admin";
+
 /**
  * Family tenants merge the administrator widgets into the parent widget set
  * instead of rendering a separate administrator dashboard.
