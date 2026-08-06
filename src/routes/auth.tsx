@@ -11,6 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -214,6 +215,10 @@ function SignUpForm({ onAwaitingVerification }: { onAwaitingVerification: () => 
               <FormControl>
                 <Input type="password" autoComplete="new-password" {...field} />
               </FormControl>
+              <FormDescription>
+                At least 12 characters with upper and lowercase letters, a number, and a symbol. Avoid
+                passwords you have used elsewhere.
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
