@@ -16,6 +16,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { newPasswordSchema, type NewPasswordValues } from "@/features/auth/schemas";
+import { PasswordStrengthMeter } from "@/features/auth/components/password-strength-meter";
 
 export const Route = createFileRoute("/reset-password")({
   ssr: false,
@@ -37,7 +38,9 @@ function ResetPasswordPage() {
   const form = useForm<NewPasswordValues>({
     resolver: zodResolver(newPasswordSchema),
     defaultValues: { password: "", confirmPassword: "" },
+    mode: "onChange",
   });
+  const passwordValue = form.watch("password");
 
   const onSubmit = async (values: NewPasswordValues) => {
     const { error } = await supabase.auth.updateUser({ password: values.password });
@@ -70,9 +73,7 @@ function ResetPasswordPage() {
                     <FormControl>
                       <Input type="password" autoComplete="new-password" {...field} />
                     </FormControl>
-                    <FormDescription>
-                      At least 12 characters with upper and lowercase letters, a number, and a symbol.
-                    </FormDescription>
+                    <PasswordStrengthMeter value={passwordValue ?? ""} />
                     <FormMessage />
                   </FormItem>
                 )}
