@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -69,6 +70,9 @@ function ResetPasswordPage() {
                     <FormControl>
                       <Input type="password" autoComplete="new-password" {...field} />
                     </FormControl>
+                    <FormDescription>
+                      At least 12 characters with upper and lowercase letters, a number, and a symbol.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
