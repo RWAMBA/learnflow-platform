@@ -26,6 +26,7 @@ import {
   type SignUpValues,
 } from "@/features/auth/schemas";
 import { useSession } from "@/features/auth/use-session";
+import { PasswordStrengthMeter } from "@/features/auth/components/password-strength-meter";
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
@@ -154,7 +155,9 @@ function SignUpForm({ onAwaitingVerification }: { onAwaitingVerification: () => 
   const form = useForm<SignUpValues>({
     resolver: zodResolver(signUpSchema),
     defaultValues: { fullName: "", email: "", password: "" },
+    mode: "onChange",
   });
+  const passwordValue = form.watch("password");
 
   const onSubmit = async (values: SignUpValues) => {
     const { data, error } = await supabase.auth.signUp({
@@ -215,10 +218,8 @@ function SignUpForm({ onAwaitingVerification }: { onAwaitingVerification: () => 
               <FormControl>
                 <Input type="password" autoComplete="new-password" {...field} />
               </FormControl>
-              <FormDescription>
-                At least 12 characters with upper and lowercase letters, a number, and a symbol. Avoid
-                passwords you have used elsewhere.
-              </FormDescription>
+              <PasswordStrengthMeter value={passwordValue ?? ""} />
+              <FormDescription>Avoid passwords you have used elsewhere.</FormDescription>
               <FormMessage />
             </FormItem>
           )}
