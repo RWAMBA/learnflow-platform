@@ -181,6 +181,11 @@ function AccountSecurityPage() {
                   </AlertDescription>
                 </Alert>
               ) : null}
+              {locked ? (
+                <p className="text-sm font-medium text-muted-foreground" aria-live="polite">
+                  You can try again in {secondsLeft}s.
+                </p>
+              ) : null}
               <FormField
                 control={form.control}
                 name="currentPassword"
@@ -188,7 +193,7 @@ function AccountSecurityPage() {
                   <FormItem>
                     <FormLabel>Current password</FormLabel>
                     <FormControl>
-                      <Input type="password" autoComplete="current-password" {...field} />
+                      <Input type="password" autoComplete="current-password" disabled={locked} {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -222,8 +227,12 @@ function AccountSecurityPage() {
                   </FormItem>
                 )}
               />
-              <Button type="submit" disabled={form.formState.isSubmitting}>
-                {form.formState.isSubmitting ? "Updating…" : "Update password"}
+              <Button type="submit" disabled={form.formState.isSubmitting || locked}>
+                {locked
+                  ? `Try again in ${secondsLeft}s`
+                  : form.formState.isSubmitting
+                    ? "Updating…"
+                    : "Update password"}
               </Button>
             </form>
           </Form>
