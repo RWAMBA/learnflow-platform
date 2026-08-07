@@ -46,6 +46,9 @@ export function ProfileMenu() {
         <DropdownMenuItem onSelect={() => void navigate({ to: "/organization/billing" })}>
           Plan &amp; entitlements
         </DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => void navigate({ to: "/account/security" })}>
+          Password &amp; security
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={() => void handleSignOut()}>
           <LogOut aria-hidden="true" className="mr-2 size-4" /> Sign out
