@@ -17,6 +17,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as ApiEnvPreflightRouteImport } from './routes/api/env-preflight'
+import { Route as AuthenticatedAccountSecurityRouteImport } from './routes/_authenticated/account.security'
 import { Route as AuthenticatedAdminTenantsRouteImport } from './routes/_authenticated/admin.tenants'
 import { Route as AuthenticatedAssessmentsIndexRouteImport } from './routes/_authenticated/assessments.index'
 import { Route as AuthenticatedAssessmentsAssessmentIdRouteImport } from './routes/_authenticated/assessments.$assessmentId'
@@ -84,6 +85,12 @@ const ApiEnvPreflightRoute = ApiEnvPreflightRouteImport.update({
   path: '/api/env-preflight',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAccountSecurityRoute =
+  AuthenticatedAccountSecurityRouteImport.update({
+    id: '/account/security',
+    path: '/account/security',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedAdminTenantsRoute =
   AuthenticatedAdminTenantsRouteImport.update({
     id: '/admin/tenants',
@@ -249,6 +256,7 @@ export interface FileRoutesByFullPath {
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/api/env-preflight': typeof ApiEnvPreflightRoute
+  '/account/security': typeof AuthenticatedAccountSecurityRoute
   '/admin/tenants': typeof AuthenticatedAdminTenantsRoute
   '/assessments/$assessmentId': typeof AuthenticatedAssessmentsAssessmentIdRoute
   '/assessments/analytics': typeof AuthenticatedAssessmentsAnalyticsRoute
@@ -284,6 +292,7 @@ export interface FileRoutesByTo {
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/api/env-preflight': typeof ApiEnvPreflightRoute
+  '/account/security': typeof AuthenticatedAccountSecurityRoute
   '/admin/tenants': typeof AuthenticatedAdminTenantsRoute
   '/assessments/$assessmentId': typeof AuthenticatedAssessmentsAssessmentIdRoute
   '/assessments/analytics': typeof AuthenticatedAssessmentsAnalyticsRoute
@@ -321,6 +330,7 @@ export interface FileRoutesById {
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/api/env-preflight': typeof ApiEnvPreflightRoute
+  '/_authenticated/account/security': typeof AuthenticatedAccountSecurityRoute
   '/_authenticated/admin/tenants': typeof AuthenticatedAdminTenantsRoute
   '/_authenticated/assessments/$assessmentId': typeof AuthenticatedAssessmentsAssessmentIdRoute
   '/_authenticated/assessments/analytics': typeof AuthenticatedAssessmentsAnalyticsRoute
@@ -358,6 +368,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/onboarding'
     | '/api/env-preflight'
+    | '/account/security'
     | '/admin/tenants'
     | '/assessments/$assessmentId'
     | '/assessments/analytics'
@@ -393,6 +404,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/onboarding'
     | '/api/env-preflight'
+    | '/account/security'
     | '/admin/tenants'
     | '/assessments/$assessmentId'
     | '/assessments/analytics'
@@ -429,6 +441,7 @@ export interface FileRouteTypes {
     | '/_authenticated/notifications'
     | '/_authenticated/onboarding'
     | '/api/env-preflight'
+    | '/_authenticated/account/security'
     | '/_authenticated/admin/tenants'
     | '/_authenticated/assessments/$assessmentId'
     | '/_authenticated/assessments/analytics'
@@ -522,6 +535,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/env-preflight'
       preLoaderRoute: typeof ApiEnvPreflightRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/account/security': {
+      id: '/_authenticated/account/security'
+      path: '/account/security'
+      fullPath: '/account/security'
+      preLoaderRoute: typeof AuthenticatedAccountSecurityRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin/tenants': {
       id: '/_authenticated/admin/tenants'
@@ -712,6 +732,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
+  AuthenticatedAccountSecurityRoute: typeof AuthenticatedAccountSecurityRoute
   AuthenticatedAdminTenantsRoute: typeof AuthenticatedAdminTenantsRoute
   AuthenticatedAssessmentsAssessmentIdRoute: typeof AuthenticatedAssessmentsAssessmentIdRoute
   AuthenticatedAssessmentsAnalyticsRoute: typeof AuthenticatedAssessmentsAnalyticsRoute
@@ -744,6 +765,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
+  AuthenticatedAccountSecurityRoute: AuthenticatedAccountSecurityRoute,
   AuthenticatedAdminTenantsRoute: AuthenticatedAdminTenantsRoute,
   AuthenticatedAssessmentsAssessmentIdRoute:
     AuthenticatedAssessmentsAssessmentIdRoute,
