@@ -22,8 +22,16 @@ import {
 import { changePasswordSchema, type ChangePasswordValues } from "@/features/auth/schemas";
 import { PasswordStrengthMeter } from "@/features/auth/components/password-strength-meter";
 
-export const Route = createFileRoute("/_authenticated/account/security")({
+const ATTEMPTS_BEFORE_COOLDOWN = 3;
+const COOLDOWN_STEPS = [30, 60, 300] as const;
 
+function formatWait(seconds: number) {
+  if (seconds < 60) return `${seconds} seconds`;
+  const minutes = Math.round(seconds / 60);
+  return `${minutes} minute${minutes === 1 ? "" : "s"}`;
+}
+
+export const Route = createFileRoute("/_authenticated/account/security")({
   head: () => ({
     meta: [
       { title: "Account security — the Platform" },
