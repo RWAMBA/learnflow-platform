@@ -23,6 +23,7 @@ import { changePasswordSchema, type ChangePasswordValues } from "@/features/auth
 import { PasswordStrengthMeter } from "@/features/auth/components/password-strength-meter";
 
 export const Route = createFileRoute("/_authenticated/account/security")({
+
   head: () => ({
     meta: [
       { title: "Account security — the Platform" },
