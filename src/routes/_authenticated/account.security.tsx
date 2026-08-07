@@ -1,11 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { AlertTriangle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { PageHeader } from "@/components/shared/page-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Form,
@@ -37,6 +40,8 @@ export const Route = createFileRoute("/_authenticated/account/security")({
 });
 
 function AccountSecurityPage() {
+  const [formError, setFormError] = useState<{ title: string; description: string } | null>(null);
+  const [sessionExpired, setSessionExpired] = useState(false);
   const form = useForm<ChangePasswordValues>({
     resolver: zodResolver(changePasswordSchema),
     defaultValues: { currentPassword: "", password: "", confirmPassword: "" },
@@ -45,10 +50,18 @@ function AccountSecurityPage() {
   const passwordValue = form.watch("password");
 
   const onSubmit = async (values: ChangePasswordValues) => {
-    const { data } = await supabase.auth.getUser();
+    setFormError(null);
+    setSessionExpired(false);
+
+    const { data, error: userError } = await supabase.auth.getUser();
     const email = data.user?.email;
-    if (!email) {
-      toast.error("You need to be signed in to change your password.");
+    if (userError || !email) {
+      setSessionExpired(true);
+      setFormError({
+        title: "Your session is no longer valid",
+        description:
+          "For your security we could not confirm who you are. Sign in again, then change your password.",
+      });
       return;
     }
 
@@ -58,16 +71,36 @@ function AccountSecurityPage() {
     });
     if (verifyError) {
       form.setError("currentPassword", { message: "That current password is incorrect" });
+      form.setFocus("currentPassword");
+      setFormError({
+        title: "Current password is incorrect",
+        description:
+          "Re-enter the password you use to sign in today. If you have forgotten it, sign out and use the reset link instead.",
+      });
       return;
     }
 
     const { error } = await supabase.auth.updateUser({ password: values.password });
     if (error) {
-      toast.error(error.message);
+      const expired = /jwt|session|token|not authenticated/i.test(error.message);
+      setSessionExpired(expired);
+      setFormError({
+        title: expired ? "Your session expired before we could save" : "We could not update your password",
+        description: expired
+          ? "Sign in again and retry the change — nothing was saved."
+          : error.message,
+      });
       return;
     }
     toast.success("Password updated.");
+    setFormError(null);
+    setSessionExpired(false);
     form.reset({ currentPassword: "", password: "", confirmPassword: "" });
+  };
+
+  const handleReauthenticate = async () => {
+    await supabase.auth.signOut();
+    window.location.assign("/auth");
   };
 
   return (
@@ -86,6 +119,20 @@ function AccountSecurityPage() {
         <CardContent>
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" noValidate>
+              {formError ? (
+                <Alert variant="destructive" role="alert" aria-live="assertive">
+                  <AlertTriangle className="size-4" aria-hidden />
+                  <AlertTitle>{formError.title}</AlertTitle>
+                  <AlertDescription className="space-y-2">
+                    <p>{formError.description}</p>
+                    {sessionExpired ? (
+                      <Button type="button" size="sm" variant="outline" onClick={() => void handleReauthenticate()}>
+                        Sign in again
+                      </Button>
+                    ) : null}
+                  </AlertDescription>
+                </Alert>
+              ) : null}
               <FormField
                 control={form.control}
                 name="currentPassword"
