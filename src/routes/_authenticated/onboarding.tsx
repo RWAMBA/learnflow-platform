@@ -5,22 +5,19 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import { QueryState } from "@/components/shared/query-state";
 import { joinOrganization, listJoinableOrganizations } from "@/lib/onboarding.functions";
-import { ROLE_LABELS } from "@/features/roles/types";
-
-const SELECTABLE_ROLES = ["parent_guardian", "teacher", "tutor", "org_admin"] as const;
-type SelectableRole = (typeof SELECTABLE_ROLES)[number];
 
 export const Route = createFileRoute("/_authenticated/onboarding")({
   head: () => ({
     meta: [
       { title: "Set up your account — the Platform" },
-      { name: "description", content: "Join an organization and choose the roles you hold in it." },
+      { name: "description", content: "Join an organization and finish setting up your account." },
       { property: "og:title", content: "Set up your account — the Platform" },
-      { property: "og:description", content: "Join an organization and choose your roles." },
+      {
+        property: "og:description",
+        content: "Join an organization and finish setting up your account.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -35,7 +32,6 @@ function OnboardingPage() {
   const join = useServerFn(joinOrganization);
 
   const [organizationId, setOrganizationId] = useState<string | null>(null);
-  const [roles, setRoles] = useState<SelectableRole[]>(["parent_guardian"]);
 
   const orgsQuery = useQuery({
     queryKey: ["joinable-organizations"],
@@ -43,7 +39,7 @@ function OnboardingPage() {
   });
 
   const mutation = useMutation({
-    mutationFn: () => join({ data: { organizationId: organizationId!, roleCodes: roles } }),
+    mutationFn: () => join({ data: { organizationId: organizationId! } }),
     onSuccess: async () => {
       await queryClient.invalidateQueries();
       toast.success("You're all set.");
@@ -58,8 +54,8 @@ function OnboardingPage() {
         <CardHeader>
           <CardTitle>Finish setting up</CardTitle>
           <CardDescription>
-            Choose the organization you belong to and the roles you hold there. You can hold more
-            than one role.
+            Choose the organization you belong to. Self-service onboarding creates a Parent/Guardian
+            account. Other roles are assigned by an administrator.
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -97,27 +93,9 @@ function OnboardingPage() {
             )}
           </QueryState>
 
-          <fieldset className="space-y-2">
-            <legend className="mb-2 font-medium">Your roles</legend>
-            {SELECTABLE_ROLES.map((role) => (
-              <div key={role} className="flex items-center gap-3">
-                <Checkbox
-                  id={`role-${role}`}
-                  checked={roles.includes(role)}
-                  onCheckedChange={(checked) =>
-                    setRoles((current) =>
-                      checked ? [...new Set([...current, role])] : current.filter((item) => item !== role),
-                    )
-                  }
-                />
-                <Label htmlFor={`role-${role}`}>{ROLE_LABELS[role]}</Label>
-              </div>
-            ))}
-          </fieldset>
-
           <Button
             className="w-full"
-            disabled={!organizationId || roles.length === 0 || mutation.isPending}
+            disabled={!organizationId || mutation.isPending}
             onClick={() => mutation.mutate()}
           >
             {mutation.isPending ? "Setting up…" : "Continue"}

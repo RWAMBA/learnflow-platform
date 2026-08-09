@@ -2,12 +2,11 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
-const joinOrganizationSchema = z.object({
-  organizationId: z.string().uuid(),
-  roleCodes: z
-    .array(z.enum(["parent_guardian", "teacher", "tutor", "org_admin"]))
-    .min(1, "Select at least one role"),
-});
+const joinOrganizationSchema = z
+  .object({
+    organizationId: z.string().uuid(),
+  })
+  .strict();
 
 /**
  * Multi-step: creates the organization membership and the role assignments
@@ -19,33 +18,76 @@ export const joinOrganization = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabase, userId } = context;
 
-    const { error: membershipError } = await supabase
+    // Never use an upsert here. An existing suspended/ended membership
+    // must not be reactivated by repeating onboarding.
+    const { data: existingMembership, error: membershipLookupError } = await supabase
       .from("organization_memberships")
-      .upsert(
-        { organization_id: data.organizationId, user_id: userId, status: "active", created_by: userId },
-        { onConflict: "user_id,organization_id" },
-      );
-    if (membershipError) throw new Error(membershipError.message);
+      .select("id, status")
+      .eq("organization_id", data.organizationId)
+      .eq("user_id", userId)
+      .maybeSingle();
 
-    const { data: roles, error: rolesError } = await supabase
+    if (membershipLookupError) {
+      throw new Error(membershipLookupError.message);
+    }
+
+    if (existingMembership && existingMembership.status !== "active") {
+      throw new Error("Your organization membership requires administrator review.");
+    }
+
+    if (!existingMembership) {
+      const { error: membershipError } = await supabase.from("organization_memberships").insert({
+        organization_id: data.organizationId,
+        user_id: userId,
+        status: "active",
+        created_by: userId,
+      });
+
+      if (membershipError) {
+        throw new Error(membershipError.message);
+      }
+    }
+
+    // Self-service onboarding grants exactly one role.
+    // Privileged roles must be granted through an authorized admin flow.
+    const { data: parentRole, error: parentRoleError } = await supabase
       .from("roles")
-      .select("id, code")
-      .in("code", data.roleCodes);
-    if (rolesError) throw new Error(rolesError.message);
+      .select("id")
+      .eq("code", "parent_guardian")
+      .single();
 
-    const rows = (roles ?? []).map((role) => ({
-      organization_id: data.organizationId,
-      user_id: userId,
-      role_id: role.id,
-      status: "active" as const,
-      created_by: userId,
-    }));
+    if (parentRoleError) {
+      throw new Error(parentRoleError.message);
+    }
 
-    if (rows.length > 0) {
-      const { error: userRolesError } = await supabase
-        .from("user_roles")
-        .upsert(rows, { onConflict: "user_id,organization_id,role_id" });
-      if (userRolesError) throw new Error(userRolesError.message);
+    const { data: existingRole, error: roleLookupError } = await supabase
+      .from("user_roles")
+      .select("id, status")
+      .eq("organization_id", data.organizationId)
+      .eq("user_id", userId)
+      .eq("role_id", parentRole.id)
+      .maybeSingle();
+
+    if (roleLookupError) {
+      throw new Error(roleLookupError.message);
+    }
+
+    if (existingRole && existingRole.status !== "active") {
+      throw new Error("Your organization role requires administrator review.");
+    }
+
+    if (!existingRole) {
+      const { error: roleInsertError } = await supabase.from("user_roles").insert({
+        organization_id: data.organizationId,
+        user_id: userId,
+        role_id: parentRole.id,
+        status: "active",
+        created_by: userId,
+      });
+
+      if (roleInsertError) {
+        throw new Error(roleInsertError.message);
+      }
     }
 
     await supabase.from("audit_logs").insert({
@@ -53,7 +95,7 @@ export const joinOrganization = createServerFn({ method: "POST" })
       organization_id: data.organizationId,
       action: "organization.joined",
       entity_type: "organization_memberships",
-      after_state: { roles: data.roleCodes },
+      after_state: { roles: ["parent_guardian"] },
     });
 
     return { ok: true };
