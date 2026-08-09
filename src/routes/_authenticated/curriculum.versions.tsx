@@ -25,7 +25,7 @@ import {
 import { curriculumKeys, listCurricula } from "@/features/curriculum/api";
 import { hierarchyKeys, listCurriculumVersions } from "@/features/curriculum/hierarchy-api";
 import { setCurriculumVersionStatus } from "@/lib/curriculum-hierarchy.functions";
-import { canAuthorCurriculum } from "@/features/roles/permissions";
+import { canAuthorPlatformCurriculum } from "@/features/roles/permissions";
 import { useRoleContext } from "@/features/roles/role-context";
 import { formatDateTime } from "@/lib/format";
 
@@ -50,9 +50,8 @@ export const Route = createFileRoute("/_authenticated/curriculum/versions")({
 });
 
 function CurriculumVersionsPage() {
-  const { activeRole } = useRoleContext();
-  const organizationId = activeRole?.organizationId ?? "";
-  const mayAuthor = canAuthorCurriculum(activeRole?.roleCode) && Boolean(organizationId);
+  const { viewer } = useRoleContext();
+  const mayAuthor = canAuthorPlatformCurriculum(viewer.isPlatformAdmin);
   const queryClient = useQueryClient();
   const [curriculumId, setCurriculumId] = useState<string>("all");
 
@@ -70,7 +69,7 @@ function CurriculumVersionsPage() {
   const changeStatus = useServerFn(setCurriculumVersionStatus);
   const statusMutation = useMutation({
     mutationFn: (input: { versionId: string; status: "draft" | "published" | "archived" }) =>
-      changeStatus({ data: { organizationId, ...input } }),
+      changeStatus({ data: input }),
     onSuccess: () => {
       toast.success("Version updated");
       refresh();
@@ -86,7 +85,6 @@ function CurriculumVersionsPage() {
         actions={
           mayAuthor ? (
             <CurriculumVersionDialog
-              organizationId={organizationId}
               curricula={curricula.data ?? []}
               onSaved={refresh}
               trigger={
@@ -164,7 +162,6 @@ function CurriculumVersionsPage() {
                   {mayAuthor ? (
                     <>
                       <CloneVersionDialog
-                        organizationId={organizationId}
                         versionId={version.id}
                         onSaved={refresh}
                         trigger={

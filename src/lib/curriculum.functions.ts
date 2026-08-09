@@ -7,7 +7,6 @@ const uuid = z.string().uuid();
 
 const subjectInput = z.object({
   id: uuid.optional(),
-  organizationId: uuid,
   gradeId: uuid,
   pathwayId: uuid.nullable().optional(),
   name: z.string().trim().min(2).max(120),
@@ -18,7 +17,6 @@ const subjectInput = z.object({
 
 const topicInput = z.object({
   id: uuid.optional(),
-  organizationId: uuid,
   subjectId: uuid,
   title: z.string().trim().min(2).max(160),
   description: z.string().trim().max(2000).nullable().optional(),
@@ -26,22 +24,38 @@ const topicInput = z.object({
   status: publishStatus,
 });
 
-const lessonInput = z.object({
-  id: uuid.optional(),
-  organizationId: uuid,
-  subjectId: uuid,
-  topicId: uuid.nullable().optional(),
-  title: z.string().trim().min(2).max(160),
-  sequenceOrder: z.number().int().min(1).max(999),
-  contentType: z.enum(["text", "video", "document", "link", "quiz"]),
-  contentBody: z.string().trim().max(20000).nullable().optional(),
-  status: publishStatus,
-});
+const lessonInput = z
+  .object({
+    id: uuid.optional(),
+    organizationId: uuid.nullable().optional(),
+    authorType: z.enum(["platform", "tenant"]),
+    subjectId: uuid,
+    topicId: uuid.nullable().optional(),
+    title: z.string().trim().min(2).max(160),
+    sequenceOrder: z.number().int().min(1).max(999),
+    contentType: z.enum(["text", "video", "document", "link", "quiz"]),
+    contentBody: z.string().trim().max(20000).nullable().optional(),
+    status: publishStatus,
+  })
+  .refine(
+    (value) => value.authorType !== "tenant" || Boolean(value.organizationId),
+    {
+      message: "Tenant lessons require an organization.",
+      path: ["organizationId"],
+    },
+  )
+  .refine(
+    (value) => value.authorType !== "platform" || !value.organizationId,
+    {
+      message: "Platform lessons cannot have a tenant organization.",
+      path: ["organizationId"],
+    },
+  );
 
 const objectiveInput = z.object({
   id: uuid.optional(),
   lessonId: uuid,
-  organizationId: uuid,
+  organizationId: uuid.nullable().optional(),
   competencyId: uuid.nullable().optional(),
   description: z.string().trim().min(3).max(500),
   sequenceOrder: z.number().int().min(1).max(999),
@@ -49,7 +63,6 @@ const objectiveInput = z.object({
 
 const pathwayInput = z.object({
   id: uuid.optional(),
-  organizationId: uuid,
   gradeId: uuid,
   name: z.string().trim().min(2).max(120),
   description: z.string().trim().max(2000).nullable().optional(),
@@ -97,7 +110,7 @@ export const saveSubject = createServerFn({ method: "POST" })
       code: data.code || null,
       description: data.description || null,
       status: data.status,
-      authoring_organization_id: data.organizationId,
+      authoring_organization_id: null,
       published_at: data.status === "published" ? new Date().toISOString() : null,
     };
     const query = data.id
@@ -106,7 +119,7 @@ export const saveSubject = createServerFn({ method: "POST" })
     const { data: saved, error } = await query;
     if (error) throw new Error(error.message);
     await writeAudit(context, {
-      organizationId: data.organizationId,
+      organizationId: null,
       action: data.id ? "curriculum.subject.updated" : "curriculum.subject.created",
       entityType: "subjects",
       entityId: saved.id,
@@ -126,7 +139,7 @@ export const saveTopic = createServerFn({ method: "POST" })
       description: data.description || null,
       sequence_order: data.sequenceOrder,
       status: data.status,
-      authoring_organization_id: data.organizationId,
+      authoring_organization_id: null,
       published_at: data.status === "published" ? new Date().toISOString() : null,
     };
     const query = data.id
@@ -135,7 +148,7 @@ export const saveTopic = createServerFn({ method: "POST" })
     const { data: saved, error } = await query;
     if (error) throw new Error(error.message);
     await writeAudit(context, {
-      organizationId: data.organizationId,
+      organizationId: null,
       action: data.id ? "curriculum.topic.updated" : "curriculum.topic.created",
       entityType: "topics",
       entityId: saved.id,
@@ -157,8 +170,9 @@ export const saveLesson = createServerFn({ method: "POST" })
       content_type: data.contentType,
       content_body: data.contentBody ? { body: data.contentBody } : null,
       status: data.status,
-      author_type: "organization",
-      authoring_organization_id: data.organizationId,
+      author_type: data.authorType,
+      authoring_organization_id:
+        data.authorType === "tenant" ? data.organizationId! : null,
       published_at: data.status === "published" ? new Date().toISOString() : null,
     };
     const query = data.id
@@ -167,7 +181,8 @@ export const saveLesson = createServerFn({ method: "POST" })
     const { data: saved, error } = await query;
     if (error) throw new Error(error.message);
     await writeAudit(context, {
-      organizationId: data.organizationId,
+      organizationId:
+        data.authorType === "tenant" ? data.organizationId! : null,
       action: data.id ? "curriculum.lesson.updated" : "curriculum.lesson.created",
       entityType: "lessons",
       entityId: saved.id,
@@ -183,7 +198,7 @@ export const setCurriculumStatus = createServerFn({ method: "POST" })
       .object({
         entity: z.enum(["subjects", "topics", "lessons", "pathways"]),
         id: uuid,
-        organizationId: uuid,
+        organizationId: uuid.nullable().optional(),
         status: publishStatus,
       })
       .parse(input),
@@ -199,7 +214,7 @@ export const setCurriculumStatus = createServerFn({ method: "POST" })
       .eq("id", data.id);
     if (error) throw new Error(error.message);
     await writeAudit(context, {
-      organizationId: data.organizationId,
+      organizationId: data.organizationId ?? null,
       action: `curriculum.${data.entity}.status_changed`,
       entityType: data.entity,
       entityId: data.id,
@@ -215,7 +230,7 @@ export const deleteCurriculumItem = createServerFn({ method: "POST" })
       .object({
         entity: z.enum(["subjects", "topics", "lessons", "learning_objectives", "pathways"]),
         id: uuid,
-        organizationId: uuid,
+        organizationId: uuid.nullable().optional(),
       })
       .parse(input),
   )
@@ -224,7 +239,7 @@ export const deleteCurriculumItem = createServerFn({ method: "POST" })
     const { error } = await supabase.from(data.entity).delete().eq("id", data.id);
     if (error) throw new Error(error.message);
     await writeAudit(context, {
-      organizationId: data.organizationId,
+      organizationId: data.organizationId ?? null,
       action: `curriculum.${data.entity}.deleted`,
       entityType: data.entity,
       entityId: data.id,
@@ -249,7 +264,7 @@ export const saveLearningObjective = createServerFn({ method: "POST" })
     const { data: saved, error } = await query;
     if (error) throw new Error(error.message);
     await writeAudit(context, {
-      organizationId: data.organizationId,
+      organizationId: data.organizationId ?? null,
       action: data.id ? "curriculum.objective.updated" : "curriculum.objective.created",
       entityType: "learning_objectives",
       entityId: saved.id,
@@ -325,7 +340,7 @@ export const savePathway = createServerFn({ method: "POST" })
       name: data.name,
       description: data.description || null,
       status: data.status,
-      authoring_organization_id: data.organizationId,
+      authoring_organization_id: null,
       published_at: data.status === "published" ? new Date().toISOString() : null,
     };
     const query = data.id
@@ -334,7 +349,7 @@ export const savePathway = createServerFn({ method: "POST" })
     const { data: saved, error } = await query;
     if (error) throw new Error(error.message);
     await writeAudit(context, {
-      organizationId: data.organizationId,
+      organizationId: null,
       action: data.id ? "curriculum.pathway.updated" : "curriculum.pathway.created",
       entityType: "pathways",
       entityId: saved.id,

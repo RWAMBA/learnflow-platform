@@ -16,16 +16,14 @@ import { hierarchyKeys, listStrands } from "@/features/curriculum/hierarchy-api"
 import { deleteHierarchyItem, setHierarchyStatus } from "@/lib/curriculum-hierarchy.functions";
 
 /**
- * Strand → sub-strand → learning outcome tree for a subject, with authoring
- * controls for the organization that owns each node.
+ * Strand → sub-strand → learning outcome tree for a subject.
+ * Structural authoring controls are exposed only to Platform Administrators.
  */
 export function StrandsSection({
-  organizationId,
   subjectId,
   competencies,
   mayAuthor,
 }: {
-  organizationId: string;
   subjectId: string;
   competencies: { id: string; name: string }[];
   mayAuthor: boolean;
@@ -47,7 +45,7 @@ export function StrandsSection({
       entity: "strands" | "sub_strands" | "learning_outcomes";
       id: string;
       status: "draft" | "review" | "published" | "archived";
-    }) => changeStatus({ data: { ...input, organizationId } }),
+    }) => changeStatus({ data: input }),
     onSuccess: () => {
       toast.success("Status updated");
       refresh();
@@ -57,7 +55,7 @@ export function StrandsSection({
 
   const deleteMutation = useMutation({
     mutationFn: (input: { entity: "strands" | "sub_strands" | "learning_outcomes"; id: string }) =>
-      removeItem({ data: { ...input, organizationId } }),
+      removeItem({ data: input }),
     onSuccess: () => {
       toast.success("Removed");
       refresh();
@@ -71,9 +69,8 @@ export function StrandsSection({
     <Card>
       <CardHeader className="flex flex-row items-center justify-between gap-3">
         <CardTitle className="text-base">Strands &amp; learning outcomes</CardTitle>
-        {mayAuthor && organizationId ? (
+        {mayAuthor ? (
           <StrandFormDialog
-            organizationId={organizationId}
             subjectId={subjectId}
             nextOrder={strands.length + 1}
             onSaved={refresh}
@@ -107,7 +104,8 @@ export function StrandsSection({
           {(rows) => (
             <div className="space-y-5">
               {rows.map((strand) => {
-                const ownsStrand = mayAuthor && strand.authoring_organization_id === organizationId;
+                const ownsStrand =
+                  mayAuthor && strand.authoring_organization_id === null;
                 return (
                   <section key={strand.id} className="rounded-lg border p-4">
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
@@ -124,7 +122,6 @@ export function StrandsSection({
                         {ownsStrand ? (
                           <>
                             <SubStrandFormDialog
-                              organizationId={organizationId}
                               strandId={strand.id}
                               nextOrder={(strand.sub_strands?.length ?? 0) + 1}
                               onSaved={refresh}
@@ -135,7 +132,6 @@ export function StrandsSection({
                               }
                             />
                             <StrandFormDialog
-                              organizationId={organizationId}
                               subjectId={subjectId}
                               strand={strand}
                               nextOrder={strand.sequence_order}
@@ -180,7 +176,7 @@ export function StrandsSection({
                       ) : null}
                       {(strand.sub_strands ?? []).map((sub) => {
                         const ownsSub =
-                          mayAuthor && sub.authoring_organization_id === organizationId;
+                          mayAuthor && sub.authoring_organization_id === null;
                         return (
                           <div key={sub.id} className="rounded-md border p-3">
                             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
@@ -192,7 +188,6 @@ export function StrandsSection({
                                 {ownsSub ? (
                                   <>
                                     <LearningOutcomeFormDialog
-                                      organizationId={organizationId}
                                       subStrandId={sub.id}
                                       competencies={competencies}
                                       nextOrder={(sub.learning_outcomes?.length ?? 0) + 1}
@@ -204,7 +199,6 @@ export function StrandsSection({
                                       }
                                     />
                                     <SubStrandFormDialog
-                                      organizationId={organizationId}
                                       strandId={strand.id}
                                       subStrand={sub}
                                       nextOrder={sub.sequence_order}
@@ -267,7 +261,6 @@ export function StrandsSection({
                                       {ownsSub ? (
                                         <>
                                           <LearningOutcomeFormDialog
-                                            organizationId={organizationId}
                                             subStrandId={sub.id}
                                             competencies={competencies}
                                             outcome={outcome}

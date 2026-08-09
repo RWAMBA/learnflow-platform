@@ -23,7 +23,11 @@ import {
   getSubjectWithContent,
   listSubjectAssignments,
 } from "@/features/curriculum/api";
-import { canAssignCurriculum, canAuthorCurriculum } from "@/features/roles/permissions";
+import {
+  canAssignCurriculum,
+  canAuthorPlatformCurriculum,
+  canAuthorTenantCurriculum,
+} from "@/features/roles/permissions";
 import { useRoleContext } from "@/features/roles/role-context";
 import {
   deleteCurriculumItem,
@@ -47,10 +51,20 @@ export const Route = createFileRoute("/_authenticated/curriculum/subjects/$subje
 
 function SubjectPage() {
   const { subjectId } = Route.useParams();
-  const { activeRole } = useRoleContext();
+  const { activeRole, viewer } = useRoleContext();
   const queryClient = useQueryClient();
+
   const organizationId = activeRole?.organizationId ?? "";
+
   const mayAssign = canAssignCurriculum(activeRole?.roleCode);
+
+  const mayAuthorPlatform = canAuthorPlatformCurriculum(
+    viewer.isPlatformAdmin,
+  );
+
+  const mayAuthorTenant =
+    canAuthorTenantCurriculum(activeRole?.roleCode) &&
+    Boolean(organizationId);
 
   const query = useQuery({
     queryKey: curriculumKeys.subject(subjectId),
@@ -63,9 +77,8 @@ function SubjectPage() {
     queryFn: () => listSubjectAssignments(subjectId),
   });
 
-  const ownsSubject =
-    Boolean(organizationId) && query.data?.subject?.authoring_organization_id === organizationId;
-  const mayAuthor = canAuthorCurriculum(activeRole?.roleCode) && ownsSubject;
+  const mayCreateLesson =
+    mayAuthorPlatform || mayAuthorTenant;
 
   const refresh = () => {
     void queryClient.invalidateQueries({ queryKey: curriculumKeys.subject(subjectId) });
@@ -81,7 +94,8 @@ function SubjectPage() {
       entity: "topics" | "lessons";
       id: string;
       status: "draft" | "published" | "archived";
-    }) => changeStatus({ data: { ...input, organizationId } }),
+      organizationId?: string | null;
+    }) => changeStatus({ data: input }),
     onSuccess: () => {
       toast.success("Status updated");
       refresh();
@@ -90,8 +104,11 @@ function SubjectPage() {
   });
 
   const deleteMutation = useMutation({
-    mutationFn: (input: { entity: "topics" | "lessons"; id: string }) =>
-      removeItem({ data: { ...input, organizationId } }),
+    mutationFn: (input: {
+      entity: "topics" | "lessons";
+      id: string;
+      organizationId?: string | null;
+    }) => removeItem({ data: input }),
     onSuccess: () => {
       toast.success("Removed");
       refresh();
@@ -120,10 +137,9 @@ function SubjectPage() {
         description={query.data?.subject?.description ?? "Topics, lessons and competencies."}
         actions={
           <div className="flex flex-wrap gap-2">
-            {mayAuthor ? (
+            {mayAuthorPlatform ? (
               <>
                 <TopicFormDialog
-                  organizationId={organizationId}
                   subjectId={subjectId}
                   nextOrder={nextTopicOrder}
                   onSaved={refresh}
@@ -133,19 +149,37 @@ function SubjectPage() {
                     </Button>
                   }
                 />
+
                 <LessonFormDialog
-                  organizationId={organizationId}
+                  organizationId={null}
+                  authorType="platform"
                   subjectId={subjectId}
                   topics={topics}
                   nextOrder={nextLessonOrder}
                   onSaved={refresh}
                   trigger={
                     <Button>
-                      <Plus aria-hidden="true" className="size-4" /> New lesson
+                      <Plus aria-hidden="true" className="size-4" /> New platform lesson
                     </Button>
                   }
                 />
               </>
+            ) : null}
+
+            {mayAuthorTenant && organizationId ? (
+              <LessonFormDialog
+                organizationId={organizationId}
+                authorType="tenant"
+                subjectId={subjectId}
+                topics={topics}
+                nextOrder={nextLessonOrder}
+                onSaved={refresh}
+                trigger={
+                  <Button variant="outline">
+                    <Plus aria-hidden="true" className="size-4" /> New organization lesson
+                  </Button>
+                }
+              />
             ) : null}
             {mayAssign && organizationId ? (
               <AssignSubjectDialog
@@ -159,9 +193,8 @@ function SubjectPage() {
                 }
               />
             ) : null}
-            {canAuthorCurriculum(activeRole?.roleCode) && organizationId ? (
+            {mayAuthorPlatform ? (
               <DuplicateSubjectDialog
-                organizationId={organizationId}
                 subjectId={subjectId}
                 defaultName={query.data?.subject?.name ?? "Subject"}
                 onSaved={refresh}
@@ -202,17 +235,16 @@ function SubjectPage() {
             </div>
 
             <StrandsSection
-              organizationId={organizationId}
               subjectId={subjectId}
               competencies={data.competencies ?? []}
-              mayAuthor={mayAuthor}
+              mayAuthor={mayAuthorPlatform}
             />
 
             <ResourcesPanel
               organizationId={organizationId}
               entityType="subject"
               entityId={subjectId}
-              mayAuthor={mayAuthor}
+              mayAuthor={mayAuthorTenant}
             />
 
             <Card>
@@ -224,8 +256,8 @@ function SubjectPage() {
                   <EmptyState
                     title="Nothing here yet"
                     description={
-                      mayAuthor
-                        ? "Add your first topic, then attach lessons to it."
+                      mayCreateLesson
+                        ? "Add a topic or lesson to begin building this subject."
                         : "Topics and lessons will appear once published."
                     }
                   />
@@ -248,10 +280,9 @@ function SubjectPage() {
                         </div>
                         <div className="flex flex-wrap items-center gap-2">
                           <CurriculumStatusBadge status={topic.status} />
-                          {mayAuthor && topic.authoring_organization_id === organizationId ? (
+                          {mayAuthorPlatform && topic.authoring_organization_id === null ? (
                             <>
                               <TopicFormDialog
-                                organizationId={organizationId}
                                 subjectId={subjectId}
                                 topic={topic}
                                 nextOrder={nextTopicOrder}
@@ -295,12 +326,24 @@ function SubjectPage() {
                         organizationId={organizationId}
                         subjectId={subjectId}
                         topics={topics}
-                        mayAuthor={mayAuthor}
+                        mayAuthorPlatform={mayAuthorPlatform}
+                        mayAuthorTenant={mayAuthorTenant}
                         onRefresh={refresh}
-                        onStatus={(id, status) =>
-                          statusMutation.mutate({ entity: "lessons", id, status })
+                        onStatus={(id, status, auditOrganizationId) =>
+                          statusMutation.mutate({
+                            entity: "lessons",
+                            id,
+                            status,
+                            organizationId: auditOrganizationId,
+                          })
                         }
-                        onDelete={(id) => deleteMutation.mutate({ entity: "lessons", id })}
+                        onDelete={(id, auditOrganizationId) =>
+                          deleteMutation.mutate({
+                            entity: "lessons",
+                            id,
+                            organizationId: auditOrganizationId,
+                          })
+                        }
                       />
                     </section>
                   );
@@ -317,12 +360,24 @@ function SubjectPage() {
                         organizationId={organizationId}
                         subjectId={subjectId}
                         topics={topics}
-                        mayAuthor={mayAuthor}
+                        mayAuthorPlatform={mayAuthorPlatform}
+                        mayAuthorTenant={mayAuthorTenant}
                         onRefresh={refresh}
-                        onStatus={(id, status) =>
-                          statusMutation.mutate({ entity: "lessons", id, status })
+                        onStatus={(id, status, auditOrganizationId) =>
+                          statusMutation.mutate({
+                            entity: "lessons",
+                            id,
+                            status,
+                            organizationId: auditOrganizationId,
+                          })
                         }
-                        onDelete={(id) => deleteMutation.mutate({ entity: "lessons", id })}
+                        onDelete={(id, auditOrganizationId) =>
+                          deleteMutation.mutate({
+                            entity: "lessons",
+                            id,
+                            organizationId: auditOrganizationId,
+                          })
+                        }
                       />
                     </section>
                   );
@@ -411,6 +466,7 @@ interface LessonRow {
   content_type: string;
   status: string;
   topic_id: string | null;
+  author_type: string;
   authoring_organization_id: string | null;
 }
 
@@ -419,7 +475,8 @@ function LessonList({
   organizationId,
   subjectId,
   topics,
-  mayAuthor,
+  mayAuthorPlatform,
+  mayAuthorTenant,
   onRefresh,
   onStatus,
   onDelete,
@@ -428,10 +485,18 @@ function LessonList({
   organizationId: string;
   subjectId: string;
   topics: { id: string; title: string }[];
-  mayAuthor: boolean;
+  mayAuthorPlatform: boolean;
+  mayAuthorTenant: boolean;
   onRefresh: () => void;
-  onStatus: (id: string, status: "draft" | "published") => void;
-  onDelete: (id: string) => void;
+  onStatus: (
+    id: string,
+    status: "draft" | "published",
+    auditOrganizationId: string | null,
+  ) => void;
+  onDelete: (
+    id: string,
+    auditOrganizationId: string | null,
+  ) => void;
 }) {
   if (lessons.length === 0) {
     return <p className="mt-3 text-sm text-muted-foreground">No lessons in this topic yet.</p>;
@@ -453,10 +518,29 @@ function LessonList({
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs uppercase text-muted-foreground">{lesson.content_type}</span>
             <CurriculumStatusBadge status={lesson.status} />
-            {mayAuthor && lesson.authoring_organization_id === organizationId ? (
+            {(
+              mayAuthorPlatform &&
+              lesson.author_type === "platform" &&
+              lesson.authoring_organization_id === null
+            ) ||
+            (
+              mayAuthorTenant &&
+              Boolean(organizationId) &&
+              lesson.author_type === "tenant" &&
+              lesson.authoring_organization_id === organizationId
+            ) ? (
               <>
                 <LessonFormDialog
-                  organizationId={organizationId}
+                  organizationId={
+                    lesson.author_type === "tenant"
+                      ? organizationId
+                      : null
+                  }
+                  authorType={
+                    lesson.author_type === "platform"
+                      ? "platform"
+                      : "tenant"
+                  }
                   subjectId={subjectId}
                   topics={topics}
                   lesson={lesson}
@@ -468,16 +552,39 @@ function LessonList({
                     </Button>
                   }
                 />
+
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() =>
-                    onStatus(lesson.id, lesson.status === "published" ? "draft" : "published")
+                    onStatus(
+                      lesson.id,
+                      lesson.status === "published"
+                        ? "draft"
+                        : "published",
+                      lesson.author_type === "tenant"
+                        ? organizationId
+                        : null,
+                    )
                   }
                 >
-                  {lesson.status === "published" ? "Unpublish" : "Publish"}
+                  {lesson.status === "published"
+                    ? "Unpublish"
+                    : "Publish"}
                 </Button>
-                <Button variant="ghost" size="sm" onClick={() => onDelete(lesson.id)}>
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() =>
+                    onDelete(
+                      lesson.id,
+                      lesson.author_type === "tenant"
+                        ? organizationId
+                        : null,
+                    )
+                  }
+                >
                   Delete
                 </Button>
               </>
