@@ -122,14 +122,12 @@ const strandSchema = z.object({
 });
 
 export function StrandFormDialog({
-  organizationId,
   subjectId,
   strand,
   nextOrder,
   trigger,
   onSaved,
 }: {
-  organizationId: string;
   subjectId: string;
   strand?: {
     id: string;
@@ -159,7 +157,6 @@ export function StrandFormDialog({
       save({
         data: {
           id: strand?.id,
-          organizationId,
           subjectId,
           title: values.title,
           description: values.description || null,
@@ -242,14 +239,12 @@ export function StrandFormDialog({
 /* ----------------------------------------------------------- sub-strand */
 
 export function SubStrandFormDialog({
-  organizationId,
   strandId,
   subStrand,
   nextOrder,
   trigger,
   onSaved,
 }: {
-  organizationId: string;
   strandId: string;
   subStrand?: {
     id: string;
@@ -279,7 +274,6 @@ export function SubStrandFormDialog({
       save({
         data: {
           id: subStrand?.id,
-          organizationId,
           strandId,
           title: values.title,
           description: values.description || null,
@@ -369,7 +363,6 @@ const outcomeSchema = z.object({
 });
 
 export function LearningOutcomeFormDialog({
-  organizationId,
   subStrandId,
   competencies,
   outcome,
@@ -377,7 +370,6 @@ export function LearningOutcomeFormDialog({
   trigger,
   onSaved,
 }: {
-  organizationId: string;
   subStrandId: string;
   competencies: { id: string; name: string }[];
   outcome?: {
@@ -408,7 +400,6 @@ export function LearningOutcomeFormDialog({
       save({
         data: {
           id: outcome?.id,
-          organizationId,
           subStrandId,
           competencyId:
             values.competencyId && values.competencyId !== "none" ? values.competencyId : null,
@@ -678,7 +669,7 @@ export function LessonPlanningDialog({
   trigger,
   onSaved,
 }: {
-  organizationId: string;
+  organizationId: string | null;
   lessonId: string;
   lesson: { summary: string | null; estimated_minutes: number | null };
   siblingLessons: { id: string; title: string }[];
@@ -809,12 +800,10 @@ const versionSchema = z.object({
 });
 
 export function CurriculumVersionDialog({
-  organizationId,
   curricula,
   trigger,
   onSaved,
 }: {
-  organizationId: string;
   curricula: { id: string; name: string }[];
   trigger: ReactNode;
   onSaved?: () => void;
@@ -835,7 +824,6 @@ export function CurriculumVersionDialog({
     mutationFn: (values: z.infer<typeof versionSchema>) =>
       save({
         data: {
-          organizationId,
           curriculumId: values.curriculumId,
           label: values.label,
           notes: values.notes || null,
@@ -928,12 +916,10 @@ export function CurriculumVersionDialog({
 const cloneSchema = z.object({ label: z.string().trim().min(1, "Label is required").max(60) });
 
 export function CloneVersionDialog({
-  organizationId,
   versionId,
   trigger,
   onSaved,
 }: {
-  organizationId: string;
   versionId: string;
   trigger: ReactNode;
   onSaved?: () => void;
@@ -947,7 +933,7 @@ export function CloneVersionDialog({
 
   const mutation = useMutation({
     mutationFn: (values: z.infer<typeof cloneSchema>) =>
-      clone({ data: { organizationId, versionId, label: values.label } }),
+      clone({ data: { versionId, label: values.label } }),
     onSuccess: () => {
       toast.success("Version cloned as a new draft");
       setOpen(false);
@@ -998,13 +984,11 @@ export function CloneVersionDialog({
 const duplicateSchema = z.object({ name: z.string().trim().min(2, "Name is required").max(120) });
 
 export function DuplicateSubjectDialog({
-  organizationId,
   subjectId,
   defaultName,
   trigger,
   onSaved,
 }: {
-  organizationId: string;
   subjectId: string;
   defaultName: string;
   trigger: ReactNode;
@@ -1019,7 +1003,7 @@ export function DuplicateSubjectDialog({
 
   const mutation = useMutation({
     mutationFn: (values: z.infer<typeof duplicateSchema>) =>
-      duplicate({ data: { organizationId, subjectId, name: values.name } }),
+      duplicate({ data: { subjectId, name: values.name } }),
     onSuccess: () => {
       toast.success("Subject duplicated as a draft");
       setOpen(false);

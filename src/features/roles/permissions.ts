@@ -15,9 +15,23 @@ export const can = {
   viewOrganizationRollup: (role: RoleCode | undefined) => role === "org_admin",
 };
 
-/** Curriculum authoring is limited to educators and organization admins. */
-export const canAuthorCurriculum = (role: RoleCode | undefined) =>
-  role === "teacher" || role === "tutor" || role === "org_admin";
+/**
+ * Tenant-authored curriculum content is Organization Administrator-only.
+ *
+ * This is a UI capability helper only. PostgreSQL RLS remains the
+ * authoritative authorization boundary.
+ */
+export const canAuthorTenantCurriculum = (role: RoleCode | undefined) =>
+  role === "org_admin";
+
+/**
+ * Platform curriculum structure is administered through the separate
+ * platform_admins authorization path, not an organization role.
+ *
+ * This is a UI capability helper only. PostgreSQL RLS remains authoritative.
+ */
+export const canAuthorPlatformCurriculum = (isPlatformAdmin: boolean) =>
+  isPlatformAdmin;
 
 /** Who may attach a subject to a student's learning plan. */
 export const canAssignCurriculum = (role: RoleCode | undefined) =>

@@ -23,7 +23,11 @@ import {
 } from "@/features/curriculum/hierarchy-api";
 import { LessonPlanningDialog } from "@/features/curriculum/components/hierarchy-dialogs";
 import { ResourcesPanel } from "@/features/curriculum/components/resources-panel";
-import { canAssignCurriculum, canAuthorCurriculum } from "@/features/roles/permissions";
+import {
+  canAssignCurriculum,
+  canAuthorPlatformCurriculum,
+  canAuthorTenantCurriculum,
+} from "@/features/roles/permissions";
 import { useRoleContext } from "@/features/roles/role-context";
 import { deleteCurriculumItem, setCurriculumStatus } from "@/lib/curriculum.functions";
 import { formatDateTime } from "@/lib/format";
@@ -44,7 +48,7 @@ export const Route = createFileRoute("/_authenticated/curriculum/lessons/$lesson
 
 function LessonPage() {
   const { lessonId } = Route.useParams();
-  const { activeRole } = useRoleContext();
+  const { activeRole, viewer } = useRoleContext();
   const queryClient = useQueryClient();
   const organizationId = activeRole?.organizationId ?? "";
 
@@ -73,12 +77,39 @@ function LessonPage() {
 
   const neighbours = findLessonNeighbours(sequence.data ?? [], lessonId);
 
-  const mayAuthor =
-    canAuthorCurriculum(activeRole?.roleCode) &&
-    Boolean(organizationId) &&
+  const mayAuthorPlatform = canAuthorPlatformCurriculum(
+    viewer.isPlatformAdmin,
+  );
+
+  const mayAuthorTenant =
+    canAuthorTenantCurriculum(activeRole?.roleCode) &&
+    Boolean(organizationId);
+
+  const mayAuthorPlatformLesson =
+    mayAuthorPlatform &&
+    query.data?.lesson?.author_type === "platform" &&
+    query.data?.lesson?.authoring_organization_id === null;
+
+  const mayAuthorTenantLesson =
+    mayAuthorTenant &&
+    query.data?.lesson?.author_type === "tenant" &&
     query.data?.lesson?.authoring_organization_id === organizationId;
 
-  const mayRecordProgress = canAssignCurriculum(activeRole?.roleCode) && Boolean(organizationId);
+  const mayAuthorLesson =
+    mayAuthorPlatformLesson || mayAuthorTenantLesson;
+
+  const lessonAuditOrganizationId =
+    query.data?.lesson?.author_type === "tenant" &&
+    query.data?.lesson?.authoring_organization_id === organizationId
+      ? organizationId
+      : null;
+
+  const mayAuthorTenantResources =
+    mayAuthorTenant && Boolean(organizationId);
+
+  const mayRecordProgress =
+    canAssignCurriculum(activeRole?.roleCode) &&
+    Boolean(organizationId);
 
   const refresh = () => {
     void queryClient.invalidateQueries({ queryKey: curriculumKeys.lesson(lessonId) });
@@ -90,7 +121,14 @@ function LessonPage() {
 
   const statusMutation = useMutation({
     mutationFn: (status: "draft" | "published" | "archived") =>
-      changeStatus({ data: { entity: "lessons", id: lessonId, organizationId, status } }),
+      changeStatus({
+        data: {
+          entity: "lessons",
+          id: lessonId,
+          organizationId: lessonAuditOrganizationId,
+          status,
+        },
+      }),
     onSuccess: () => {
       toast.success("Publishing status updated");
       refresh();
@@ -100,7 +138,13 @@ function LessonPage() {
 
   const deleteObjective = useMutation({
     mutationFn: (id: string) =>
-      removeItem({ data: { entity: "learning_objectives", id, organizationId } }),
+      removeItem({
+        data: {
+          entity: "learning_objectives",
+          id,
+          organizationId: lessonAuditOrganizationId,
+        },
+      }),
     onSuccess: () => {
       toast.success("Objective removed");
       refresh();
@@ -124,7 +168,7 @@ function LessonPage() {
             : undefined
         }
         actions={
-          lesson && (mayAuthor || mayRecordProgress) ? (
+          lesson && (mayAuthorLesson || mayRecordProgress) ? (
             <div className="flex flex-wrap gap-2">
               {mayRecordProgress ? (
                 <RecordProgressDialog
@@ -133,10 +177,10 @@ function LessonPage() {
                   trigger={<Button variant="outline">Record progress</Button>}
                 />
               ) : null}
-              {mayAuthor ? (
+              {mayAuthorLesson ? (
                 <>
                   <LessonPlanningDialog
-                    organizationId={organizationId}
+                    organizationId={lessonAuditOrganizationId}
                     lessonId={lesson.id}
                     lesson={{
                       summary: lesson.summary ?? null,
@@ -148,7 +192,12 @@ function LessonPage() {
                     trigger={<Button variant="outline">Lesson planning</Button>}
                   />
                   <LessonFormDialog
-                    organizationId={organizationId}
+                    organizationId={lessonAuditOrganizationId}
+                    authorType={
+                      lesson.author_type === "platform"
+                        ? "platform"
+                        : "tenant"
+                    }
                     subjectId={lesson.subject!.id}
                     topics={subjectContent.data?.topics ?? []}
                     lesson={{
@@ -287,15 +336,15 @@ function LessonPage() {
                 organizationId={organizationId}
                 entityType="lesson"
                 entityId={lessonId}
-                mayAuthor={mayAuthor}
+                mayAuthor={mayAuthorTenantResources}
               />
 
               <Card>
                 <CardHeader className="flex flex-row items-center justify-between gap-3">
                   <CardTitle className="text-base">Learning objectives</CardTitle>
-                  {mayAuthor ? (
+                  {mayAuthorLesson ? (
                     <ObjectiveFormDialog
-                      organizationId={organizationId}
+                      organizationId={lessonAuditOrganizationId}
                       lessonId={lessonId}
                       competencies={subjectContent.data?.competencies ?? []}
                       nextOrder={data.objectives.length + 1}
@@ -329,10 +378,10 @@ function LessonPage() {
                               </p>
                             ) : null}
                           </div>
-                          {mayAuthor ? (
+                          {mayAuthorLesson ? (
                             <div className="flex gap-2">
                               <ObjectiveFormDialog
-                                organizationId={organizationId}
+                                organizationId={lessonAuditOrganizationId}
                                 lessonId={lessonId}
                                 competencies={subjectContent.data?.competencies ?? []}
                                 objective={objective}

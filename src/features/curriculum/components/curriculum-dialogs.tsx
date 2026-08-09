@@ -117,14 +117,12 @@ const subjectSchema = z.object({
 });
 
 export function SubjectFormDialog({
-  organizationId,
   gradeId,
   pathways,
   subject,
   trigger,
   onSaved,
 }: {
-  organizationId: string;
   gradeId: string;
   pathways: { id: string; name: string }[];
   subject?: {
@@ -156,7 +154,6 @@ export function SubjectFormDialog({
       save({
         data: {
           id: subject?.id,
-          organizationId,
           gradeId,
           pathwayId: values.pathwayId && values.pathwayId !== "none" ? values.pathwayId : null,
           name: values.name,
@@ -274,14 +271,12 @@ const topicSchema = z.object({
 });
 
 export function TopicFormDialog({
-  organizationId,
   subjectId,
   topic,
   nextOrder,
   trigger,
   onSaved,
 }: {
-  organizationId: string;
   subjectId: string;
   topic?: {
     id: string;
@@ -311,7 +306,6 @@ export function TopicFormDialog({
       save({
         data: {
           id: topic?.id,
-          organizationId,
           subjectId,
           title: values.title,
           description: values.description || null,
@@ -404,6 +398,7 @@ const lessonSchema = z.object({
 
 export function LessonFormDialog({
   organizationId,
+  authorType,
   subjectId,
   topics,
   lesson,
@@ -411,7 +406,8 @@ export function LessonFormDialog({
   trigger,
   onSaved,
 }: {
-  organizationId: string;
+  organizationId: string | null;
+  authorType: "platform" | "tenant";
   subjectId: string;
   topics: { id: string; title: string }[];
   lesson?: {
@@ -451,6 +447,7 @@ export function LessonFormDialog({
         data: {
           id: lesson?.id,
           organizationId,
+          authorType,
           subjectId,
           topicId: values.topicId && values.topicId !== "none" ? values.topicId : null,
           title: values.title,
@@ -598,7 +595,7 @@ export function ObjectiveFormDialog({
   trigger,
   onSaved,
 }: {
-  organizationId: string;
+  organizationId: string | null;
   lessonId: string;
   competencies: { id: string; name: string }[];
   objective?: {
@@ -827,13 +824,11 @@ const pathwaySchema = z.object({
 });
 
 export function PathwayFormDialog({
-  organizationId,
   gradeId,
   pathway,
   trigger,
   onSaved,
 }: {
-  organizationId: string;
   gradeId: string;
   pathway?: { id: string; name: string; description: string | null; status: string };
   trigger: ReactNode;
@@ -855,7 +850,6 @@ export function PathwayFormDialog({
       save({
         data: {
           id: pathway?.id,
-          organizationId,
           gradeId,
           name: values.name,
           description: values.description || null,

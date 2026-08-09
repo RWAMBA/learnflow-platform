@@ -15,7 +15,10 @@ import {
   SubjectFormDialog,
 } from "@/features/curriculum/components/curriculum-dialogs";
 import { curriculumKeys, getGradeWithContent } from "@/features/curriculum/api";
-import { canAssignCurriculum, canAuthorCurriculum } from "@/features/roles/permissions";
+import {
+  canAssignCurriculum,
+  canAuthorPlatformCurriculum,
+} from "@/features/roles/permissions";
 import { setCurriculumStatus, deleteCurriculumItem } from "@/lib/curriculum.functions";
 import { useRoleContext } from "@/features/roles/role-context";
 
@@ -35,9 +38,9 @@ export const Route = createFileRoute("/_authenticated/curriculum/grades/$gradeId
 
 function GradePage() {
   const { gradeId } = Route.useParams();
-  const { activeRole } = useRoleContext();
+  const { activeRole, viewer } = useRoleContext();
   const queryClient = useQueryClient();
-  const mayAuthor = canAuthorCurriculum(activeRole?.roleCode);
+  const mayAuthor = canAuthorPlatformCurriculum(viewer.isPlatformAdmin);
   const mayAssign = canAssignCurriculum(activeRole?.roleCode);
   const organizationId = activeRole?.organizationId ?? "";
 
@@ -55,7 +58,7 @@ function GradePage() {
   const pathwayStatus = useMutation({
     mutationFn: (input: { id: string; status: "draft" | "published" | "archived" }) =>
       changeStatus({
-        data: { entity: "pathways", id: input.id, organizationId, status: input.status },
+        data: { entity: "pathways", id: input.id, status: input.status },
       }),
     onSuccess: () => {
       toast.success("Pathway status updated");
@@ -65,7 +68,7 @@ function GradePage() {
   });
 
   const pathwayDelete = useMutation({
-    mutationFn: (id: string) => removeItem({ data: { entity: "pathways", id, organizationId } }),
+    mutationFn: (id: string) => removeItem({ data: { entity: "pathways", id } }),
     onSuccess: () => {
       toast.success("Pathway removed");
       refresh();
@@ -79,9 +82,8 @@ function GradePage() {
         title={query.data?.grade?.name ?? "Grade"}
         description="Pathways and subjects available in this grade."
         actions={
-          mayAuthor && organizationId ? (
+          mayAuthor ? (
             <SubjectFormDialog
-              organizationId={organizationId}
               gradeId={gradeId}
               pathways={query.data?.pathways ?? []}
               onSaved={refresh}
@@ -107,9 +109,8 @@ function GradePage() {
             <Card>
               <CardHeader className="flex flex-row items-center justify-between gap-3">
                 <CardTitle className="text-base">Learning pathways</CardTitle>
-                {mayAuthor && organizationId ? (
+                {mayAuthor ? (
                   <PathwayFormDialog
-                    organizationId={organizationId}
                     gradeId={gradeId}
                     onSaved={refresh}
                     trigger={
@@ -134,7 +135,7 @@ function GradePage() {
                   <ul className="divide-y rounded-md border">
                     {data.pathways.map((pathway) => {
                       const owned =
-                        mayAuthor && pathway.authoring_organization_id === organizationId;
+                        mayAuthor && pathway.authoring_organization_id === null;
                       return (
                         <li
                           key={pathway.id}
@@ -162,7 +163,6 @@ function GradePage() {
                             {owned ? (
                               <>
                                 <PathwayFormDialog
-                                  organizationId={organizationId}
                                   gradeId={gradeId}
                                   pathway={pathway}
                                   onSaved={refresh}
@@ -237,9 +237,8 @@ function GradePage() {
                             <span className="text-sm text-muted-foreground">{subject.code}</span>
                           ) : null}
                           <CurriculumStatusBadge status={subject.status} />
-                          {mayAuthor && subject.authoring_organization_id === organizationId ? (
+                          {mayAuthor && subject.authoring_organization_id === null ? (
                             <SubjectFormDialog
-                              organizationId={organizationId}
                               gradeId={gradeId}
                               pathways={data.pathways}
                               subject={subject}
