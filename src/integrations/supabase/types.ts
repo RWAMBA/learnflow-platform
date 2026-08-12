@@ -1545,6 +1545,33 @@ export type Database = {
           },
         ]
       }
+      password_change_attempts: {
+        Row: {
+          created_at: string
+          failed_attempts: number
+          last_failed_at: string | null
+          locked_until: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          failed_attempts?: number
+          last_failed_at?: string | null
+          locked_until?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          failed_attempts?: number
+          last_failed_at?: string | null
+          locked_until?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       pathways: {
         Row: {
           authoring_organization_id: string | null
