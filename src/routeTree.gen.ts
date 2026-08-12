@@ -18,6 +18,7 @@ import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authen
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as ApiEnvPreflightRouteImport } from './routes/api/env-preflight'
 import { Route as AuthenticatedAccountSecurityRouteImport } from './routes/_authenticated/account.security'
+import { Route as AuthenticatedAccountSecurityChecklistRouteImport } from './routes/_authenticated/account.security-checklist'
 import { Route as AuthenticatedAdminTenantsRouteImport } from './routes/_authenticated/admin.tenants'
 import { Route as AuthenticatedAssessmentsIndexRouteImport } from './routes/_authenticated/assessments.index'
 import { Route as AuthenticatedAssessmentsAssessmentIdRouteImport } from './routes/_authenticated/assessments.$assessmentId'
@@ -89,6 +90,12 @@ const AuthenticatedAccountSecurityRoute =
   AuthenticatedAccountSecurityRouteImport.update({
     id: '/account/security',
     path: '/account/security',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAccountSecurityChecklistRoute =
+  AuthenticatedAccountSecurityChecklistRouteImport.update({
+    id: '/account/security-checklist',
+    path: '/account/security-checklist',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedAdminTenantsRoute =
@@ -257,6 +264,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/api/env-preflight': typeof ApiEnvPreflightRoute
   '/account/security': typeof AuthenticatedAccountSecurityRoute
+  '/account/security-checklist': typeof AuthenticatedAccountSecurityChecklistRoute
   '/admin/tenants': typeof AuthenticatedAdminTenantsRoute
   '/assessments/$assessmentId': typeof AuthenticatedAssessmentsAssessmentIdRoute
   '/assessments/analytics': typeof AuthenticatedAssessmentsAnalyticsRoute
@@ -293,6 +301,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/api/env-preflight': typeof ApiEnvPreflightRoute
   '/account/security': typeof AuthenticatedAccountSecurityRoute
+  '/account/security-checklist': typeof AuthenticatedAccountSecurityChecklistRoute
   '/admin/tenants': typeof AuthenticatedAdminTenantsRoute
   '/assessments/$assessmentId': typeof AuthenticatedAssessmentsAssessmentIdRoute
   '/assessments/analytics': typeof AuthenticatedAssessmentsAnalyticsRoute
@@ -331,6 +340,7 @@ export interface FileRoutesById {
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/api/env-preflight': typeof ApiEnvPreflightRoute
   '/_authenticated/account/security': typeof AuthenticatedAccountSecurityRoute
+  '/_authenticated/account/security-checklist': typeof AuthenticatedAccountSecurityChecklistRoute
   '/_authenticated/admin/tenants': typeof AuthenticatedAdminTenantsRoute
   '/_authenticated/assessments/$assessmentId': typeof AuthenticatedAssessmentsAssessmentIdRoute
   '/_authenticated/assessments/analytics': typeof AuthenticatedAssessmentsAnalyticsRoute
@@ -369,6 +379,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/api/env-preflight'
     | '/account/security'
+    | '/account/security-checklist'
     | '/admin/tenants'
     | '/assessments/$assessmentId'
     | '/assessments/analytics'
@@ -405,6 +416,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/api/env-preflight'
     | '/account/security'
+    | '/account/security-checklist'
     | '/admin/tenants'
     | '/assessments/$assessmentId'
     | '/assessments/analytics'
@@ -442,6 +454,7 @@ export interface FileRouteTypes {
     | '/_authenticated/onboarding'
     | '/api/env-preflight'
     | '/_authenticated/account/security'
+    | '/_authenticated/account/security-checklist'
     | '/_authenticated/admin/tenants'
     | '/_authenticated/assessments/$assessmentId'
     | '/_authenticated/assessments/analytics'
@@ -541,6 +554,13 @@ declare module '@tanstack/react-router' {
       path: '/account/security'
       fullPath: '/account/security'
       preLoaderRoute: typeof AuthenticatedAccountSecurityRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/account/security-checklist': {
+      id: '/_authenticated/account/security-checklist'
+      path: '/account/security-checklist'
+      fullPath: '/account/security-checklist'
+      preLoaderRoute: typeof AuthenticatedAccountSecurityChecklistRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin/tenants': {
@@ -733,6 +753,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
   AuthenticatedAccountSecurityRoute: typeof AuthenticatedAccountSecurityRoute
+  AuthenticatedAccountSecurityChecklistRoute: typeof AuthenticatedAccountSecurityChecklistRoute
   AuthenticatedAdminTenantsRoute: typeof AuthenticatedAdminTenantsRoute
   AuthenticatedAssessmentsAssessmentIdRoute: typeof AuthenticatedAssessmentsAssessmentIdRoute
   AuthenticatedAssessmentsAnalyticsRoute: typeof AuthenticatedAssessmentsAnalyticsRoute
@@ -766,6 +787,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
   AuthenticatedAccountSecurityRoute: AuthenticatedAccountSecurityRoute,
+  AuthenticatedAccountSecurityChecklistRoute:
+    AuthenticatedAccountSecurityChecklistRoute,
   AuthenticatedAdminTenantsRoute: AuthenticatedAdminTenantsRoute,
   AuthenticatedAssessmentsAssessmentIdRoute:
     AuthenticatedAssessmentsAssessmentIdRoute,
