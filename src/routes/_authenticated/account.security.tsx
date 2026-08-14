@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -20,10 +21,14 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { changePasswordSchema, type ChangePasswordValues } from "@/features/auth/schemas";
+import {
+  clearPasswordChangeFailures,
+  getPasswordChangeLockout,
+  recordPasswordChangeFailure,
+} from "@/lib/password-security.functions";
 import { PasswordStrengthMeter } from "@/features/auth/components/password-strength-meter";
 
 const ATTEMPTS_BEFORE_COOLDOWN = 3;
-const COOLDOWN_STEPS = [30, 60, 300] as const;
 
 function formatWait(seconds: number) {
   if (seconds < 60) return `${seconds} seconds`;
@@ -53,6 +58,9 @@ function AccountSecurityPage() {
   const [sessionExpired, setSessionExpired] = useState(false);
   const [failedAttempts, setFailedAttempts] = useState(0);
   const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
+  const loadLockout = useServerFn(getPasswordChangeLockout);
+  const reportFailure = useServerFn(recordPasswordChangeFailure);
+  const resetFailures = useServerFn(clearPasswordChangeFailures);
   const [secondsLeft, setSecondsLeft] = useState(0);
   const form = useForm<ChangePasswordValues>({
     resolver: zodResolver(changePasswordSchema),
@@ -60,6 +68,30 @@ function AccountSecurityPage() {
     mode: "onChange",
   });
   const passwordValue = form.watch("password");
+
+  // The lockout lives in the database, so a refresh cannot clear it.
+  useEffect(() => {
+    let active = true;
+    void loadLockout()
+      .then((state) => {
+        if (!active) return;
+        setFailedAttempts(state.failedAttempts);
+        if (state.lockedForSeconds > 0) {
+          setCooldownUntil(Date.now() + state.lockedForSeconds * 1000);
+          setFormError({
+            title: "Password changes are paused",
+            description:
+              "Too many incorrect current-password attempts. Wait for the countdown to finish, or sign out and use the \"Forgot your password?\" reset link instead.",
+          });
+        }
+      })
+      .catch(() => {
+        /* lockout state is advisory in the UI; the server re-checks on submit */
+      });
+    return () => {
+      active = false;
+    };
+  }, [loadLockout]);
 
   useEffect(() => {
     if (cooldownUntil === null) {
@@ -80,6 +112,17 @@ function AccountSecurityPage() {
 
   const onSubmit = async (values: ChangePasswordValues) => {
     if (locked) return;
+    // Re-check the persisted lockout: a refresh clears local state, not this.
+    const serverState = await loadLockout().catch(() => null);
+    if (serverState && serverState.lockedForSeconds > 0) {
+      setFailedAttempts(serverState.failedAttempts);
+      setCooldownUntil(Date.now() + serverState.lockedForSeconds * 1000);
+      setFormError({
+        title: "Password changes are paused",
+        description: `Try again in ${formatWait(serverState.lockedForSeconds)}, or use the "Forgot your password?" reset link instead.`,
+      });
+      return;
+    }
     setFormError(null);
     setSessionExpired(false);
 
@@ -100,15 +143,15 @@ function AccountSecurityPage() {
       password: values.currentPassword,
     });
     if (verifyError) {
-      const attempts = failedAttempts + 1;
+      const state = await reportFailure().catch(() => null);
+      const attempts = state?.failedAttempts ?? failedAttempts + 1;
       setFailedAttempts(attempts);
       form.setError("currentPassword", { message: "That current password is incorrect" });
       form.setFocus("currentPassword");
 
-      if (attempts >= ATTEMPTS_BEFORE_COOLDOWN) {
-        const step = Math.min(attempts - ATTEMPTS_BEFORE_COOLDOWN, COOLDOWN_STEPS.length - 1);
-        const wait = COOLDOWN_STEPS[step]!;
-        setCooldownUntil(Date.now() + wait * 1000);
+      if (state && state.lockedForSeconds > 0) {
+        const wait = state.cooldownSeconds ?? state.lockedForSeconds;
+        setCooldownUntil(Date.now() + state.lockedForSeconds * 1000);
         setFormError({
           title: `Too many incorrect attempts (${attempts})`,
           description: `For your security, changing your password is paused for ${formatWait(wait)}. If you cannot recall your current password, sign out and use the "Forgot your password?" reset link instead.`,
@@ -116,7 +159,7 @@ function AccountSecurityPage() {
         return;
       }
 
-      const remaining = ATTEMPTS_BEFORE_COOLDOWN - attempts;
+      const remaining = Math.max(1, ATTEMPTS_BEFORE_COOLDOWN - attempts);
       setFormError({
         title: "Current password is incorrect",
         description: `Re-enter the password you use to sign in today. ${remaining} more incorrect ${remaining === 1 ? "attempt" : "attempts"} will pause this form for a short while.`,
@@ -126,6 +169,7 @@ function AccountSecurityPage() {
 
     setFailedAttempts(0);
     setCooldownUntil(null);
+    await resetFailures().catch(() => null);
 
     const { error } = await supabase.auth.updateUser({ password: values.password });
     if (error) {
