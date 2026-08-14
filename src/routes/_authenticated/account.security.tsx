@@ -268,6 +268,16 @@ function AccountSecurityPage() {
                   </AlertDescription>
                 </Alert>
               ) : null}
+              {lockoutUnavailable && !formError ? (
+                <Alert role="status" aria-live="polite">
+                  <AlertTriangle className="size-4" aria-hidden />
+                  <AlertTitle>Attempt limiting could not be confirmed</AlertTitle>
+                  <AlertDescription>
+                    We could not reach the service that tracks incorrect password attempts. You can
+                    still fill in the form, but the change will be blocked until the check succeeds.
+                  </AlertDescription>
+                </Alert>
+              ) : null}
               {locked ? (
                 <p className="text-sm font-medium text-muted-foreground" aria-live="polite">
                   You can try again in {secondsLeft}s.
