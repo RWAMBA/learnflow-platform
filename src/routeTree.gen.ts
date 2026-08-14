@@ -22,6 +22,7 @@ import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authentic
 import { Route as ApiEnvPreflightRouteImport } from './routes/api/env-preflight'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
+import { Route as AuthenticatedAccountMfaRouteImport } from './routes/_authenticated/account.mfa'
 import { Route as AuthenticatedAccountSecurityRouteImport } from './routes/_authenticated/account.security'
 import { Route as AuthenticatedAccountSecurityChecklistRouteImport } from './routes/_authenticated/account.security-checklist'
 import { Route as AuthenticatedAdminTenantsRouteImport } from './routes/_authenticated/admin.tenants'
@@ -119,6 +120,11 @@ const Char91DotmcpChar93InvokeToolToolRoute =
     path: '/.mcp/invoke-tool/$tool',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedAccountMfaRoute = AuthenticatedAccountMfaRouteImport.update({
+  id: '/account/mfa',
+  path: '/account/mfa',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAccountSecurityRoute =
   AuthenticatedAccountSecurityRouteImport.update({
     id: '/account/security',
@@ -301,6 +307,7 @@ export interface FileRoutesByFullPath {
   '/api/env-preflight': typeof ApiEnvPreflightRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/account/mfa': typeof AuthenticatedAccountMfaRoute
   '/account/security': typeof AuthenticatedAccountSecurityRoute
   '/account/security-checklist': typeof AuthenticatedAccountSecurityChecklistRoute
   '/admin/tenants': typeof AuthenticatedAdminTenantsRoute
@@ -343,6 +350,7 @@ export interface FileRoutesByTo {
   '/api/env-preflight': typeof ApiEnvPreflightRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/account/mfa': typeof AuthenticatedAccountMfaRoute
   '/account/security': typeof AuthenticatedAccountSecurityRoute
   '/account/security-checklist': typeof AuthenticatedAccountSecurityChecklistRoute
   '/admin/tenants': typeof AuthenticatedAdminTenantsRoute
@@ -387,6 +395,7 @@ export interface FileRoutesById {
   '/api/env-preflight': typeof ApiEnvPreflightRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/_authenticated/account/mfa': typeof AuthenticatedAccountMfaRoute
   '/_authenticated/account/security': typeof AuthenticatedAccountSecurityRoute
   '/_authenticated/account/security-checklist': typeof AuthenticatedAccountSecurityChecklistRoute
   '/_authenticated/admin/tenants': typeof AuthenticatedAdminTenantsRoute
@@ -431,6 +440,7 @@ export interface FileRouteTypes {
     | '/api/env-preflight'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
+    | '/account/mfa'
     | '/account/security'
     | '/account/security-checklist'
     | '/admin/tenants'
@@ -473,6 +483,7 @@ export interface FileRouteTypes {
     | '/api/env-preflight'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
+    | '/account/mfa'
     | '/account/security'
     | '/account/security-checklist'
     | '/admin/tenants'
@@ -516,6 +527,7 @@ export interface FileRouteTypes {
     | '/api/env-preflight'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
+    | '/_authenticated/account/mfa'
     | '/_authenticated/account/security'
     | '/_authenticated/account/security-checklist'
     | '/_authenticated/admin/tenants'
@@ -651,6 +663,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/.mcp/invoke-tool/$tool'
       preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/account/mfa': {
+      id: '/_authenticated/account/mfa'
+      path: '/account/mfa'
+      fullPath: '/account/mfa'
+      preLoaderRoute: typeof AuthenticatedAccountMfaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/account/security': {
       id: '/_authenticated/account/security'
@@ -855,6 +874,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
+  AuthenticatedAccountMfaRoute: typeof AuthenticatedAccountMfaRoute
   AuthenticatedAccountSecurityRoute: typeof AuthenticatedAccountSecurityRoute
   AuthenticatedAccountSecurityChecklistRoute: typeof AuthenticatedAccountSecurityChecklistRoute
   AuthenticatedAdminTenantsRoute: typeof AuthenticatedAdminTenantsRoute
@@ -889,6 +909,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
+  AuthenticatedAccountMfaRoute: AuthenticatedAccountMfaRoute,
   AuthenticatedAccountSecurityRoute: AuthenticatedAccountSecurityRoute,
   AuthenticatedAccountSecurityChecklistRoute:
     AuthenticatedAccountSecurityChecklistRoute,
