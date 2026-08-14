@@ -49,6 +49,9 @@ export function ProfileMenu() {
         <DropdownMenuItem onSelect={() => void navigate({ to: "/account/security" })}>
           Password &amp; security
         </DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => void navigate({ to: "/account/mfa" })}>
+          Two-factor authentication
+        </DropdownMenuItem>
         <DropdownMenuItem onSelect={() => void navigate({ to: "/account/security-checklist" })}>
           Security checklist
         </DropdownMenuItem>
