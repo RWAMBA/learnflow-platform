@@ -30,10 +30,12 @@ import { PasswordStrengthMeter } from "@/features/auth/components/password-stren
 
 export const Route = createFileRoute("/auth")({
   ssr: false,
-  validateSearch: (search: Record<string, unknown>): { mode?: "sign-in" | "sign-up" } =>
-    search.mode === "sign-up" || search.mode === "sign-in"
-      ? { mode: search.mode }
-      : {},
+  validateSearch: (
+    search: Record<string, unknown>,
+  ): { mode?: "sign-in" | "sign-up"; next?: string } => ({
+    ...(search.mode === "sign-up" || search.mode === "sign-in" ? { mode: search.mode } : {}),
+    ...(typeof search.next === "string" && isSafeNext(search.next) ? { next: search.next } : {}),
+  }),
   head: () => ({
     meta: [
       { title: "Sign in — the Platform" },
@@ -50,16 +52,26 @@ export const Route = createFileRoute("/auth")({
   component: AuthPage,
 });
 
+/** Only same-origin relative paths may be used as a post-login redirect. */
+function isSafeNext(value: string) {
+  return value.startsWith("/") && !value.startsWith("//");
+}
+
 function AuthPage() {
-  const { mode } = Route.useSearch();
+  const { mode, next } = Route.useSearch();
   const navigate = useNavigate();
   const { session, loading } = useSession();
   const [showReset, setShowReset] = useState(false);
   const [awaitingVerification, setAwaitingVerification] = useState(false);
 
   useEffect(() => {
-    if (!loading && session) void navigate({ to: "/dashboard" });
-  }, [loading, session, navigate]);
+    if (loading || !session) return;
+    if (next) {
+      window.location.replace(next);
+      return;
+    }
+    void navigate({ to: "/dashboard" });
+  }, [loading, session, navigate, next]);
 
   return (
     <div className="flex min-h-dvh items-center justify-center bg-muted/40 px-4 py-10">
@@ -82,10 +94,10 @@ function AuthPage() {
                 <TabsTrigger value="sign-up">Create account</TabsTrigger>
               </TabsList>
               <TabsContent value="sign-in" className="pt-4">
-                <SignInForm onForgotPassword={() => setShowReset(true)} />
+                <SignInForm onForgotPassword={() => setShowReset(true)} next={next} />
               </TabsContent>
               <TabsContent value="sign-up" className="pt-4">
-                <SignUpForm onAwaitingVerification={() => setAwaitingVerification(true)} />
+                <SignUpForm onAwaitingVerification={() => setAwaitingVerification(true)} next={next} />
               </TabsContent>
             </Tabs>
           )}
@@ -95,7 +107,7 @@ function AuthPage() {
   );
 }
 
-function SignInForm({ onForgotPassword }: { onForgotPassword: () => void }) {
+function SignInForm({ onForgotPassword, next }: { onForgotPassword: () => void; next?: string }) {
   const navigate = useNavigate();
   const form = useForm<SignInValues>({
     resolver: zodResolver(signInSchema),
@@ -106,6 +118,10 @@ function SignInForm({ onForgotPassword }: { onForgotPassword: () => void }) {
     const { error } = await supabase.auth.signInWithPassword(values);
     if (error) {
       toast.error(error.message);
+      return;
+    }
+    if (next) {
+      window.location.replace(next);
       return;
     }
     await navigate({ to: "/dashboard" });
@@ -151,7 +167,13 @@ function SignInForm({ onForgotPassword }: { onForgotPassword: () => void }) {
   );
 }
 
-function SignUpForm({ onAwaitingVerification }: { onAwaitingVerification: () => void }) {
+function SignUpForm({
+  onAwaitingVerification,
+  next,
+}: {
+  onAwaitingVerification: () => void;
+  next?: string;
+}) {
   const form = useForm<SignUpValues>({
     resolver: zodResolver(signUpSchema),
     defaultValues: { fullName: "", email: "", password: "" },
@@ -164,7 +186,7 @@ function SignUpForm({ onAwaitingVerification }: { onAwaitingVerification: () => 
       email: values.email,
       password: values.password,
       options: {
-        emailRedirectTo: window.location.origin,
+        emailRedirectTo: next ? `${window.location.origin}${next}` : window.location.origin,
         data: { full_name: values.fullName },
       },
     });
