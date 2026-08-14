@@ -29,6 +29,8 @@ import {
 import { PasswordStrengthMeter } from "@/features/auth/components/password-strength-meter";
 
 const ATTEMPTS_BEFORE_COOLDOWN = 3;
+// Used only when the server-side lockout cannot be reached.
+const LOCAL_FALLBACK_COOLDOWN_SECONDS = 300;
 
 function formatWait(seconds: number) {
   if (seconds < 60) return `${seconds} seconds`;
