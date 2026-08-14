@@ -185,13 +185,12 @@ describe("resolveMfaGuard", () => {
   });
 
   it("fails closed to enrollment when status is unavailable", () => {
-    expect(
-      resolveMfaGuard({
-        ...base,
-        pathname: "/dashboard",
-        status: { hasVerifiedFactor: false, currentLevel: null, unavailable: true },
-      }).to,
-    ).toBe("/account/mfa");
+    const decision = resolveMfaGuard({
+      ...base,
+      pathname: "/dashboard",
+      status: { hasVerifiedFactor: false, currentLevel: null, unavailable: true },
+    });
+    expect(decision).toEqual({ action: "redirect", to: "/account/mfa" });
   });
 
   it("allows an AAL2 admin", () => {
