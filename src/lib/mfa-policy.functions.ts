@@ -62,8 +62,8 @@ export const getMfaActivationReadiness = createServerFn({ method: "GET" })
     const { enforcementReadiness } = await import("@/features/security/mfa");
     mod.assertMfaServiceConfigured();
 
-    const { data: isAdmin, error: adminError } = await context.supabase.rpc("is_platform_admin");
-    if (adminError || isAdmin !== true) {
+    const isAdmin = await mod.isActivePlatformAdmin(context.supabase as never, context.userId);
+    if (!isAdmin) {
       mod.logMfaDiagnostic("activation-readiness", "not-platform-admin");
       throw new mod.MfaAssuranceError("Only Platform Administrators can read activation readiness.");
     }
@@ -87,8 +87,8 @@ export const adminResetUserMfa = createServerFn({ method: "POST" })
     mod.assertMfaServiceConfigured();
 
     // 1. Caller must be an active Platform Administrator (checked as the user).
-    const { data: isAdmin, error: adminError } = await context.supabase.rpc("is_platform_admin");
-    if (adminError || isAdmin !== true) {
+    const isAdmin = await mod.isActivePlatformAdmin(context.supabase as never, context.userId);
+    if (!isAdmin) {
       mod.logMfaDiagnostic("admin-factor-reset", "not-platform-admin");
       throw new mod.MfaAssuranceError("Only Platform Administrators can reset another user's factors.");
     }
