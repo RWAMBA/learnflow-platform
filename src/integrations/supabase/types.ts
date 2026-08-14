@@ -1334,6 +1334,38 @@ export type Database = {
           },
         ]
       }
+      organization_security_settings: {
+        Row: {
+          created_at: string
+          organization_id: string
+          teacher_mfa_required: boolean
+          tutor_mfa_required: boolean
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          organization_id: string
+          teacher_mfa_required?: boolean
+          tutor_mfa_required?: boolean
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          organization_id?: string
+          teacher_mfa_required?: boolean
+          tutor_mfa_required?: boolean
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "organization_security_settings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: true
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organization_subscriptions: {
         Row: {
           assigned_by: string | null
