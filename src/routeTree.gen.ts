@@ -22,6 +22,7 @@ import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authentic
 import { Route as ApiEnvPreflightRouteImport } from './routes/api/env-preflight'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
+import { Route as AuthenticatedAccountMfaRouteImport } from './routes/_authenticated/account.mfa'
 import { Route as AuthenticatedAccountSecurityRouteImport } from './routes/_authenticated/account.security'
 import { Route as AuthenticatedAccountSecurityChecklistRouteImport } from './routes/_authenticated/account.security-checklist'
 import { Route as AuthenticatedAdminTenantsRouteImport } from './routes/_authenticated/admin.tenants'
@@ -40,6 +41,7 @@ import { Route as AuthenticatedCurriculumProgressRouteImport } from './routes/_a
 import { Route as AuthenticatedCurriculumVersionsRouteImport } from './routes/_authenticated/curriculum.versions'
 import { Route as AuthenticatedMessagesIndexRouteImport } from './routes/_authenticated/messages.index'
 import { Route as AuthenticatedMessagesConversationIdRouteImport } from './routes/_authenticated/messages.$conversationId'
+import { Route as AuthenticatedMfaChallengeRouteImport } from './routes/_authenticated/mfa.challenge'
 import { Route as AuthenticatedOrganizationIndexRouteImport } from './routes/_authenticated/organization.index'
 import { Route as AuthenticatedOrganizationBillingRouteImport } from './routes/_authenticated/organization.billing'
 import { Route as AuthenticatedStudentsIndexRouteImport } from './routes/_authenticated/students.index'
@@ -119,6 +121,11 @@ const Char91DotmcpChar93InvokeToolToolRoute =
     path: '/.mcp/invoke-tool/$tool',
     getParentRoute: () => rootRouteImport,
   } as any)
+const AuthenticatedAccountMfaRoute = AuthenticatedAccountMfaRouteImport.update({
+  id: '/account/mfa',
+  path: '/account/mfa',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedAccountSecurityRoute =
   AuthenticatedAccountSecurityRouteImport.update({
     id: '/account/security',
@@ -227,6 +234,12 @@ const AuthenticatedMessagesConversationIdRoute =
     path: '/messages/$conversationId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedMfaChallengeRoute =
+  AuthenticatedMfaChallengeRouteImport.update({
+    id: '/mfa/challenge',
+    path: '/mfa/challenge',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedOrganizationIndexRoute =
   AuthenticatedOrganizationIndexRouteImport.update({
     id: '/organization/',
@@ -301,6 +314,7 @@ export interface FileRoutesByFullPath {
   '/api/env-preflight': typeof ApiEnvPreflightRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/account/mfa': typeof AuthenticatedAccountMfaRoute
   '/account/security': typeof AuthenticatedAccountSecurityRoute
   '/account/security-checklist': typeof AuthenticatedAccountSecurityChecklistRoute
   '/admin/tenants': typeof AuthenticatedAdminTenantsRoute
@@ -315,6 +329,7 @@ export interface FileRoutesByFullPath {
   '/curriculum/progress': typeof AuthenticatedCurriculumProgressRoute
   '/curriculum/versions': typeof AuthenticatedCurriculumVersionsRoute
   '/messages/$conversationId': typeof AuthenticatedMessagesConversationIdRoute
+  '/mfa/challenge': typeof AuthenticatedMfaChallengeRoute
   '/organization/billing': typeof AuthenticatedOrganizationBillingRoute
   '/students/$studentId': typeof AuthenticatedStudentsStudentIdRoute
   '/students/new': typeof AuthenticatedStudentsNewRoute
@@ -343,6 +358,7 @@ export interface FileRoutesByTo {
   '/api/env-preflight': typeof ApiEnvPreflightRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/account/mfa': typeof AuthenticatedAccountMfaRoute
   '/account/security': typeof AuthenticatedAccountSecurityRoute
   '/account/security-checklist': typeof AuthenticatedAccountSecurityChecklistRoute
   '/admin/tenants': typeof AuthenticatedAdminTenantsRoute
@@ -357,6 +373,7 @@ export interface FileRoutesByTo {
   '/curriculum/progress': typeof AuthenticatedCurriculumProgressRoute
   '/curriculum/versions': typeof AuthenticatedCurriculumVersionsRoute
   '/messages/$conversationId': typeof AuthenticatedMessagesConversationIdRoute
+  '/mfa/challenge': typeof AuthenticatedMfaChallengeRoute
   '/organization/billing': typeof AuthenticatedOrganizationBillingRoute
   '/students/$studentId': typeof AuthenticatedStudentsStudentIdRoute
   '/students/new': typeof AuthenticatedStudentsNewRoute
@@ -387,6 +404,7 @@ export interface FileRoutesById {
   '/api/env-preflight': typeof ApiEnvPreflightRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/_authenticated/account/mfa': typeof AuthenticatedAccountMfaRoute
   '/_authenticated/account/security': typeof AuthenticatedAccountSecurityRoute
   '/_authenticated/account/security-checklist': typeof AuthenticatedAccountSecurityChecklistRoute
   '/_authenticated/admin/tenants': typeof AuthenticatedAdminTenantsRoute
@@ -401,6 +419,7 @@ export interface FileRoutesById {
   '/_authenticated/curriculum/progress': typeof AuthenticatedCurriculumProgressRoute
   '/_authenticated/curriculum/versions': typeof AuthenticatedCurriculumVersionsRoute
   '/_authenticated/messages/$conversationId': typeof AuthenticatedMessagesConversationIdRoute
+  '/_authenticated/mfa/challenge': typeof AuthenticatedMfaChallengeRoute
   '/_authenticated/organization/billing': typeof AuthenticatedOrganizationBillingRoute
   '/_authenticated/students/$studentId': typeof AuthenticatedStudentsStudentIdRoute
   '/_authenticated/students/new': typeof AuthenticatedStudentsNewRoute
@@ -431,6 +450,7 @@ export interface FileRouteTypes {
     | '/api/env-preflight'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
+    | '/account/mfa'
     | '/account/security'
     | '/account/security-checklist'
     | '/admin/tenants'
@@ -445,6 +465,7 @@ export interface FileRouteTypes {
     | '/curriculum/progress'
     | '/curriculum/versions'
     | '/messages/$conversationId'
+    | '/mfa/challenge'
     | '/organization/billing'
     | '/students/$studentId'
     | '/students/new'
@@ -473,6 +494,7 @@ export interface FileRouteTypes {
     | '/api/env-preflight'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
+    | '/account/mfa'
     | '/account/security'
     | '/account/security-checklist'
     | '/admin/tenants'
@@ -487,6 +509,7 @@ export interface FileRouteTypes {
     | '/curriculum/progress'
     | '/curriculum/versions'
     | '/messages/$conversationId'
+    | '/mfa/challenge'
     | '/organization/billing'
     | '/students/$studentId'
     | '/students/new'
@@ -516,6 +539,7 @@ export interface FileRouteTypes {
     | '/api/env-preflight'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
+    | '/_authenticated/account/mfa'
     | '/_authenticated/account/security'
     | '/_authenticated/account/security-checklist'
     | '/_authenticated/admin/tenants'
@@ -530,6 +554,7 @@ export interface FileRouteTypes {
     | '/_authenticated/curriculum/progress'
     | '/_authenticated/curriculum/versions'
     | '/_authenticated/messages/$conversationId'
+    | '/_authenticated/mfa/challenge'
     | '/_authenticated/organization/billing'
     | '/_authenticated/students/$studentId'
     | '/_authenticated/students/new'
@@ -651,6 +676,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/.mcp/invoke-tool/$tool'
       preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/account/mfa': {
+      id: '/_authenticated/account/mfa'
+      path: '/account/mfa'
+      fullPath: '/account/mfa'
+      preLoaderRoute: typeof AuthenticatedAccountMfaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/account/security': {
       id: '/_authenticated/account/security'
@@ -778,6 +810,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMessagesConversationIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/mfa/challenge': {
+      id: '/_authenticated/mfa/challenge'
+      path: '/mfa/challenge'
+      fullPath: '/mfa/challenge'
+      preLoaderRoute: typeof AuthenticatedMfaChallengeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/organization/': {
       id: '/_authenticated/organization/'
       path: '/organization'
@@ -855,6 +894,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
+  AuthenticatedAccountMfaRoute: typeof AuthenticatedAccountMfaRoute
   AuthenticatedAccountSecurityRoute: typeof AuthenticatedAccountSecurityRoute
   AuthenticatedAccountSecurityChecklistRoute: typeof AuthenticatedAccountSecurityChecklistRoute
   AuthenticatedAdminTenantsRoute: typeof AuthenticatedAdminTenantsRoute
@@ -869,6 +909,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCurriculumProgressRoute: typeof AuthenticatedCurriculumProgressRoute
   AuthenticatedCurriculumVersionsRoute: typeof AuthenticatedCurriculumVersionsRoute
   AuthenticatedMessagesConversationIdRoute: typeof AuthenticatedMessagesConversationIdRoute
+  AuthenticatedMfaChallengeRoute: typeof AuthenticatedMfaChallengeRoute
   AuthenticatedOrganizationBillingRoute: typeof AuthenticatedOrganizationBillingRoute
   AuthenticatedStudentsStudentIdRoute: typeof AuthenticatedStudentsStudentIdRoute
   AuthenticatedStudentsNewRoute: typeof AuthenticatedStudentsNewRoute
@@ -889,6 +930,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
+  AuthenticatedAccountMfaRoute: AuthenticatedAccountMfaRoute,
   AuthenticatedAccountSecurityRoute: AuthenticatedAccountSecurityRoute,
   AuthenticatedAccountSecurityChecklistRoute:
     AuthenticatedAccountSecurityChecklistRoute,
@@ -908,6 +950,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCurriculumVersionsRoute: AuthenticatedCurriculumVersionsRoute,
   AuthenticatedMessagesConversationIdRoute:
     AuthenticatedMessagesConversationIdRoute,
+  AuthenticatedMfaChallengeRoute: AuthenticatedMfaChallengeRoute,
   AuthenticatedOrganizationBillingRoute: AuthenticatedOrganizationBillingRoute,
   AuthenticatedStudentsStudentIdRoute: AuthenticatedStudentsStudentIdRoute,
   AuthenticatedStudentsNewRoute: AuthenticatedStudentsNewRoute,

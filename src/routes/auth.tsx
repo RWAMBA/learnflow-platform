@@ -120,6 +120,16 @@ function SignInForm({ onForgotPassword, next }: { onForgotPassword: () => void; 
       toast.error(error.message);
       return;
     }
+    // SEC-006 step-up: when the account can reach aal2, finish the challenge
+    // first and carry the sanitized destination through.
+    const { readMfaStatus } = await import("@/features/security/mfa-client");
+    const { sanitizeRedirect } = await import("@/features/security/mfa");
+    const status = await readMfaStatus();
+    if (!status.unavailable && status.stepUpAvailable && status.hasVerifiedFactor) {
+      const destination = sanitizeRedirect(next) ?? "/dashboard";
+      await navigate({ to: "/mfa/challenge", search: { redirect: destination } });
+      return;
+    }
     if (next) {
       window.location.replace(next);
       return;
