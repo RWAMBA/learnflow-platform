@@ -42,28 +42,28 @@
           "openWorldHint": false
         },
         "inputSchema": {
-          "$schema": "http://json-schema.org/draft-07/schema#",
           "type": "object",
           "properties": {
             "organizationId": {
-              "description": "Restrict to one organization.",
               "type": "string",
               "format": "uuid",
-              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              "description": "Restrict to one organization."
             },
             "search": {
-              "description": "Match part of a first or last name.",
               "type": "string",
-              "minLength": 1
+              "minLength": 1,
+              "description": "Match part of a first or last name."
             },
             "limit": {
-              "default": 25,
-              "description": "Maximum rows to return.",
               "type": "integer",
               "minimum": 1,
-              "maximum": 100
+              "maximum": 100,
+              "default": 25,
+              "description": "Maximum rows to return."
             }
-          }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
         },
         "outputSchema": null
       },
@@ -77,17 +77,14 @@
           "openWorldHint": false
         },
         "inputSchema": {
-          "$schema": "http://json-schema.org/draft-07/schema#",
           "type": "object",
           "properties": {
             "studentId": {
-              "description": "Restrict to one student.",
               "type": "string",
               "format": "uuid",
-              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              "description": "Restrict to one student."
             },
             "status": {
-              "description": "Restrict to one assignment status.",
               "type": "string",
               "enum": [
                 "not_started",
@@ -95,16 +92,19 @@
                 "submitted",
                 "graded",
                 "overdue"
-              ]
+              ],
+              "description": "Restrict to one assignment status."
             },
             "limit": {
-              "default": 25,
-              "description": "Maximum rows to return.",
               "type": "integer",
               "minimum": 1,
-              "maximum": 100
+              "maximum": 100,
+              "default": 25,
+              "description": "Maximum rows to return."
             }
-          }
+          },
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
         },
         "outputSchema": null
       },
@@ -118,7 +118,6 @@
           "openWorldHint": false
         },
         "inputSchema": {
-          "$schema": "http://json-schema.org/draft-07/schema#",
           "type": "object",
           "properties": {
             "query": {
@@ -127,16 +126,18 @@
               "description": "Text to match against lesson titles."
             },
             "limit": {
-              "default": 20,
-              "description": "Maximum rows to return.",
               "type": "integer",
               "minimum": 1,
-              "maximum": 50
+              "maximum": 50,
+              "default": 20,
+              "description": "Maximum rows to return."
             }
           },
           "required": [
             "query"
-          ]
+          ],
+          "additionalProperties": false,
+          "$schema": "http://json-schema.org/draft-07/schema#"
         },
         "outputSchema": null
       }
