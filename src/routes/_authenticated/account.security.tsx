@@ -29,8 +29,10 @@ import {
 import { PasswordStrengthMeter } from "@/features/auth/components/password-strength-meter";
 
 const ATTEMPTS_BEFORE_COOLDOWN = 3;
-// Used only when the server-side lockout cannot be reached.
-const LOCAL_FALLBACK_COOLDOWN_SECONDS = 300;
+// Shown whenever the authoritative lockout read/write cannot be completed.
+// Intentionally free of environment, database or internal error detail.
+const LOCKOUT_UNAVAILABLE_MESSAGE =
+  "Password security verification is temporarily unavailable. Please try again later.";
 
 function formatWait(seconds: number) {
   if (seconds < 60) return `${seconds} seconds`;
@@ -128,9 +130,8 @@ function AccountSecurityPage() {
       // Fail closed: an unreachable lockout service must block the change.
       setLockoutUnavailable(true);
       setFormError({
-        title: "We could not verify your account's security status",
-        description:
-          "For your security this change is blocked until we can confirm your recent attempts. Please try again in a moment.",
+        title: "Password change unavailable",
+        description: LOCKOUT_UNAVAILABLE_MESSAGE,
       });
       return;
     }
@@ -163,35 +164,31 @@ function AccountSecurityPage() {
       password: values.currentPassword,
     });
     if (verifyError) {
-      let state: Awaited<ReturnType<typeof reportFailure>> | null = null;
+      let state: Awaited<ReturnType<typeof reportFailure>>;
       try {
         state = await reportFailure();
-        setLockoutUnavailable(false);
       } catch {
+        // Fail closed: no client-only attempt counter or local cooldown.
         setLockoutUnavailable(true);
+        form.setError("currentPassword", { message: "That current password is incorrect" });
+        setFormError({
+          title: "Password change unavailable",
+          description: LOCKOUT_UNAVAILABLE_MESSAGE,
+        });
+        return;
       }
-      const attempts = state?.failedAttempts ?? failedAttempts + 1;
+      setLockoutUnavailable(false);
+      const attempts = state.failedAttempts;
       setFailedAttempts(attempts);
       form.setError("currentPassword", { message: "That current password is incorrect" });
       form.setFocus("currentPassword");
 
-      if (state && state.lockedForSeconds > 0) {
+      if (state.lockedForSeconds > 0) {
         const wait = state.cooldownSeconds ?? state.lockedForSeconds;
         setCooldownUntil(Date.now() + state.lockedForSeconds * 1000);
         setFormError({
           title: `Too many incorrect attempts (${attempts})`,
           description: `For your security, changing your password is paused for ${formatWait(wait)}. If you cannot recall your current password, sign out and use the "Forgot your password?" reset link instead.`,
-        });
-        return;
-      }
-
-      if (!state && attempts >= ATTEMPTS_BEFORE_COOLDOWN) {
-        // Server-side recording failed: apply a local cooldown so the form is
-        // not left wide open while the lockout service is unavailable.
-        setCooldownUntil(Date.now() + LOCAL_FALLBACK_COOLDOWN_SECONDS * 1000);
-        setFormError({
-          title: `Too many incorrect attempts (${attempts})`,
-          description: `We could not record this attempt on the server, so changing your password is paused for ${formatWait(LOCAL_FALLBACK_COOLDOWN_SECONDS)}. If you cannot recall your current password, sign out and use the "Forgot your password?" reset link instead.`,
         });
         return;
       }
@@ -210,8 +207,8 @@ function AccountSecurityPage() {
       await resetFailures();
       setLockoutUnavailable(false);
     } catch (resetError) {
-      // Harmless: stale attempt rows expire on their own.
-      console.warn("Could not clear password-change attempts", resetError);
+      // Non-blocking: the verification succeeded; stale rows expire on their own.
+      void resetError;
     }
 
     const { error } = await supabase.auth.updateUser({ password: values.password });
@@ -271,11 +268,8 @@ function AccountSecurityPage() {
               {lockoutUnavailable && !formError ? (
                 <Alert role="status" aria-live="polite">
                   <AlertTriangle className="size-4" aria-hidden />
-                  <AlertTitle>Attempt limiting could not be confirmed</AlertTitle>
-                  <AlertDescription>
-                    We could not reach the service that tracks incorrect password attempts. You can
-                    still fill in the form, but the change will be blocked until the check succeeds.
-                  </AlertDescription>
+                  <AlertTitle>Password change unavailable</AlertTitle>
+                  <AlertDescription>{LOCKOUT_UNAVAILABLE_MESSAGE}</AlertDescription>
                 </Alert>
               ) : null}
               {locked ? (
