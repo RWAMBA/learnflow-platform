@@ -127,6 +127,28 @@ export async function recordMfaSecurityEvent(
   }
 }
 
+/**
+ * Active-Platform-Administrator check performed AS THE CALLER (RLS applies),
+ * never with the service role — an admin client must not be used to decide
+ * whether the caller is an admin.
+ */
+export async function isActivePlatformAdmin(
+  client: Pick<AdminClient, "from">,
+  userId: string,
+): Promise<boolean> {
+  const { data, error } = await client
+    .from("platform_admins")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("status", "active")
+    .maybeSingle();
+  if (error) {
+    logMfaDiagnostic("platform-admin-check", "platform-admin-read-failure");
+    return false;
+  }
+  return Boolean(data);
+}
+
 /** Reads the organization MFA policy; absence means Teacher/Tutor optional. */
 export async function readOrganizationMfaPolicy(
   client: Pick<AdminClient, "from">,
