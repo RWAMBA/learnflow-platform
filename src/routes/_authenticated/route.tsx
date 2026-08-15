@@ -17,11 +17,17 @@ export const Route = createFileRoute("/_authenticated")({
     // redirect to itself and password recovery/sign-out stay reachable.
     if (MFA_ENFORCEMENT_ENABLED && !isGuardExempt(location.pathname)) {
       const { resolveMfaGuard } = await import("@/features/security/mfa");
-      const { readMfaStatus } = await import("@/features/security/mfa-client");
-      const status = await readMfaStatus();
+      const { readMfaStatus, readMandatoryMfa } = await import("@/features/security/mfa-client");
+      // Mandatory only for the roles the policy evaluator marks as privileged;
+      // Parent/Guardian and Student are never gated. Read failures fail closed
+      // to mandatory, which routes to enrollment and grants nothing.
+      const [status, mandatory] = await Promise.all([
+        readMfaStatus(),
+        readMandatoryMfa(data.user.id),
+      ]);
       const decision = resolveMfaGuard({
         enforcementEnabled: true,
-        mandatory: true,
+        mandatory,
         pathname: location.pathname,
         status,
       });
