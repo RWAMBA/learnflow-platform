@@ -790,13 +790,19 @@ describe("Stage 1A — policy baseline proved against the SEC-005 source migrati
     expect(select).toContain("app_private.is_platform_admin()");
     // Boolean grouping: tenant isolation ANDed over the OR of the two branches.
     expect(select).toBe(
-      canonical("organization_id IS NULL AND (status = 'published' OR app_private.is_platform_admin())"),
+      canonical(
+        "organization_id IS NULL AND (status = 'published' OR app_private.is_platform_admin())",
+      ),
     );
     expect(canonical(STAGE1A_PRECONDITION.get("curriculum_versions_select")!.using)).toBe(select);
   });
 
   it("proves no write policy admits can_author_curriculum", () => {
-    for (const name of ["curriculum_versions_insert", "curriculum_versions_update", "curriculum_versions_delete"] as const) {
+    for (const name of [
+      "curriculum_versions_insert",
+      "curriculum_versions_update",
+      "curriculum_versions_delete",
+    ] as const) {
       for (const clause of [SEC005_POLICIES.get(name)!, STAGE1A_PRECONDITION.get(name)!]) {
         expect(`${clause.using} ${clause.check}`).not.toContain("can_author_curriculum");
       }
