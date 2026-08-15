@@ -118,9 +118,17 @@ describe("Stage 1A — new tables", () => {
     expect(has("curriculum_version_id uuid NOT NULL")).toBe(true);
     expect(has("sequence_order integer NOT NULL DEFAULT 1")).toBe(true);
     expect(has("status text NOT NULL DEFAULT 'draft'")).toBe(true);
-    expect(has("REFERENCES public.curriculum_versions(id)\n    ON DELETE RESTRICT ON UPDATE RESTRICT")).toBe(true);
-    expect(has("education_stages_version_sequence_key UNIQUE (curriculum_version_id, sequence_order)")).toBe(true);
-    expect(has("education_stages_status_chk CHECK (status IN ('draft','review','published','archived'))")).toBe(true);
+    expect(
+      has("REFERENCES public.curriculum_versions(id)\n    ON DELETE RESTRICT ON UPDATE RESTRICT"),
+    ).toBe(true);
+    expect(
+      has("education_stages_version_sequence_key UNIQUE (curriculum_version_id, sequence_order)"),
+    ).toBe(true);
+    expect(
+      has(
+        "education_stages_status_chk CHECK (status IN ('draft','review','published','archived'))",
+      ),
+    ).toBe(true);
   });
 
   it("defines subject_groups with a unique name", () => {
@@ -129,7 +137,9 @@ describe("Stage 1A — new tables", () => {
 
   it("attaches a BEFORE UPDATE set_updated_at trigger to each new table", () => {
     for (const table of ["curriculum_providers", "education_stages", "subject_groups"]) {
-      expect(has(`CREATE TRIGGER ${table}_set_updated_at\n  BEFORE UPDATE ON public.${table}`)).toBe(true);
+      expect(
+        has(`CREATE TRIGGER ${table}_set_updated_at\n  BEFORE UPDATE ON public.${table}`),
+      ).toBe(true);
     }
     expect(SQL.match(/EXECUTE FUNCTION public\.set_updated_at\(\)/g)).toHaveLength(3);
   });
@@ -147,7 +157,9 @@ describe("Stage 1A — grants, revocations and RLS", () => {
 
   it("grants authenticated exactly SELECT, INSERT, UPDATE, DELETE", () => {
     for (const t of tables) {
-      expect(has(`GRANT SELECT, INSERT, UPDATE, DELETE ON public.${t} TO authenticated;`)).toBe(true);
+      expect(has(`GRANT SELECT, INSERT, UPDATE, DELETE ON public.${t} TO authenticated;`)).toBe(
+        true,
+      );
     }
     expect(SQL).not.toMatch(/TRUNCATE[^;]*TO authenticated/);
     expect(SQL).not.toMatch(/REFERENCES[^;]*TO authenticated/);
@@ -157,7 +169,9 @@ describe("Stage 1A — grants, revocations and RLS", () => {
   it("grants server-only privileges to service_role", () => {
     for (const t of tables) {
       expect(
-        has(`GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER ON public.${t} TO service_role;`),
+        has(
+          `GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER ON public.${t} TO service_role;`,
+        ),
       ).toBe(true);
     }
   });
@@ -176,7 +190,11 @@ describe("Stage 1A — grants, revocations and RLS", () => {
 describe("Stage 1A — policies", () => {
   it("creates exactly the six new policies with the reviewed shapes", () => {
     for (const t of ["curriculum_providers", "education_stages", "subject_groups"]) {
-      expect(has(`CREATE POLICY ${t}_select ON public.${t}\n  FOR SELECT TO authenticated USING (true);`)).toBe(true);
+      expect(
+        has(
+          `CREATE POLICY ${t}_select ON public.${t}\n  FOR SELECT TO authenticated USING (true);`,
+        ),
+      ).toBe(true);
       expect(
         has(
           `CREATE POLICY ${t}_write ON public.${t}\n  FOR ALL TO authenticated\n  USING (app_private.is_platform_admin())\n  WITH CHECK (app_private.is_platform_admin());`,
@@ -188,25 +206,33 @@ describe("Stage 1A — policies", () => {
   it("ordinary authenticated users may read reference tables but not write them", () => {
     // read: USING (true) on every select policy; write: platform-admin only.
     expect(SQL.match(/FOR SELECT TO authenticated USING \(true\)/g)).toHaveLength(4);
-    expect(SQL.match(/app_private\.is_platform_admin\(\)/g)?.length ?? 0).toBeGreaterThanOrEqual(10);
+    expect(SQL.match(/app_private\.is_platform_admin\(\)/g)?.length ?? 0).toBeGreaterThanOrEqual(
+      10,
+    );
   });
 
   it("replaces the four curriculum_versions policies with exact DROP statements", () => {
     for (const name of ["select", "insert", "update", "delete"]) {
-      expect(has(`DROP POLICY curriculum_versions_${name} ON public.curriculum_versions;`)).toBe(true);
+      expect(has(`DROP POLICY curriculum_versions_${name} ON public.curriculum_versions;`)).toBe(
+        true,
+      );
     }
     expect(SQL).not.toMatch(/DROP POLICY IF EXISTS/i);
   });
 
   it("denies Organization Administrator and tenant-owned curriculum version writes", () => {
+    expect(has("WITH CHECK (app_private.is_platform_admin() AND organization_id IS NULL);")).toBe(
+      true,
+    );
     expect(
-      has("WITH CHECK (app_private.is_platform_admin() AND organization_id IS NULL);"),
+      has(
+        "CREATE POLICY curriculum_versions_update ON public.curriculum_versions\n  FOR UPDATE TO authenticated\n  USING (app_private.is_platform_admin())",
+      ),
     ).toBe(true);
     expect(
-      has("CREATE POLICY curriculum_versions_update ON public.curriculum_versions\n  FOR UPDATE TO authenticated\n  USING (app_private.is_platform_admin())"),
-    ).toBe(true);
-    expect(
-      has("CREATE POLICY curriculum_versions_delete ON public.curriculum_versions\n  FOR DELETE TO authenticated\n  USING (app_private.is_platform_admin());"),
+      has(
+        "CREATE POLICY curriculum_versions_delete ON public.curriculum_versions\n  FOR DELETE TO authenticated\n  USING (app_private.is_platform_admin());",
+      ),
     ).toBe(true);
   });
 
@@ -216,7 +242,9 @@ describe("Stage 1A — policies", () => {
   });
 
   it("scopes every policy to authenticated only", () => {
-    const roles = [...SQL.matchAll(/FOR (?:SELECT|INSERT|UPDATE|DELETE|ALL) TO (\w+)/g)].map((m) => m[1]);
+    const roles = [...SQL.matchAll(/FOR (?:SELECT|INSERT|UPDATE|DELETE|ALL) TO (\w+)/g)].map(
+      (m) => m[1],
+    );
     expect(new Set(roles)).toEqual(new Set(["authenticated"]));
   });
 });
@@ -252,12 +280,18 @@ describe("Stage 1A — additive existing-table changes", () => {
       "subjects_subject_group_id_idx",
     ]);
     expect(
-      has("curriculum_versions_one_current_per_curriculum\n  ON public.curriculum_versions(curriculum_id) WHERE is_current;"),
+      has(
+        "curriculum_versions_one_current_per_curriculum\n  ON public.curriculum_versions(curriculum_id) WHERE is_current;",
+      ),
     ).toBe(true);
   });
 
   it("uses the reviewed foreign-key actions", () => {
-    expect(has("curricula_provider_id_fkey\n  FOREIGN KEY (provider_id) REFERENCES public.curriculum_providers(id)\n  ON DELETE RESTRICT ON UPDATE RESTRICT")).toBe(true);
+    expect(
+      has(
+        "curricula_provider_id_fkey\n  FOREIGN KEY (provider_id) REFERENCES public.curriculum_providers(id)\n  ON DELETE RESTRICT ON UPDATE RESTRICT",
+      ),
+    ).toBe(true);
     for (const [c, ref] of [
       ["grades_education_stage_id_fkey", "public.education_stages(id)"],
       ["subjects_academic_level_id_fkey", "public.grades(id)"],
@@ -271,7 +305,11 @@ describe("Stage 1A — additive existing-table changes", () => {
 
   it("enforces platform ownership and current-only-when-published on curriculum_versions", () => {
     expect(has("curriculum_versions_org_null_chk CHECK (organization_id IS NULL)")).toBe(true);
-    expect(has("curriculum_versions_current_published_chk\n  CHECK (NOT is_current OR status = 'published')")).toBe(true);
+    expect(
+      has(
+        "curriculum_versions_current_published_chk\n  CHECK (NOT is_current OR status = 'published')",
+      ),
+    ).toBe(true);
     expect(has("ADD COLUMN is_current boolean NOT NULL DEFAULT false")).toBe(true);
     expect(SQL).not.toMatch(/UPDATE public\.curriculum_versions SET is_current/);
     expect(SQL).not.toMatch(/DROP CONSTRAINT/i);
@@ -323,7 +361,9 @@ describe("Stage 1A — curriculum version lifecycle", () => {
   });
 
   it("blocks deletion of published and archived rows", () => {
-    expect(has("IF TG_OP = 'DELETE' THEN\n    IF OLD.status IN ('published','archived') THEN")).toBe(true);
+    expect(
+      has("IF TG_OP = 'DELETE' THEN\n    IF OLD.status IN ('published','archived') THEN"),
+    ).toBe(true);
   });
 
   it("blocks any update to an archived row", () => {
@@ -363,7 +403,9 @@ describe("Stage 1A — curriculum version lifecycle", () => {
     ).toBe(true);
     for (const role of ["PUBLIC", "anon", "authenticated"]) {
       expect(
-        has(`REVOKE ALL ON FUNCTION app_private.enforce_curriculum_version_lifecycle() FROM ${role};`),
+        has(
+          `REVOKE ALL ON FUNCTION app_private.enforce_curriculum_version_lifecycle() FROM ${role};`,
+        ),
       ).toBe(true);
     }
   });
