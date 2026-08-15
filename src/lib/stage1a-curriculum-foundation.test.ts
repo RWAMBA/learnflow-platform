@@ -707,3 +707,100 @@ describe("Stage 1A — scope containment", () => {
     expect(MIGRATIONS.some((n) => n.includes("stage_two"))).toBe(false);
   });
 });
+
+describe("Stage 1A — policy baseline proved against the SEC-005 source migration", () => {
+  it("reads the authoritative SEC-005 migration as an external source", () => {
+    expect(SEC005_SQL.length).toBeGreaterThan(0);
+    expect(SEC005_FILE).toBe("20260809194700_harden_curriculum_authorization.sql");
+    expect(MIGRATIONS).toContain(SEC005_FILE);
+    // The proof must consult a second file, not only the Stage 1A migration.
+    expect(SEC005_SQL).not.toBe(SQL);
+  });
+
+  it("finds exactly one definition of each of the four curriculum_versions policies", () => {
+    expect([...SEC005_POLICIES.keys()].sort()).toEqual([...CV_POLICIES].sort());
+    expect([...STAGE1A_PRECONDITION.keys()].sort()).toEqual([...CV_POLICIES].sort());
+  });
+
+  it("compares the precondition block, never Stage 1A's later target policies", () => {
+    // Sanity: Stage 1A's target SELECT is USING (true), which must NOT be what
+    // the precondition asserts — proving the extraction reads the right region.
+    expect(SQL).toContain("CREATE POLICY curriculum_versions_select ON public.curriculum_versions");
+    expect(canonical(STAGE1A_PRECONDITION.get("curriculum_versions_select")!.using)).not.toBe(
+      canonical("true"),
+    );
+  });
+
+  it.each(CV_POLICIES)("%s matches the SEC-005 source command, role and predicates", (name) => {
+    const source = SEC005_POLICIES.get(name)!;
+    const expected = STAGE1A_PRECONDITION.get(name)!;
+    expect(source).toBeDefined();
+    expect(expected).toBeDefined();
+
+    expect(expected.command).toBe(source.command);
+    expect(source.role).toBe("authenticated");
+    expect(expected.role).toBe("authenticated");
+
+    if (source.using !== "") {
+      expect(canonical(expected.using)).toBe(canonical(source.using));
+    } else {
+      expect(expected.using).toBe("");
+    }
+    if (source.check !== "") {
+      expect(canonical(expected.check)).toBe(canonical(source.check));
+    } else {
+      expect(expected.check).toBe("");
+    }
+  });
+
+  it("verifies UPDATE carries both a USING and a WITH CHECK predicate", () => {
+    const source = SEC005_POLICIES.get("curriculum_versions_update")!;
+    const expected = STAGE1A_PRECONDITION.get("curriculum_versions_update")!;
+    expect(source.using).not.toBe("");
+    expect(source.check).not.toBe("");
+    expect(expected.using).not.toBe("");
+    expect(expected.check).not.toBe("");
+    expect(canonical(expected.check)).toBe(canonical(source.check));
+  });
+
+  it("keeps tenant isolation and both SELECT branches", () => {
+    const select = canonical(SEC005_POLICIES.get("curriculum_versions_select")!.using);
+    expect(select).toContain("organization_id is null");
+    expect(select).toContain("status='published'");
+    expect(select).toContain("app_private.is_platform_admin()");
+    // Boolean grouping: tenant isolation ANDed over the OR of the two branches.
+    expect(select).toBe(
+      canonical("organization_id IS NULL AND (status = 'published' OR app_private.is_platform_admin())"),
+    );
+    expect(canonical(STAGE1A_PRECONDITION.get("curriculum_versions_select")!.using)).toBe(select);
+  });
+
+  it("proves no write policy admits can_author_curriculum", () => {
+    for (const name of ["curriculum_versions_insert", "curriculum_versions_update", "curriculum_versions_delete"] as const) {
+      for (const clause of [SEC005_POLICIES.get(name)!, STAGE1A_PRECONDITION.get(name)!]) {
+        expect(`${clause.using} ${clause.check}`).not.toContain("can_author_curriculum");
+      }
+    }
+  });
+});
+
+describe("Stage 1A — predicate normalisation is conservative", () => {
+  it("ignores only case, whitespace, text casts and redundant parentheses", () => {
+    expect(canonical("((organization_id IS NULL) AND app_private.is_platform_admin())")).toBe(
+      canonical("organization_id is null AND app_private.is_platform_admin()"),
+    );
+    expect(canonical("(status = 'published'::text)")).toBe(canonical("status = 'published'"));
+  });
+
+  it("never treats different boolean grouping or operand order as equivalent", () => {
+    expect(canonical("a AND (b OR c)")).not.toBe(canonical("(a AND b) OR c"));
+    expect(canonical("a AND b")).not.toBe(canonical("b AND a"));
+    expect(canonical("a OR b")).not.toBe(canonical("a AND b"));
+    expect(canonical("NOT a")).not.toBe(canonical("a"));
+    expect(canonical("f(x)")).not.toBe(canonical("f(y)"));
+  });
+
+  it("fails loudly when a source migration is missing", () => {
+    expect(() => readFileSync("supabase/migrations/does-not-exist.sql", "utf8")).toThrow();
+  });
+});
