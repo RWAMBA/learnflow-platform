@@ -262,19 +262,59 @@ function AccountMfaPage() {
               {status.verifiedFactors.map((factor) => (
                 <li
                   key={factor.id}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-md border p-3"
+                  className="space-y-3 rounded-md border p-3"
                 >
-                  <span className="text-sm font-medium">
-                    {factor.friendlyName ?? "Authenticator app"}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={busy}
-                    onClick={() => void removeFactor(factor.id)}
-                  >
-                    Remove
-                  </Button>
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <span className="text-sm font-medium">
+                      {factor.friendlyName ?? "Authenticator app"}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="min-h-11"
+                      disabled={busy}
+                      onClick={() => beginRemoval(factor.id)}
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                  {pendingRemovalId === factor.id ? (
+                    <div className="space-y-2">
+                      <Label htmlFor={`remove-code-${factor.id}`}>
+                        Confirm with a fresh authentication code
+                      </Label>
+                      <div ref={removalOtpRef}>
+                        <InputOTP
+                          id={`remove-code-${factor.id}`}
+                          maxLength={6}
+                          value={removalCode}
+                          disabled={busy}
+                          onChange={(next) => {
+                            setRemovalCode(next);
+                            if (next.length === 6) void confirmRemoval(factor.id, next);
+                          }}
+                        >
+                          <InputOTPGroup>
+                            {[0, 1, 2, 3, 4, 5].map((index) => (
+                              <InputOTPSlot key={index} index={index} />
+                            ))}
+                          </InputOTPGroup>
+                        </InputOTP>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="min-h-11"
+                        disabled={busy}
+                        onClick={() => {
+                          setPendingRemovalId(null);
+                          setRemovalCode("");
+                        }}
+                      >
+                        Cancel removal
+                      </Button>
+                    </div>
+                  ) : null}
                 </li>
               ))}
             </ul>
