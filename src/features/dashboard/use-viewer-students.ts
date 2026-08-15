@@ -13,7 +13,9 @@ export function useCurrentStudent() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("students")
-        .select("id, first_name, last_name, organization_id, grade:grades(id, name, sequence_order)")
+        .select(
+          "id, first_name, last_name, organization_id, grade:grades(id, name, sequence_order)",
+        )
         .eq("user_role_id", userRoleId!)
         .maybeSingle();
       if (error) throw error;

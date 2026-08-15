@@ -120,7 +120,9 @@ function Page() {
                 {Math.floor(seconds / 60)}m {seconds % 60}s elapsed
               </Badge>
               <span aria-live="polite">
-                {savedAt ? `Progress saved ${new Date(savedAt).toLocaleTimeString()}` : "Autosaving"}
+                {savedAt
+                  ? `Progress saved ${new Date(savedAt).toLocaleTimeString()}`
+                  : "Autosaving"}
               </span>
             </div>
 

@@ -43,12 +43,15 @@ export function RoleProvider({ userId, children }: { userId: string; children: R
       setActiveRoleId,
       hasMultipleRoles: data.roles.length > 1,
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, activeRoleId]);
 
   if (isPending) {
     return (
-      <div className="flex min-h-dvh items-center justify-center p-6" role="status" aria-live="polite">
+      <div
+        className="flex min-h-dvh items-center justify-center p-6"
+        role="status"
+        aria-live="polite"
+      >
         <p className="text-muted-foreground">Loading your workspace…</p>
       </div>
     );

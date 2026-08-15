@@ -60,9 +60,11 @@ export async function listAssessments(organizationId: string, filters: Assessmen
     .limit(200);
 
   if (filters.status && filters.status !== "all") query = query.eq("status", filters.status);
-  if (filters.subjectId && filters.subjectId !== "all") query = query.eq("subject_id", filters.subjectId);
+  if (filters.subjectId && filters.subjectId !== "all")
+    query = query.eq("subject_id", filters.subjectId);
   if (filters.gradeId && filters.gradeId !== "all") query = query.eq("grade_id", filters.gradeId);
-  if (filters.typeId && filters.typeId !== "all") query = query.eq("assessment_type_id", filters.typeId);
+  if (filters.typeId && filters.typeId !== "all")
+    query = query.eq("assessment_type_id", filters.typeId);
   if (filters.templatesOnly) query = query.eq("is_template", true);
   if (filters.term?.trim()) query = query.ilike("title", `%${filters.term.trim()}%`);
 
@@ -75,7 +77,11 @@ export type AssessmentRow = Awaited<ReturnType<typeof listAssessments>>[number];
 
 export async function getAssessment(assessmentId: string) {
   const [assessment, questions, competencies, outcomes] = await Promise.all([
-    supabase.from("assessment_definitions").select(ASSESSMENT_SELECT).eq("id", assessmentId).maybeSingle(),
+    supabase
+      .from("assessment_definitions")
+      .select(ASSESSMENT_SELECT)
+      .eq("id", assessmentId)
+      .maybeSingle(),
     listAssessmentQuestions(assessmentId),
     supabase
       .from("assessment_competencies")
@@ -130,9 +136,11 @@ export async function listQuestionBank(organizationId: string, filters: Question
     .order("created_at", { ascending: false })
     .limit(300);
 
-  if (filters.subjectId && filters.subjectId !== "all") query = query.eq("subject_id", filters.subjectId);
+  if (filters.subjectId && filters.subjectId !== "all")
+    query = query.eq("subject_id", filters.subjectId);
   if (filters.gradeId && filters.gradeId !== "all") query = query.eq("grade_id", filters.gradeId);
-  if (filters.difficulty && filters.difficulty !== "all") query = query.eq("difficulty", filters.difficulty);
+  if (filters.difficulty && filters.difficulty !== "all")
+    query = query.eq("difficulty", filters.difficulty);
   if (filters.status && filters.status !== "all") query = query.eq("status", filters.status);
   if (filters.questionType && filters.questionType !== "all")
     query = query.eq("question_type", filters.questionType);
@@ -193,7 +201,11 @@ export type SubmissionRow = Awaited<ReturnType<typeof listSubmissionsForAssessme
 
 export async function getSubmission(submissionId: string) {
   const [submission, answers, rubricScores] = await Promise.all([
-    supabase.from("assessment_submissions").select(SUBMISSION_SELECT).eq("id", submissionId).maybeSingle(),
+    supabase
+      .from("assessment_submissions")
+      .select(SUBMISSION_SELECT)
+      .eq("id", submissionId)
+      .maybeSingle(),
     supabase
       .from("submission_answers")
       .select(
@@ -226,11 +238,22 @@ export async function listStudentAssessments(params: {
     .select(ASSESSMENT_SELECT)
     .eq("organization_id", params.organizationId)
     .eq("is_template", false)
-    .in("status", ["published", "open", "in_progress", "submitted", "grading", "reviewed", "completed"])
+    .in("status", [
+      "published",
+      "open",
+      "in_progress",
+      "submitted",
+      "grading",
+      "reviewed",
+      "completed",
+    ])
     .order("due_at", { ascending: true, nullsFirst: false });
   if (params.gradeId) query = query.or(`grade_id.is.null,grade_id.eq.${params.gradeId}`);
 
-  const [assessments, submissions] = await Promise.all([query, listSubmissionsForStudents([params.studentId])]);
+  const [assessments, submissions] = await Promise.all([
+    query,
+    listSubmissionsForStudents([params.studentId]),
+  ]);
   if (assessments.error) throw assessments.error;
 
   return (assessments.data ?? []).map((assessment) => ({
@@ -244,7 +267,9 @@ export async function getAssessmentAnalytics(organizationId: string) {
   const [assessments, submissions] = await Promise.all([
     supabase
       .from("assessment_definitions")
-      .select("id, title, status, max_score, passing_score, subject:subjects(id, name), type:assessment_types(id, name)")
+      .select(
+        "id, title, status, max_score, passing_score, subject:subjects(id, name), type:assessment_types(id, name)",
+      )
       .eq("organization_id", organizationId),
     supabase
       .from("assessment_submissions")

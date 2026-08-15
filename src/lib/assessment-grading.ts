@@ -68,7 +68,9 @@ export function gradeAnswer(
       const given = Number(answer.value);
       const tolerance = Number(key.tolerance ?? 0);
       correct =
-        Number.isFinite(expected) && Number.isFinite(given) && Math.abs(given - expected) <= tolerance;
+        Number.isFinite(expected) &&
+        Number.isFinite(given) &&
+        Math.abs(given - expected) <= tolerance;
       break;
     }
     case "ordering":

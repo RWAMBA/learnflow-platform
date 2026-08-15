@@ -70,7 +70,10 @@ export function AssessmentForm({
     queryKey: assessmentKeys.types(organizationId),
     queryFn: () => listAssessmentTypes(organizationId),
   });
-  const grades = useQuery({ queryKey: curriculumKeys.grades(null), queryFn: () => listGrades(null) });
+  const grades = useQuery({
+    queryKey: curriculumKeys.grades(null),
+    queryFn: () => listGrades(null),
+  });
   const subjects = useQuery({ queryKey: curriculumKeys.allSubjects(), queryFn: listAllSubjects });
   const rubrics = useQuery({
     queryKey: assessmentKeys.rubrics(organizationId),
@@ -227,7 +230,10 @@ export function AssessmentForm({
         <CardContent className="grid gap-4 sm:grid-cols-2">
           <div>
             <Label htmlFor="grade">Grade</Label>
-            <Select value={values.gradeId ?? NONE} onValueChange={(value) => set("gradeId", toNull(value))}>
+            <Select
+              value={values.gradeId ?? NONE}
+              onValueChange={(value) => set("gradeId", toNull(value))}
+            >
               <SelectTrigger id="grade">
                 <SelectValue placeholder="All grades" />
               </SelectTrigger>
@@ -400,7 +406,10 @@ export function AssessmentForm({
               min={0}
               value={values.estimatedMinutes ?? ""}
               onChange={(event) =>
-                set("estimatedMinutes", event.target.value === "" ? null : Number(event.target.value))
+                set(
+                  "estimatedMinutes",
+                  event.target.value === "" ? null : Number(event.target.value),
+                )
               }
             />
           </div>
@@ -412,7 +421,10 @@ export function AssessmentForm({
               min={0}
               value={values.timeLimitMinutes ?? ""}
               onChange={(event) =>
-                set("timeLimitMinutes", event.target.value === "" ? null : Number(event.target.value))
+                set(
+                  "timeLimitMinutes",
+                  event.target.value === "" ? null : Number(event.target.value),
+                )
               }
             />
           </div>
@@ -466,7 +478,10 @@ export function AssessmentForm({
           </div>
           <div>
             <Label htmlFor="rubric">Rubric</Label>
-            <Select value={values.rubricId ?? NONE} onValueChange={(value) => set("rubricId", toNull(value))}>
+            <Select
+              value={values.rubricId ?? NONE}
+              onValueChange={(value) => set("rubricId", toNull(value))}
+            >
               <SelectTrigger id="rubric">
                 <SelectValue placeholder="No rubric" />
               </SelectTrigger>
@@ -499,7 +514,10 @@ export function AssessmentForm({
               ["isTemplate", "Save as reusable template"],
             ] as const
           ).map(([key, label]) => (
-            <div key={key} className="flex items-center justify-between rounded-md border px-3 py-2">
+            <div
+              key={key}
+              className="flex items-center justify-between rounded-md border px-3 py-2"
+            >
               <Label htmlFor={key} className="font-normal">
                 {label}
               </Label>

@@ -75,7 +75,10 @@ export function QuestionDialog({
     setValues((current) => ({ ...current, [key]: value }));
 
   const subjects = useQuery({ queryKey: curriculumKeys.allSubjects(), queryFn: listAllSubjects });
-  const grades = useQuery({ queryKey: curriculumKeys.grades(null), queryFn: () => listGrades(null) });
+  const grades = useQuery({
+    queryKey: curriculumKeys.grades(null),
+    queryFn: () => listGrades(null),
+  });
 
   const type = (values.questionType ?? "multiple_choice") as QuestionType;
   const options = values.body?.options ?? [];
@@ -85,7 +88,8 @@ export function QuestionDialog({
     set("body", { ...(values.body ?? { options: [] }), options: next });
 
   const mutation = useMutation({
-    mutationFn: async () => save({ data: questionInputSchema.parse({ ...values, organizationId }) }),
+    mutationFn: async () =>
+      save({ data: questionInputSchema.parse({ ...values, organizationId }) }),
     onSuccess: (result) => {
       toast.success("Question saved");
       void queryClient.invalidateQueries({ queryKey: ["question-bank"] });

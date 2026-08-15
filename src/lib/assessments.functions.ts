@@ -43,7 +43,12 @@ export const saveAssessment = createServerFn({ method: "POST" })
       assessmentId = created.id;
     }
 
-    await replaceCurriculumLinks(supabase, assessmentId!, data.competencyIds, data.learningOutcomeIds);
+    await replaceCurriculumLinks(
+      supabase,
+      assessmentId!,
+      data.competencyIds,
+      data.learningOutcomeIds,
+    );
     await writeCurriculumAudit(context, {
       organizationId: data.organizationId,
       action: data.assessmentId ? "assessment.updated" : "assessment.created",
@@ -191,7 +196,10 @@ export const saveQuestion = createServerFn({ method: "POST" })
         .eq("id", data.questionId)
         .maybeSingle();
       version = (parent?.version ?? 1) + 1;
-      await supabase.from("question_bank_items").update({ status: "archived" }).eq("id", data.questionId);
+      await supabase
+        .from("question_bank_items")
+        .update({ status: "archived" })
+        .eq("id", data.questionId);
     }
 
     const { data: created, error } = await supabase
@@ -220,7 +228,11 @@ export const archiveQuestions = createServerFn({ method: "POST" })
 
 const importSchema = z.object({
   organizationId: z.string().uuid(),
-  items: z.array(questionInputSchema.omit({ organizationId: true, questionId: true, createVersion: true })).min(1),
+  items: z
+    .array(
+      questionInputSchema.omit({ organizationId: true, questionId: true, createVersion: true }),
+    )
+    .min(1),
 });
 
 /** Import a batch of questions (JSON export/import for the question bank). */
@@ -229,7 +241,10 @@ export const importQuestions = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => importSchema.parse(input))
   .handler(async ({ data, context }) => {
     const rows = data.items.map((item) =>
-      questionRow({ ...item, organizationId: data.organizationId, createVersion: false }, context.userId),
+      questionRow(
+        { ...item, organizationId: data.organizationId, createVersion: false },
+        context.userId,
+      ),
     );
     const { data: created, error } = await context.supabase
       .from("question_bank_items")
@@ -250,7 +265,11 @@ export const saveRubric = createServerFn({ method: "POST" })
 
 const typeSchema = z.object({
   organizationId: z.string().uuid(),
-  code: z.string().trim().regex(/^[a-z0-9_]+$/, "Use lowercase letters, numbers and underscores").max(60),
+  code: z
+    .string()
+    .trim()
+    .regex(/^[a-z0-9_]+$/, "Use lowercase letters, numbers and underscores")
+    .max(60),
   name: z.string().trim().min(1).max(120),
   description: z.string().trim().max(500).nullable().default(null),
   category: z.string().trim().max(60).default("formative"),

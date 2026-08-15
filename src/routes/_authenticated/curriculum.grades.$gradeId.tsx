@@ -15,10 +15,7 @@ import {
   SubjectFormDialog,
 } from "@/features/curriculum/components/curriculum-dialogs";
 import { curriculumKeys, getGradeWithContent } from "@/features/curriculum/api";
-import {
-  canAssignCurriculum,
-  canAuthorPlatformCurriculum,
-} from "@/features/roles/permissions";
+import { canAssignCurriculum, canAuthorPlatformCurriculum } from "@/features/roles/permissions";
 import { setCurriculumStatus, deleteCurriculumItem } from "@/lib/curriculum.functions";
 import { useRoleContext } from "@/features/roles/role-context";
 
@@ -134,8 +131,7 @@ function GradePage() {
                 ) : (
                   <ul className="divide-y rounded-md border">
                     {data.pathways.map((pathway) => {
-                      const owned =
-                        mayAuthor && pathway.authoring_organization_id === null;
+                      const owned = mayAuthor && pathway.authoring_organization_id === null;
                       return (
                         <li
                           key={pathway.id}

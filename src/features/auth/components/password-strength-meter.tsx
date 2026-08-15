@@ -5,7 +5,11 @@ import { evaluatePassword } from "../password-rules";
 export function PasswordStrengthMeter({ value }: { value: string }) {
   const { score, label, results, passed, total } = evaluatePassword(value);
   const tone =
-    passed === total ? "bg-primary" : passed >= total - 2 ? "bg-accent-foreground" : "bg-destructive";
+    passed === total
+      ? "bg-primary"
+      : passed >= total - 2
+        ? "bg-accent-foreground"
+        : "bg-destructive";
 
   return (
     <div className="space-y-2" aria-live="polite">

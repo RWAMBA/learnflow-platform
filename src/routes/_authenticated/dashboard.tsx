@@ -8,7 +8,10 @@ import {
   ProgressSummaryWidget,
   SubjectGridWidget,
 } from "@/features/dashboard/widgets/student-widgets";
-import { ChildrenWidget, PendingInvitationsWidget } from "@/features/dashboard/widgets/parent-widgets";
+import {
+  ChildrenWidget,
+  PendingInvitationsWidget,
+} from "@/features/dashboard/widgets/parent-widgets";
 import { GradingQueueWidget, RosterWidget } from "@/features/dashboard/widgets/educator-widgets";
 import {
   OrganizationOverviewWidget,
@@ -16,15 +19,25 @@ import {
 } from "@/features/dashboard/widgets/admin-widgets";
 import { useRoleContext } from "@/features/roles/role-context";
 import { usesMergedFamilyDashboard } from "@/features/roles/permissions";
-import { listLinkedStudentsForParent, listRosterForEducator, studentKeys } from "@/features/students/api";
+import {
+  listLinkedStudentsForParent,
+  listRosterForEducator,
+  studentKeys,
+} from "@/features/students/api";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
     meta: [
       { title: "Dashboard — the Platform" },
-      { name: "description", content: "Your learning dashboard: work due, progress, roster and messages." },
+      {
+        name: "description",
+        content: "Your learning dashboard: work due, progress, roster and messages.",
+      },
       { property: "og:title", content: "Dashboard — the Platform" },
-      { property: "og:description", content: "Work due, progress, roster and messages in one view." },
+      {
+        property: "og:description",
+        content: "Work due, progress, roster and messages in one view.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -37,16 +50,26 @@ function DashboardPage() {
 
   if (!activeRole) return <Navigate to="/onboarding" />;
 
-  const greeting = viewer.fullName ? `Welcome back, ${viewer.fullName.split(" ")[0]}` : "Welcome back";
+  const greeting = viewer.fullName
+    ? `Welcome back, ${viewer.fullName.split(" ")[0]}`
+    : "Welcome back";
 
   return (
     <div>
-      <PageHeader title={greeting} description={`${activeRole.roleName} · ${activeRole.organizationName}`} />
+      <PageHeader
+        title={greeting}
+        description={`${activeRole.roleName} · ${activeRole.organizationName}`}
+      />
       <div className="grid gap-4 lg:grid-cols-2">
         {activeRole.roleCode === "student" ? <StudentDashboard /> : null}
-        {activeRole.roleCode === "parent_guardian" ? <ParentDashboard userId={viewer.userId} /> : null}
+        {activeRole.roleCode === "parent_guardian" ? (
+          <ParentDashboard userId={viewer.userId} />
+        ) : null}
         {activeRole.roleCode === "teacher" || activeRole.roleCode === "tutor" ? (
-          <EducatorDashboard userId={viewer.userId} kind={activeRole.roleCode === "teacher" ? "teacher" : "tutor"} />
+          <EducatorDashboard
+            userId={viewer.userId}
+            kind={activeRole.roleCode === "teacher" ? "teacher" : "tutor"}
+          />
         ) : null}
         {activeRole.roleCode === "org_admin" ? (
           <AdminDashboard organizationId={activeRole.organizationId} userId={viewer.userId} />
@@ -83,7 +106,9 @@ function ParentDashboard({ userId }: { userId: string }) {
     queryKey: studentKeys.forViewer(userId),
     queryFn: () => listLinkedStudentsForParent(userId),
   });
-  const studentIds = (linked.data ?? []).map((row) => row.student?.id).filter((id): id is string => Boolean(id));
+  const studentIds = (linked.data ?? [])
+    .map((row) => row.student?.id)
+    .filter((id): id is string => Boolean(id));
 
   return (
     <>
@@ -101,7 +126,9 @@ function EducatorDashboard({ userId, kind }: { userId: string; kind: "teacher" |
     queryKey: ["roster", userId, kind],
     queryFn: () => listRosterForEducator(userId, kind),
   });
-  const studentIds = (roster.data ?? []).map((row) => row.student?.id).filter((id): id is string => Boolean(id));
+  const studentIds = (roster.data ?? [])
+    .map((row) => row.student?.id)
+    .filter((id): id is string => Boolean(id));
 
   return (
     <>

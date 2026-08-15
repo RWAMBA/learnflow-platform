@@ -111,7 +111,11 @@ export async function writeRubric(supabase: Db, data: RubricInput, userId: strin
     if (error) throw new Error(error.message);
     await supabase.from("rubric_criteria").delete().eq("rubric_id", rubricId);
   } else {
-    const { data: created, error } = await supabase.from("rubrics").insert(base).select("id").single();
+    const { data: created, error } = await supabase
+      .from("rubrics")
+      .insert(base)
+      .select("id")
+      .single();
     if (error) throw new Error(error.message);
     rubricId = created.id as string;
   }
@@ -189,7 +193,10 @@ export async function cloneAssessment(
       .from("assessment_questions")
       .select("question_id, sequence_order, points_override, required")
       .eq("assessment_id", assessmentId),
-    supabase.from("assessment_competencies").select("competency_id, weight").eq("assessment_id", assessmentId),
+    supabase
+      .from("assessment_competencies")
+      .select("competency_id, weight")
+      .eq("assessment_id", assessmentId),
     supabase
       .from("assessment_learning_outcomes")
       .select("learning_outcome_id, weight")
@@ -199,17 +206,23 @@ export async function cloneAssessment(
   if (questions?.length) {
     await supabase
       .from("assessment_questions")
-      .insert(questions.map((row: Record<string, unknown>) => ({ ...row, assessment_id: created.id })));
+      .insert(
+        questions.map((row: Record<string, unknown>) => ({ ...row, assessment_id: created.id })),
+      );
   }
   if (competencies?.length) {
     await supabase
       .from("assessment_competencies")
-      .insert(competencies.map((row: Record<string, unknown>) => ({ ...row, assessment_id: created.id })));
+      .insert(
+        competencies.map((row: Record<string, unknown>) => ({ ...row, assessment_id: created.id })),
+      );
   }
   if (outcomes?.length) {
     await supabase
       .from("assessment_learning_outcomes")
-      .insert(outcomes.map((row: Record<string, unknown>) => ({ ...row, assessment_id: created.id })));
+      .insert(
+        outcomes.map((row: Record<string, unknown>) => ({ ...row, assessment_id: created.id })),
+      );
   }
 
   return created.id as string;
@@ -221,7 +234,13 @@ export async function cloneAssessment(
  */
 export async function notifyAssessmentAudience(
   supabase: Db,
-  params: { organizationId: string; gradeId: string | null; assessmentId: string; type: string; payload?: Record<string, unknown> },
+  params: {
+    organizationId: string;
+    gradeId: string | null;
+    assessmentId: string;
+    type: string;
+    payload?: Record<string, unknown>;
+  },
 ) {
   let studentQuery = supabase
     .from("students")
@@ -246,7 +265,10 @@ export async function notifyAssessmentAudience(
       const { data: guardianRoles } = await supabase
         .from("user_roles")
         .select("id")
-        .in("user_id", guardians.map((row: { parent_id: string }) => row.parent_id))
+        .in(
+          "user_id",
+          guardians.map((row: { parent_id: string }) => row.parent_id),
+        )
         .eq("organization_id", params.organizationId)
         .eq("status", "active");
       (guardianRoles ?? []).forEach((row: { id: string }) => recipients.add(row.id));

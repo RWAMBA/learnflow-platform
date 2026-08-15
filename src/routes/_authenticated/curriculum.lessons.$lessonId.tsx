@@ -77,13 +77,10 @@ function LessonPage() {
 
   const neighbours = findLessonNeighbours(sequence.data ?? [], lessonId);
 
-  const mayAuthorPlatform = canAuthorPlatformCurriculum(
-    viewer.isPlatformAdmin,
-  );
+  const mayAuthorPlatform = canAuthorPlatformCurriculum(viewer.isPlatformAdmin);
 
   const mayAuthorTenant =
-    canAuthorTenantCurriculum(activeRole?.roleCode) &&
-    Boolean(organizationId);
+    canAuthorTenantCurriculum(activeRole?.roleCode) && Boolean(organizationId);
 
   const mayAuthorPlatformLesson =
     mayAuthorPlatform &&
@@ -95,8 +92,7 @@ function LessonPage() {
     query.data?.lesson?.author_type === "tenant" &&
     query.data?.lesson?.authoring_organization_id === organizationId;
 
-  const mayAuthorLesson =
-    mayAuthorPlatformLesson || mayAuthorTenantLesson;
+  const mayAuthorLesson = mayAuthorPlatformLesson || mayAuthorTenantLesson;
 
   const lessonAuditOrganizationId =
     query.data?.lesson?.author_type === "tenant" &&
@@ -104,12 +100,9 @@ function LessonPage() {
       ? organizationId
       : null;
 
-  const mayAuthorTenantResources =
-    mayAuthorTenant && Boolean(organizationId);
+  const mayAuthorTenantResources = mayAuthorTenant && Boolean(organizationId);
 
-  const mayRecordProgress =
-    canAssignCurriculum(activeRole?.roleCode) &&
-    Boolean(organizationId);
+  const mayRecordProgress = canAssignCurriculum(activeRole?.roleCode) && Boolean(organizationId);
 
   const refresh = () => {
     void queryClient.invalidateQueries({ queryKey: curriculumKeys.lesson(lessonId) });
@@ -193,11 +186,7 @@ function LessonPage() {
                   />
                   <LessonFormDialog
                     organizationId={lessonAuditOrganizationId}
-                    authorType={
-                      lesson.author_type === "platform"
-                        ? "platform"
-                        : "tenant"
-                    }
+                    authorType={lesson.author_type === "platform" ? "platform" : "tenant"}
                     subjectId={lesson.subject!.id}
                     topics={subjectContent.data?.topics ?? []}
                     lesson={{

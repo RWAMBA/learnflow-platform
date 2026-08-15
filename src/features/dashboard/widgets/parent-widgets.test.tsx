@@ -33,7 +33,13 @@ const visible = {
   id: "r1",
   permission_level: "full",
   status: "active",
-  student: { id: "s1", first_name: "Ada", last_name: "Lovelace", organization_id: "o1", grade: { name: "Grade 4" } },
+  student: {
+    id: "s1",
+    first_name: "Ada",
+    last_name: "Lovelace",
+    organization_id: "o1",
+    grade: { name: "Grade 4" },
+  },
 };
 const hidden = { id: "r2", permission_level: "view", status: "active", student: null };
 
