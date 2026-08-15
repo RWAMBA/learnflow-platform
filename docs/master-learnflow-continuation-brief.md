@@ -138,12 +138,12 @@ advisory was a transitive dependency with exactly one installed version and a
 patch-level fix accepted by every parent range. No direct dependency was
 upgraded, no major upgrade was required, no package was added or removed.
 
-| Package         | Before | After  | Fixed at | Severity | Advisory                                 | Class      | Path                                                           |
-| --------------- | ------ | ------ | -------- | -------- | ---------------------------------------- | ---------- | -------------------------------------------------------------- |
+| Package         | Before | After  | Fixed at | Severity | Advisory                                 | Class      | Path                                                                 |
+| --------------- | ------ | ------ | -------- | -------- | ---------------------------------------- | ---------- | -------------------------------------------------------------------- |
 | brace-expansion | 1.1.16 | 1.1.18 | 1.1.17   | high     | GHSA-mh99-v99m-4gvg, GHSA-rgw5-rvv9-x895 | lint       | eslint → @eslint/eslintrc → minimatch; typescript-eslint → minimatch |
-| nanoid          | 3.3.16 | 3.3.18 | 3.3.18   | high     | GHSA-2v37-7h3g-55p8                      | build      | vite → postcss                                                 |
-| js-yaml         | 4.3.0  | 4.3.1  | 4.3.1    | high     | GHSA-5p4m-2wfm-xmqj                      | build/lint | eslint → @eslint/eslintrc; @tanstack/react-start → xmlbuilder2 |
-| esbuild         | 0.27.7 | 0.28.2 | 0.28.1   | low      | GHSA-g7r4-m6w7-qqqr                      | build      | vite; @tanstack/router-plugin → unplugin; @lovable.dev/mcp-js  |
+| nanoid          | 3.3.16 | 3.3.18 | 3.3.18   | high     | GHSA-2v37-7h3g-55p8                      | build      | vite → postcss                                                       |
+| js-yaml         | 4.3.0  | 4.3.1  | 4.3.1    | high     | GHSA-5p4m-2wfm-xmqj                      | build/lint | eslint → @eslint/eslintrc; @tanstack/react-start → xmlbuilder2       |
+| esbuild         | 0.27.7 | 0.28.2 | 0.28.1   | low      | GHSA-g7r4-m6w7-qqqr                      | build      | vite; @tanstack/router-plugin → unplugin; @lovable.dev/mcp-js        |
 
 Overrides added to `package.json`:
 `brace-expansion: ^1.1.17`, `nanoid: ^3.3.18`, `js-yaml: ^4.3.1`,
