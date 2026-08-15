@@ -115,7 +115,9 @@ describe("SEC-006 stage-two rollback parity", () => {
     expect(ROLLBACK).toContain("begin;");
     expect(ROLLBACK).toContain("commit;");
     expect(ROLLBACK).not.toMatch(/<[A-Z_ ]+>/);
-    expect(ROLLBACK).not.toMatch(/\b(insert into|update .* set|delete from|truncate|drop table)\b/i);
+    expect(ROLLBACK).not.toMatch(
+      /\b(insert into|update .* set|delete from|truncate|drop table)\b/i,
+    );
     expect(ROLLBACK).toContain(
       "revoke insert, update, delete on table public.organization_security_settings from authenticated",
     );
