@@ -37,9 +37,12 @@ reset, least-privilege ACLs on `organization_security_settings`,
 
 ### Formatting and lint
 
-Changed-file Prettier drift is resolved: the files touched on this branch are
-clean. Repository-wide `bun run lint` passes with **seven pre-existing
-react-refresh warnings** (components exporting both a component and a
+Changed-file Prettier drift is resolved. The remaining repository-wide drift
+came from two generated files (`src/integrations/supabase/types.ts`,
+`src/routeTree.gen.ts`), which are never hand-edited and are now excluded in
+`.prettierignore` and `eslint.config.js`, plus four MCP route files that were
+reformatted. Repository-wide `bun run lint` now reports **0 errors and seven
+pre-existing react-refresh warnings** (components exporting both a component and a
 non-component value); these predate the security block and are warnings, not
 errors.
 
