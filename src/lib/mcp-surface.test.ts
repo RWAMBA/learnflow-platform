@@ -209,9 +209,9 @@ describe("MCP identity and tenant boundary", () => {
     expect(source).toContain("ctx.getUserId()");
     expect(tool.inputSchema).toEqual({});
     await tool.handler({} as never, ctx());
-    // A caller-supplied user id cannot reach the query: the schema has no such
-    // field and the handler ignores its argument entirely.
-    expect(double.calls.filter((value) => false)).toBeUndefined;
+    // Identity reaches PostgREST only as the token-derived user id.
+    expect(double.calls.filters.join(" ")).toContain("11111111-1111-1111-1111-111111111111");
+    expect(double.calls.filters.join(" ")).not.toContain("undefined");
   });
 
   it("treats organizationId as a narrowing filter, never as an authorization claim", () => {
