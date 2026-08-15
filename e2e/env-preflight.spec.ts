@@ -1,17 +1,35 @@
 import { expect, test, type Page } from "@playwright/test";
 
+/**
+ * Deterministic, non-secret fixture. Only variable *names*, purposes and
+ * presence flags are ever transported — never a value — which mirrors the
+ * production `/api/env-preflight` contract and keeps the harness independent
+ * of whatever the developer happens to have in their local environment.
+ */
 const MISSING_PAYLOAD = {
   ok: false,
   missing: [
     { name: "SUPABASE_SERVICE_ROLE_KEY", purpose: "Privileged operations" },
     { name: "SUPABASE_URL", purpose: "Server-side Supabase API endpoint" },
   ],
-  variables: [],
+  variables: [
+    { name: "SUPABASE_URL", present: false, scope: "core" },
+    { name: "SUPABASE_PUBLISHABLE_KEY", present: true, scope: "core" },
+    { name: "SUPABASE_SERVICE_ROLE_KEY", present: false, scope: "admin" },
+  ],
 };
+
+/**
+ * The banner reads the preflight server *route* (`/api/env-preflight`) with a
+ * plain fetch, deliberately bypassing server-function middleware so a missing
+ * variable cannot break the very check that reports it. The stub therefore has
+ * to intercept that exact path.
+ */
+const PREFLIGHT_ROUTE = "**/api/env-preflight";
 
 /** Serves the preflight response, optionally slowly so the loading state is observable. */
 async function stubPreflight(page: Page, options: { delayMs?: number; fail?: boolean } = {}) {
-  await page.route("**/__preflight", async (route) => {
+  await page.route(PREFLIGHT_ROUTE, async (route) => {
     if (options.delayMs) await new Promise((r) => setTimeout(r, options.delayMs));
     if (options.fail) {
       await route.fulfill({ status: 500, body: "boom" });
