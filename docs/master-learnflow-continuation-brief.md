@@ -149,8 +149,9 @@ of this security package.
 ## 4. Verification results
 
 - `bunx tsgo --noEmit`: clean.
-- `bun run test`: unit suite green (stage-two structural suite extended to 9
-  tests covering forward and rollback sections).
+- `bun run test`: **164/164 unit tests pass** across 15 files (the 162 from the
+  previous package plus 2 new stage-two structural tests; the stage-two suite is
+  now 9 tests covering both the forward and rollback sections).
 - `bun run test:rls`: RLS recursion check passes; live allow/deny policy testing
   against the hosted database is **skipped by design** in this block, because it
   would require authenticated write attempts as real principals.
