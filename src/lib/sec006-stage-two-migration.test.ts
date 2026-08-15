@@ -107,8 +107,14 @@ describe("SEC-006 stage two (prepared, unapplied)", () => {
     expect(forward).toContain("commit;");
     expect(rollback).toContain("begin;");
     expect(rollback).toContain("commit;");
-    // Rollback removes AAL2 entirely and keeps no placeholders or DML.
-    expect(rollback).not.toContain("has_aal2()");
+    // Rollback removes the AAL2 conjunct from every policy (the only remaining
+    // mention is the comment noting that has_aal2() itself is retained).
+    const rollbackSql = rollback
+      .split("\n")
+      .filter((line) => !line.trimStart().startsWith("--"))
+      .join("\n");
+    expect(rollbackSql).not.toContain("has_aal2()");
+    // …and keeps no placeholders or DML.
     expect(rollback).not.toMatch(/<[A-Z_ ]+>/);
     expect(rollback).not.toMatch(/\b(insert into|update .* set|delete from|truncate|drop table)\b/i);
     // Original predicates are restored for each surface.
@@ -135,7 +141,7 @@ describe("SEC-006 stage two (prepared, unapplied)", () => {
   });
 
   it("documents an exact rollback procedure", () => {
-    expect(PREPARED).toContain("ROLLBACK PROCEDURE");
+    expect(PREPARED).toContain(">>> ROLLBACK SQL BEGIN");
     expect(PREPARED).toContain("rollback is lossless");
   });
 });
