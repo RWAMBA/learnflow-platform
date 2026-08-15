@@ -21,6 +21,16 @@ import {
 } from "@/components/ui/form";
 import { newPasswordSchema, type NewPasswordValues } from "@/features/auth/schemas";
 import { PasswordStrengthMeter } from "@/features/auth/components/password-strength-meter";
+import {
+  canReplacePassword,
+  detectRecoveryMarker,
+  RECOVERY_CONFIRMATION_TIMEOUT_MS,
+  RECOVERY_CONSUMED_MESSAGE,
+  RECOVERY_DENIED_MESSAGE,
+  RECOVERY_EXPIRED_MESSAGE,
+  resolveRecoveryPhase,
+  type RecoveryPhase,
+} from "@/features/auth/recovery-session";
 import { MFA_UNAVAILABLE_MESSAGE, type MfaStatus } from "@/features/security/mfa";
 import { readMfaStatus, verifyTotpCode } from "@/features/security/mfa-client";
 
@@ -41,9 +51,19 @@ export const Route = createFileRoute("/reset-password")({
 
 function ResetPasswordPage() {
   const navigate = useNavigate();
-  // SEC-006: a recovery session is AAL1. When the account has a verified
-  // factor, the reset link alone must not be able to set a new password —
-  // that would be an AAL1 bypass of mandatory MFA.
+  // SEC-006 Gate 3: an ordinary authenticated session is NOT a recovery
+  // session. Password replacement is unlocked only by the PASSWORD_RECOVERY
+  // event raised for a valid reset link, and an MFA-enabled account must
+  // additionally reach AAL2 (a recovery session is AAL1 by itself).
+  const [marker] = useState(() =>
+    detectRecoveryMarker({
+      hash: typeof window === "undefined" ? "" : window.location.hash,
+      search: typeof window === "undefined" ? "" : window.location.search,
+    }),
+  );
+  const [recoveryEventSeen, setRecoveryEventSeen] = useState(false);
+  const [timedOut, setTimedOut] = useState(false);
+  const [consumed, setConsumed] = useState(false);
   const [status, setStatus] = useState<MfaStatus | null>(null);
   const [code, setCode] = useState("");
   const [busy, setBusy] = useState(false);
@@ -56,11 +76,34 @@ function ResetPasswordPage() {
   });
   const passwordValue = form.watch("password");
 
+  const phase: RecoveryPhase = resolveRecoveryPhase({
+    markerPresent: marker.present,
+    markerErrored: marker.errored,
+    recoveryEventSeen,
+    confirmationTimedOut: timedOut,
+    consumed,
+  });
+
   useEffect(() => {
-    void readMfaStatus().then(setStatus);
+    const { data } = supabase.auth.onAuthStateChange((event) => {
+      if (event === "PASSWORD_RECOVERY") setRecoveryEventSeen(true);
+    });
+    return () => data.subscription.unsubscribe();
   }, []);
 
+  useEffect(() => {
+    if (!marker.present || marker.errored) return;
+    const timer = window.setTimeout(() => setTimedOut(true), RECOVERY_CONFIRMATION_TIMEOUT_MS);
+    return () => window.clearTimeout(timer);
+  }, [marker]);
+
+  useEffect(() => {
+    if (phase !== "ready") return;
+    void readMfaStatus().then(setStatus);
+  }, [phase]);
+
   const stepUpRequired =
+    phase === "ready" &&
     status !== null &&
     !status.unavailable &&
     status.hasVerifiedFactor &&
@@ -86,15 +129,21 @@ function ResetPasswordPage() {
   };
 
   const onSubmit = async (values: NewPasswordValues) => {
-    // Fail closed: never update the password from an unverifiable session.
+    // Recheck recovery validity AND assurance immediately before the update.
     const fresh = await readMfaStatus();
     setStatus(fresh);
-    if (fresh.unavailable) {
-      toast.error(MFA_UNAVAILABLE_MESSAGE);
-      return;
-    }
-    if (fresh.hasVerifiedFactor && fresh.currentLevel !== "aal2") {
-      toast.error("Verify a code from your authenticator app before setting a new password.");
+    const gate = canReplacePassword({
+      phase: resolveRecoveryPhase({
+        markerPresent: marker.present,
+        markerErrored: marker.errored,
+        recoveryEventSeen,
+        confirmationTimedOut: timedOut,
+        consumed,
+      }),
+      mfa: fresh,
+    });
+    if (!gate.allowed) {
+      toast.error(gate.reason);
       return;
     }
     const { error } = await supabase.auth.updateUser({ password: values.password });
@@ -102,9 +151,23 @@ function ResetPasswordPage() {
       toast.error(error.message);
       return;
     }
-    toast.success("Password updated.");
-    await navigate({ to: "/dashboard" });
+    // Burn the recovery state and drop the AAL1 recovery session, rather than
+    // walking straight into an authenticated privileged page.
+    setConsumed(true);
+    form.reset({ password: "", confirmPassword: "" });
+    await supabase.auth.signOut();
+    toast.success("Password updated. Sign in with your new password.");
+    await navigate({ to: "/auth" });
   };
+
+  const blockedMessage =
+    phase === "denied"
+      ? RECOVERY_DENIED_MESSAGE
+      : phase === "expired"
+        ? RECOVERY_EXPIRED_MESSAGE
+        : phase === "consumed"
+          ? RECOVERY_CONSUMED_MESSAGE
+          : null;
 
   return (
     <div className="flex min-h-dvh items-center justify-center bg-muted/40 px-4 py-10">
@@ -116,7 +179,22 @@ function ResetPasswordPage() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          {stepUpRequired ? (
+          {blockedMessage ? (
+            <div className="space-y-4">
+              <Alert variant="destructive" role="alert">
+                <AlertTriangle className="size-4" aria-hidden />
+                <AlertTitle>Password reset unavailable</AlertTitle>
+                <AlertDescription>{blockedMessage}</AlertDescription>
+              </Alert>
+              <Button variant="outline" className="w-full" onClick={() => void navigate({ to: "/auth" })}>
+                Back to sign in
+              </Button>
+            </div>
+          ) : phase === "pending" ? (
+            <p role="status" aria-live="polite" className="text-sm text-muted-foreground">
+              Checking your reset link…
+            </p>
+          ) : stepUpRequired ? (
             <div className="space-y-4">
               {challengeError ? (
                 <Alert variant="destructive" role="alert">
@@ -153,40 +231,40 @@ function ResetPasswordPage() {
               </div>
             </div>
           ) : (
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" noValidate>
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>New password</FormLabel>
-                    <FormControl>
-                      <Input type="password" autoComplete="new-password" {...field} />
-                    </FormControl>
-                    <PasswordStrengthMeter value={passwordValue ?? ""} />
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="confirmPassword"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Confirm new password</FormLabel>
-                    <FormControl>
-                      <Input type="password" autoComplete="new-password" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
-                Update password
-              </Button>
-            </form>
-          </Form>
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4" noValidate>
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>New password</FormLabel>
+                      <FormControl>
+                        <Input type="password" autoComplete="new-password" {...field} />
+                      </FormControl>
+                      <PasswordStrengthMeter value={passwordValue ?? ""} />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="confirmPassword"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Confirm new password</FormLabel>
+                      <FormControl>
+                        <Input type="password" autoComplete="new-password" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button type="submit" className="w-full" disabled={form.formState.isSubmitting}>
+                  Update password
+                </Button>
+              </form>
+            </Form>
           )}
         </CardContent>
       </Card>
