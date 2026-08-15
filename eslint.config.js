@@ -17,8 +17,9 @@ export default tseslint.config(
       "src/routeTree.gen.ts",
       // Regenerated verbatim by the MCP Vite plugin on every build.
       "src/routes/mcp.ts",
-      "src/routes/[.mcp]/**",
-      "src/routes/[.well-known]/**",
+      "src/routes/**/list-tools.ts",
+      "src/routes/**/invoke-tool/**",
+      "src/routes/**/oauth-protected-resource.ts",
     ],
   },
   {
