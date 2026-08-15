@@ -13,6 +13,8 @@ const SQL = readFileSync(`supabase/migrations/${MIGRATION_FILE}`, "utf8");
 const MIGRATIONS = readdirSync("supabase/migrations").sort();
 
 const has = (needle: string) => SQL.includes(needle);
+/** SQL with `--` comments stripped, for destructive-keyword scanning. */
+const SQL_CODE = SQL.replace(/^\s*--.*$/gm, "");
 
 describe("Stage 1A — transaction and safety envelope", () => {
   it("is exactly one explicit transaction", () => {
@@ -23,17 +25,18 @@ describe("Stage 1A — transaction and safety envelope", () => {
   });
 
   it("never conceals drift with IF NOT EXISTS / DROP IF EXISTS / CREATE OR REPLACE", () => {
-    expect(SQL).not.toMatch(/IF NOT EXISTS/i);
-    expect(SQL).not.toMatch(/DROP\s+\w+\s+IF\s+EXISTS/i);
-    expect(SQL).not.toMatch(/CREATE\s+OR\s+REPLACE/i);
+    // PL/pgSQL `IF NOT EXISTS (SELECT ...)` guards are assertions, not DDL concealment.
+    expect(SQL_CODE).not.toMatch(/(CREATE|ADD|ALTER)\s+[A-Z ]*IF\s+NOT\s+EXISTS/i);
+    expect(SQL_CODE).not.toMatch(/DROP\s+\w+\s+IF\s+EXISTS/i);
+    expect(SQL_CODE).not.toMatch(/CREATE\s+OR\s+REPLACE/i);
   });
 
   it("performs no destructive legacy rename or drop", () => {
-    expect(SQL).not.toMatch(/RENAME/i);
-    expect(SQL).not.toMatch(/DROP\s+TABLE/i);
-    expect(SQL).not.toMatch(/DROP\s+COLUMN/i);
-    expect(SQL).not.toMatch(/TRUNCATE\s+(TABLE\s+)?public\./i);
-    expect(SQL).not.toMatch(/DELETE\s+FROM/i);
+    expect(SQL_CODE).not.toMatch(/RENAME/i);
+    expect(SQL_CODE).not.toMatch(/DROP\s+TABLE/i);
+    expect(SQL_CODE).not.toMatch(/DROP\s+COLUMN/i);
+    expect(SQL_CODE).not.toMatch(/TRUNCATE\s+(TABLE\s+)?public\./i);
+    expect(SQL_CODE).not.toMatch(/DELETE\s+FROM/i);
   });
 
   it("is the newest migration and later than the SEC-006 ACL migration", () => {
