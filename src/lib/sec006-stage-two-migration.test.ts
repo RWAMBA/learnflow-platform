@@ -116,7 +116,9 @@ describe("SEC-006 stage two (prepared, unapplied)", () => {
     expect(rollbackSql).not.toContain("has_aal2()");
     // …and keeps no placeholders or DML.
     expect(rollback).not.toMatch(/<[A-Z_ ]+>/);
-    expect(rollback).not.toMatch(/\b(insert into|update .* set|delete from|truncate|drop table)\b/i);
+    expect(rollback).not.toMatch(
+      /\b(insert into|update .* set|delete from|truncate|drop table)\b/i,
+    );
     // Original predicates are restored for each surface.
     for (const policy of [
       "curriculum_versions_insert",
