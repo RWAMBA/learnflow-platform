@@ -66,7 +66,7 @@ describe("SEC-006 stage two (prepared, unapplied)", () => {
     const userRoleInsert = PREPARED.slice(PREPARED.indexOf("create policy user_role_insert"));
     const parentBranch = userRoleInsert.slice(
       userRoleInsert.indexOf("or ((user_id = auth.uid())"),
-      userRoleInsert.indexOf("commit;"),
+      userRoleInsert.indexOf("-- ---", userRoleInsert.indexOf("or ((user_id = auth.uid())")),
     );
     expect(parentBranch).not.toContain("has_aal2");
     expect(parentBranch).toContain("parent_guardian");
