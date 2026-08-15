@@ -68,6 +68,12 @@ describe("SEC-006 stage-two rollback parity", () => {
     }
   });
 
+  // Policies whose predicate mixes an administrative branch with a
+  // self-service branch: AAL2 is attached to the administrative branch only,
+  // so the original predicate is not a contiguous substring of the new one.
+  // Their branch-level parity is asserted by the self-service test below.
+  const MIXED_BRANCH_POLICIES = new Set(["membership_self_join", "user_role_insert"]);
+
   it("adds AAL2 only as an extra conjunct in the forward section", () => {
     for (const policy of forwardPolicies) {
       if (policy.policy === "organization_security_settings_platform_admin_write") continue;
@@ -83,6 +89,7 @@ describe("SEC-006 stage-two rollback parity", () => {
           continue;
         }
         expect(forwardClause).toContain("app_private.has_aal2()");
+        if (MIXED_BRANCH_POLICIES.has(policy.policy)) continue;
         // The original predicate survives verbatim inside the new one.
         const withoutAal2 = forwardClause
           .replace(/ and app_private\.has_aal2\(\)/g, "")
