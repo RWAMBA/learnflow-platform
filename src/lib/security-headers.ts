@@ -12,11 +12,7 @@
  *  - HSTS is emitted only for https requests, so local http development and
  *    the sandbox preview are unaffected.
  */
-import {
-  buildContentSecurityPolicy,
-  isPreviewHost,
-  supabaseConnectOrigins,
-} from "./csp";
+import { buildContentSecurityPolicy, isPreviewHost, supabaseConnectOrigins } from "./csp";
 
 export const NO_STORE = "no-store, no-cache, must-revalidate, private";
 
@@ -38,9 +34,7 @@ export function isSensitivePath(pathname: string): boolean {
   );
 }
 
-export function buildSecurityHeaders(input: {
-  url: string;
-}): Record<string, string> {
+export function buildSecurityHeaders(input: { url: string }): Record<string, string> {
   let pathname = "/";
   let secure = false;
   let preview = false;

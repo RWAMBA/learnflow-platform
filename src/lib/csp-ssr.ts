@@ -9,7 +9,12 @@
  */
 import { getRequestUrl, setResponseHeader } from "@tanstack/react-start/server";
 
-import { buildContentSecurityPolicy, createCspNonce, isPreviewHost, supabaseConnectOrigins } from "./csp";
+import {
+  buildContentSecurityPolicy,
+  createCspNonce,
+  isPreviewHost,
+  supabaseConnectOrigins,
+} from "./csp";
 
 /**
  * Only the production bundle has a fully enumerated inline-script graph; the

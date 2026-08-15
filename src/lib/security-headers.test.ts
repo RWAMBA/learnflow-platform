@@ -16,16 +16,26 @@ describe("security headers", () => {
   });
 
   it("emits HSTS only over https", () => {
-    expect(buildSecurityHeaders({ url: "http://x.test/" })["strict-transport-security"]).toBeUndefined();
+    expect(
+      buildSecurityHeaders({ url: "http://x.test/" })["strict-transport-security"],
+    ).toBeUndefined();
     expect(buildSecurityHeaders({ url: "https://x.test/" })["strict-transport-security"]).toBe(
       "max-age=31536000; includeSubDomains",
     );
   });
 
   it("marks authenticated and recovery paths as no-store", () => {
-    for (const path of ["/account/mfa", "/dashboard", "/reset-password", "/mfa/challenge", "/auth"]) {
+    for (const path of [
+      "/account/mfa",
+      "/dashboard",
+      "/reset-password",
+      "/mfa/challenge",
+      "/auth",
+    ]) {
       expect(isSensitivePath(path)).toBe(true);
-      expect(buildSecurityHeaders({ url: `https://x.test${path}` })["cache-control"]).toBe(NO_STORE);
+      expect(buildSecurityHeaders({ url: `https://x.test${path}` })["cache-control"]).toBe(
+        NO_STORE,
+      );
     }
     expect(isSensitivePath("/")).toBe(false);
     expect(buildSecurityHeaders({ url: "https://x.test/" })["cache-control"]).toBeUndefined();
