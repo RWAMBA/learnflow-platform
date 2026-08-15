@@ -33,12 +33,14 @@ export const Route = createFileRoute("/_authenticated/account/mfa")({
       { title: "Two-factor authentication — the Platform" },
       {
         name: "description",
-        content: "Set up an authenticator app and manage two-factor security for your Platform account.",
+        content:
+          "Set up an authenticator app and manage two-factor security for your Platform account.",
       },
       { property: "og:title", content: "Two-factor authentication — the Platform" },
       {
         property: "og:description",
-        content: "Set up an authenticator app and manage two-factor security for your Platform account.",
+        content:
+          "Set up an authenticator app and manage two-factor security for your Platform account.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -55,7 +57,10 @@ function AccountMfaPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [announcement, setAnnouncement] = useState("");
+  const [pendingRemovalId, setPendingRemovalId] = useState<string | null>(null);
+  const [removalCode, setRemovalCode] = useState("");
   const otpRef = useRef<HTMLDivElement | null>(null);
+  const removalOtpRef = useRef<HTMLDivElement | null>(null);
   const logEvent = useServerFn(recordMfaEvent);
 
   const refresh = useCallback(async () => {
@@ -72,7 +77,10 @@ function AccountMfaPage() {
   useEffect(() => () => setMaterial(null), []);
 
   const record = useCallback(
-    (event: "mfa_enroll_started" | "mfa_factor_verified" | "mfa_challenge_failed" | "mfa_unenroll", outcome?: string) => {
+    (
+      event: "mfa_enroll_started" | "mfa_factor_verified" | "mfa_challenge_failed" | "mfa_unenroll",
+      outcome?: string,
+    ) => {
       void logEvent({ data: { event, outcome } }).catch(() => {
         // Audit is best-effort from the browser; the server owns the record.
       });
@@ -130,26 +138,62 @@ function AccountMfaPage() {
     toast.success("Two-factor authentication is on.");
   };
 
-  const removeFactor = async (factorId: string) => {
+  // SEC-006 Gate 4: this is a UX guard, not a security boundary. Supabase's
+  // own AAL2 requirement on `unenroll` is the authoritative control, and a
+  // user can always call the SDK directly. What must hold is that a mandatory
+  // principal without a verified factor keeps no privileged access once
+  // enforcement is enabled (the guard then allows enrollment routes only).
+  const beginRemoval = (factorId: string) => {
     if (!status) return;
-    // Client checks are UX only; the server and RLS remain authoritative.
     const decision = canRemoveFactor({
       mandatory: MFA_ENFORCEMENT_ENABLED,
       verifiedFactorCount: status.verifiedFactors.length,
-      currentLevel: status.currentLevel,
+      currentLevel: "aal2",
     });
     if (!decision.allowed) {
       setError(decision.reason ?? MFA_UNAVAILABLE_MESSAGE);
       setAnnouncement(decision.reason ?? "");
       return;
     }
+    setError(null);
+    setRemovalCode("");
+    setPendingRemovalId(factorId);
+    setAnnouncement("Enter a fresh code from your authenticator app to confirm removal.");
+    window.setTimeout(() => removalOtpRef.current?.querySelector("input")?.focus(), 50);
+  };
+
+  const confirmRemoval = async (factorId: string, value: string) => {
+    if (!status) return;
     setBusy(true);
-    // Re-read assurance immediately before removal so a stale page cannot act.
+    setError(null);
+    // Fresh challenge, then an immediate AAL re-read: a stale page must not act.
+    const challenge = await verifyTotpCode(factorId, value);
+    if (!challenge.ok) {
+      setBusy(false);
+      setRemovalCode("");
+      record("mfa_challenge_failed", "remove");
+      setError(challenge.message);
+      setAnnouncement(challenge.message ?? "That code was not accepted.");
+      removalOtpRef.current?.querySelector("input")?.focus();
+      return;
+    }
     const fresh = await readMfaStatus();
     if (fresh.unavailable || fresh.currentLevel !== "aal2") {
       setBusy(false);
       setStatus(fresh);
       setError("Verify a fresh code from your authenticator app before removing a factor.");
+      return;
+    }
+    const decision = canRemoveFactor({
+      mandatory: MFA_ENFORCEMENT_ENABLED,
+      verifiedFactorCount: fresh.verifiedFactors.length,
+      currentLevel: fresh.currentLevel,
+    });
+    if (!decision.allowed) {
+      setBusy(false);
+      setStatus(fresh);
+      setPendingRemovalId(null);
+      setError(decision.reason ?? MFA_UNAVAILABLE_MESSAGE);
       return;
     }
     const { ok, message } = await unenrollFactor(factorId);
@@ -159,6 +203,10 @@ function AccountMfaPage() {
       return;
     }
     record("mfa_unenroll");
+    // Drop cached factor/AAL state before re-reading it from the provider.
+    setPendingRemovalId(null);
+    setRemovalCode("");
+    setStatus(null);
     await refresh();
     setAnnouncement("Authenticator removed.");
     toast.success("Authenticator removed.");
@@ -217,21 +265,58 @@ function AccountMfaPage() {
           {status?.verifiedFactors.length ? (
             <ul className="space-y-3">
               {status.verifiedFactors.map((factor) => (
-                <li
-                  key={factor.id}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-md border p-3"
-                >
-                  <span className="text-sm font-medium">
-                    {factor.friendlyName ?? "Authenticator app"}
-                  </span>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={busy}
-                    onClick={() => void removeFactor(factor.id)}
-                  >
-                    Remove
-                  </Button>
+                <li key={factor.id} className="space-y-3 rounded-md border p-3">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <span className="text-sm font-medium">
+                      {factor.friendlyName ?? "Authenticator app"}
+                    </span>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="min-h-11"
+                      disabled={busy}
+                      onClick={() => beginRemoval(factor.id)}
+                    >
+                      Remove
+                    </Button>
+                  </div>
+                  {pendingRemovalId === factor.id ? (
+                    <div className="space-y-2">
+                      <Label htmlFor={`remove-code-${factor.id}`}>
+                        Confirm with a fresh authentication code
+                      </Label>
+                      <div ref={removalOtpRef}>
+                        <InputOTP
+                          id={`remove-code-${factor.id}`}
+                          maxLength={6}
+                          value={removalCode}
+                          disabled={busy}
+                          onChange={(next) => {
+                            setRemovalCode(next);
+                            if (next.length === 6) void confirmRemoval(factor.id, next);
+                          }}
+                        >
+                          <InputOTPGroup>
+                            {[0, 1, 2, 3, 4, 5].map((index) => (
+                              <InputOTPSlot key={index} index={index} />
+                            ))}
+                          </InputOTPGroup>
+                        </InputOTP>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="min-h-11"
+                        disabled={busy}
+                        onClick={() => {
+                          setPendingRemovalId(null);
+                          setRemovalCode("");
+                        }}
+                      >
+                        Cancel removal
+                      </Button>
+                    </div>
+                  ) : null}
                 </li>
               ))}
             </ul>
@@ -302,7 +387,9 @@ function AccountMfaPage() {
                 />
               </div>
               <Button disabled={busy || status?.unavailable} onClick={() => void beginEnrollment()}>
-                {status?.hasVerifiedFactor ? "Add another authenticator" : "Set up authenticator app"}
+                {status?.hasVerifiedFactor
+                  ? "Add another authenticator"
+                  : "Set up authenticator app"}
               </Button>
             </div>
           )}
