@@ -104,3 +104,90 @@ export function normalizeMfaError(message: string | undefined): string {
   }
   return "We could not verify that code. Try again with the current code from your authenticator app.";
 }
+/**
+ * Resolves whether MANDATORY MFA applies to the signed-in principal, from the
+ * roles the caller can actually read under RLS.
+ *
+ * This is a UX/routing input only. The authoritative requirement is the
+ * stage-two RLS conjunction (`app_private.has_aal2()`), prepared in
+ * docs/sec-006-stage-two-enforcement.sql. Read failures fail closed to
+ * `mandatory: true`, which under `resolveMfaGuard` routes the principal to
+ * enrollment rather than granting anything.
+ */
+export async function readMandatoryMfa(userId: string): Promise<boolean> {
+  const { requiresAal2ForAny, DEFAULT_ORGANIZATION_MFA_POLICY, type PrincipalRole } = await import(
+    "./mfa"
+  ).then((m) => ({ ...m, type: undefined as never }));
+  void PrincipalRole;
+  void DEFAULT_ORGANIZATION_MFA_POLICY;
+  try {
+    const [adminResult, rolesResult] = await Promise.all([
+      supabase
+        .from("platform_admins")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("status", "active")
+        .maybeSingle(),
+      supabase
+        .from("user_roles")
+        .select("organization_id, role:roles(code)")
+        .eq("user_id", userId)
+        .eq("status", "active"),
+    ]);
+    if (adminResult.error || rolesResult.error) return true;
+    if (adminResult.data) return true;
+
+    const rows = (rolesResult.data ?? []).filter(
+      (row): row is { organization_id: string; role: { code: string } } =>
+        Boolean(row.role) && typeof row.organization_id === "string",
+    );
+    if (rows.some((row) => mapRoleCode(row.role.code) === "org_admin")) return true;
+
+    const conditional = rows.filter((row) => {
+      const role = mapRoleCode(row.role.code);
+      return role === "teacher" || role === "tutor";
+    });
+    if (conditional.length === 0) return false;
+
+    const organizationIds = Array.from(new Set(conditional.map((row) => row.organization_id)));
+    const { data: settings, error: settingsError } = await supabase
+      .from("organization_security_settings")
+      .select("organization_id, teacher_mfa_required, tutor_mfa_required")
+      .in("organization_id", organizationIds);
+    if (settingsError) return true;
+
+    return conditional.some((row) => {
+      const setting = (settings ?? []).find((s) => s.organization_id === row.organization_id);
+      const policy = setting
+        ? {
+            teacherMfaRequired: setting.teacher_mfa_required === true,
+            tutorMfaRequired: setting.tutor_mfa_required === true,
+          }
+        : { teacherMfaRequired: false, tutorMfaRequired: false };
+      return requiresAal2ForAny([mapRoleCode(row.role.code)], policy);
+    });
+  } catch {
+    return true;
+  }
+}
+
+/** Maps database role codes onto the policy evaluator's principal roles. */
+export function mapRoleCode(code: string): import("./mfa").PrincipalRole {
+  switch (code) {
+    case "org_admin":
+    case "organization_admin":
+      return "org_admin";
+    case "teacher":
+      return "teacher";
+    case "tutor":
+      return "tutor";
+    case "parent_guardian":
+    case "parent":
+      return "parent";
+    case "student":
+      return "student";
+    default:
+      // Unknown code: treated as privileged by requiresAal2()'s fail-closed default.
+      return "platform_admin";
+  }
+}
