@@ -2,6 +2,7 @@
 import { gradeAnswer, percentageOf } from "@/lib/assessment-grading";
 import { MASTERY_FROM_PERCENTAGE, gradeLabelFor } from "@/features/assessments/constants";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- PostgREST query builders are deeply generic; narrowing here would duplicate the generated types without adding safety.
 type Db = { from: (table: string) => any };
 
 export interface ScoredSubmission {

@@ -58,6 +58,7 @@ function remainingSeconds(lockedUntil: string | null | undefined): number {
 }
 
 type AdminClient = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- PostgREST query builders are deeply generic; narrowing here would duplicate the generated types without adding safety.
   from: (table: string) => any;
 };
 

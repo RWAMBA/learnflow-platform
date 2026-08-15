@@ -5,6 +5,7 @@
 import type { AssessmentInput, QuestionInput, RubricInput } from "@/features/assessments/schemas";
 
 type Db = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- PostgREST query builders are deeply generic; narrowing here would duplicate the generated types without adding safety.
   from: (table: string) => any;
 };
 
