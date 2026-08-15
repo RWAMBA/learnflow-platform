@@ -192,7 +192,9 @@ export function RubricDialog({
                     variant="ghost"
                     size="icon"
                     aria-label="Remove criterion"
-                    onClick={() => setCriteria(criteria.filter((_, position) => position !== index))}
+                    onClick={() =>
+                      setCriteria(criteria.filter((_, position) => position !== index))
+                    }
                   >
                     <Trash2 className="size-4" />
                   </Button>

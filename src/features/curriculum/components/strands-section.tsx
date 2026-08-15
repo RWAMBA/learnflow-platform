@@ -104,8 +104,7 @@ export function StrandsSection({
           {(rows) => (
             <div className="space-y-5">
               {rows.map((strand) => {
-                const ownsStrand =
-                  mayAuthor && strand.authoring_organization_id === null;
+                const ownsStrand = mayAuthor && strand.authoring_organization_id === null;
                 return (
                   <section key={strand.id} className="rounded-lg border p-4">
                     <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
@@ -175,8 +174,7 @@ export function StrandsSection({
                         <p className="text-sm text-muted-foreground">No sub-strands yet.</p>
                       ) : null}
                       {(strand.sub_strands ?? []).map((sub) => {
-                        const ownsSub =
-                          mayAuthor && sub.authoring_organization_id === null;
+                        const ownsSub = mayAuthor && sub.authoring_organization_id === null;
                         return (
                           <div key={sub.id} className="rounded-md border p-3">
                             <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">

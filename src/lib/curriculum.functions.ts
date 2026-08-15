@@ -37,20 +37,14 @@ const lessonInput = z
     contentBody: z.string().trim().max(20000).nullable().optional(),
     status: publishStatus,
   })
-  .refine(
-    (value) => value.authorType !== "tenant" || Boolean(value.organizationId),
-    {
-      message: "Tenant lessons require an organization.",
-      path: ["organizationId"],
-    },
-  )
-  .refine(
-    (value) => value.authorType !== "platform" || !value.organizationId,
-    {
-      message: "Platform lessons cannot have a tenant organization.",
-      path: ["organizationId"],
-    },
-  );
+  .refine((value) => value.authorType !== "tenant" || Boolean(value.organizationId), {
+    message: "Tenant lessons require an organization.",
+    path: ["organizationId"],
+  })
+  .refine((value) => value.authorType !== "platform" || !value.organizationId, {
+    message: "Platform lessons cannot have a tenant organization.",
+    path: ["organizationId"],
+  });
 
 const objectiveInput = z.object({
   id: uuid.optional(),
@@ -171,8 +165,7 @@ export const saveLesson = createServerFn({ method: "POST" })
       content_body: data.contentBody ? { body: data.contentBody } : null,
       status: data.status,
       author_type: data.authorType,
-      authoring_organization_id:
-        data.authorType === "tenant" ? data.organizationId! : null,
+      authoring_organization_id: data.authorType === "tenant" ? data.organizationId! : null,
       published_at: data.status === "published" ? new Date().toISOString() : null,
     };
     const query = data.id
@@ -181,8 +174,7 @@ export const saveLesson = createServerFn({ method: "POST" })
     const { data: saved, error } = await query;
     if (error) throw new Error(error.message);
     await writeAudit(context, {
-      organizationId:
-        data.authorType === "tenant" ? data.organizationId! : null,
+      organizationId: data.authorType === "tenant" ? data.organizationId! : null,
       action: data.id ? "curriculum.lesson.updated" : "curriculum.lesson.created",
       entityType: "lessons",
       entityId: saved.id,

@@ -9,7 +9,10 @@ import {
   listAssignmentsForStudents,
   listProgressForStudent,
 } from "@/features/assignments/api";
-import { AssignmentStatusBadge, MasteryBadge } from "@/features/assignments/components/status-badge";
+import {
+  AssignmentStatusBadge,
+  MasteryBadge,
+} from "@/features/assignments/components/status-badge";
 import { curriculumKeys, getGradeWithContent } from "@/features/curriculum/api";
 import { formatDate } from "@/lib/format";
 import { WidgetCard } from "./widget-card";
@@ -36,7 +39,13 @@ export function DueTodayWidget({ studentId }: { studentId: string }) {
         onRetry={() => void query.refetch()}
         skeleton={<ListSkeleton rows={2} />}
         isEmpty={(data) => data.filter((item) => item.status !== "graded").length === 0}
-        empty={<EmptyState icon={CalendarClock} title="Nothing due" description="You're all caught up." />}
+        empty={
+          <EmptyState
+            icon={CalendarClock}
+            title="Nothing due"
+            description="You're all caught up."
+          />
+        }
       >
         {(assignments) => (
           <ul className="learning-surface space-y-3 rounded-md">
@@ -75,7 +84,11 @@ export function SubjectGridWidget({ gradeId }: { gradeId: string | null }) {
   if (!gradeId) {
     return (
       <WidgetCard title="Your subjects">
-        <EmptyState icon={BookOpen} title="No grade set" description="An administrator or guardian can set your grade." />
+        <EmptyState
+          icon={BookOpen}
+          title="No grade set"
+          description="An administrator or guardian can set your grade."
+        />
       </WidgetCard>
     );
   }
@@ -132,7 +145,12 @@ export function ProgressSummaryWidget({ studentId }: { studentId: string }) {
         onRetry={() => void query.refetch()}
         skeleton={<ListSkeleton rows={2} />}
         isEmpty={(data) => data.length === 0}
-        empty={<EmptyState title="No progress recorded yet" description="Mastery appears here after work is graded." />}
+        empty={
+          <EmptyState
+            title="No progress recorded yet"
+            description="Mastery appears here after work is graded."
+          />
+        }
       >
         {(records) => (
           <ul className="learning-surface space-y-3 rounded-md">

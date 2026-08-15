@@ -34,7 +34,12 @@ export function MessagesPreviewWidget() {
         onRetry={() => void query.refetch()}
         skeleton={<ListSkeleton rows={2} />}
         isEmpty={(data) => data.length === 0}
-        empty={<EmptyState title="No conversations yet" description="Messages appear here once a conversation starts." />}
+        empty={
+          <EmptyState
+            title="No conversations yet"
+            description="Messages appear here once a conversation starts."
+          />
+        }
       >
         {(conversations) => (
           <ul className="space-y-3">

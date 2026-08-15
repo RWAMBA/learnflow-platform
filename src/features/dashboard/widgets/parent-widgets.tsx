@@ -48,27 +48,28 @@ export function ChildrenWidget({ userId }: { userId: string }) {
       >
         {(rows) => {
           const links = rows.filter(
-            (row): row is typeof row & { student: NonNullable<typeof row.student> } => Boolean(row.student),
+            (row): row is typeof row & { student: NonNullable<typeof row.student> } =>
+              Boolean(row.student),
           );
           return (
-          <ul className="grid gap-2 sm:grid-cols-2">
-            {links.map((link) => (
-              <li key={link.id}>
-                <Link
-                  to="/students/$studentId"
-                  params={{ studentId: link.student.id }}
-                  className="block rounded-lg border p-3 transition-colors duration-200 hover:bg-accent"
-                >
-                  <span className="block font-medium">
-                    {link.student.first_name} {link.student.last_name}
-                  </span>
-                  <span className="block text-sm text-muted-foreground">
-                    {link.student.grade?.name ?? "No grade set"} · {link.permission_level}
-                  </span>
-                </Link>
-              </li>
-            ))}
-          </ul>
+            <ul className="grid gap-2 sm:grid-cols-2">
+              {links.map((link) => (
+                <li key={link.id}>
+                  <Link
+                    to="/students/$studentId"
+                    params={{ studentId: link.student.id }}
+                    className="block rounded-lg border p-3 transition-colors duration-200 hover:bg-accent"
+                  >
+                    <span className="block font-medium">
+                      {link.student.first_name} {link.student.last_name}
+                    </span>
+                    <span className="block text-sm text-muted-foreground">
+                      {link.student.grade?.name ?? "No grade set"} · {link.permission_level}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
           );
         }}
       </QueryState>
@@ -86,8 +87,11 @@ export function PendingInvitationsWidget({ userId }: { userId: string }) {
   });
 
   const mutation = useMutation({
-    mutationFn: (input: { kind: "parent" | "teacher" | "tutor"; relationshipId: string; accept: boolean }) =>
-      respond({ data: input }),
+    mutationFn: (input: {
+      kind: "parent" | "teacher" | "tutor";
+      relationshipId: string;
+      accept: boolean;
+    }) => respond({ data: input }),
     onSuccess: async () => {
       toast.success("Invitation updated.");
       await queryClient.invalidateQueries();
@@ -121,7 +125,11 @@ export function PendingInvitationsWidget({ userId }: { userId: string }) {
                     size="sm"
                     disabled={mutation.isPending}
                     onClick={() =>
-                      mutation.mutate({ kind: invitation.kind, relationshipId: invitation.id, accept: true })
+                      mutation.mutate({
+                        kind: invitation.kind,
+                        relationshipId: invitation.id,
+                        accept: true,
+                      })
                     }
                   >
                     Accept
@@ -131,7 +139,11 @@ export function PendingInvitationsWidget({ userId }: { userId: string }) {
                     variant="outline"
                     disabled={mutation.isPending}
                     onClick={() =>
-                      mutation.mutate({ kind: invitation.kind, relationshipId: invitation.id, accept: false })
+                      mutation.mutate({
+                        kind: invitation.kind,
+                        relationshipId: invitation.id,
+                        accept: false,
+                      })
                     }
                   >
                     Decline

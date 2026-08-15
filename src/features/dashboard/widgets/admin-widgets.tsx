@@ -88,7 +88,13 @@ export function SubscriptionWidget({ organizationId }: { organizationId: string 
         data={query.data}
         onRetry={() => void query.refetch()}
         isEmpty={(data) => !data}
-        empty={<EmptyState icon={Building2} title="No active plan" description="Choose a plan to unlock more seats." />}
+        empty={
+          <EmptyState
+            icon={Building2}
+            title="No active plan"
+            description="Choose a plan to unlock more seats."
+          />
+        }
       >
         {(subscription) => (
           <div>

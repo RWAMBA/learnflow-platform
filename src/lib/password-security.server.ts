@@ -3,6 +3,48 @@
 export const ATTEMPTS_BEFORE_COOLDOWN = 3;
 export const COOLDOWN_STEPS = [30, 60, 300] as const;
 
+// Generic, non-revealing failure surfaced to callers. Never include env var
+// names, database details, provider errors, identifiers or stack traces.
+export const LOCKOUT_UNAVAILABLE_MESSAGE =
+  "Password security verification is temporarily unavailable. Please try again later.";
+
+export class LockoutServiceUnavailableError extends Error {
+  constructor() {
+    super(LOCKOUT_UNAVAILABLE_MESSAGE);
+    this.name = "LockoutServiceUnavailableError";
+  }
+}
+
+/**
+ * Redacted server-side diagnostic. Logs only a stable operation label and a
+ * coarse reason code — never credentials, tokens, emails, user ids, keys or
+ * database rows.
+ */
+export function logLockoutDiagnostic(operation: string, reason: string): void {
+  console.error(`[password-security] operation=${operation} reason=${reason}`);
+}
+
+/**
+ * Validates that the server-only admin configuration required by the lockout
+ * reads/writes is present, before any client is constructed or used.
+ */
+export function assertLockoutServiceConfigured(
+  env: {
+    SUPABASE_URL?: string | undefined;
+    SUPABASE_SERVICE_ROLE_KEY?: string | undefined;
+  } = process.env,
+): void {
+  if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
+    logLockoutDiagnostic("configuration-check", "admin-configuration-incomplete");
+    throw new LockoutServiceUnavailableError();
+  }
+}
+
+function persistenceFailure(operation: string): never {
+  logLockoutDiagnostic(operation, "lockout-persistence-failure");
+  throw new LockoutServiceUnavailableError();
+}
+
 export type LockoutState = {
   failedAttempts: number;
   lockedForSeconds: number;
@@ -16,6 +58,7 @@ function remainingSeconds(lockedUntil: string | null | undefined): number {
 }
 
 type AdminClient = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- PostgREST query builders are deeply generic; narrowing here would duplicate the generated types without adding safety.
   from: (table: string) => any;
 };
 
@@ -25,11 +68,12 @@ export async function readLockout(admin: AdminClient, userId: string): Promise<L
     .select("failed_attempts, locked_until")
     .eq("user_id", userId)
     .maybeSingle();
-  if (error) throw new Error(error.message);
+  if (error) persistenceFailure("read-lockout");
 
   const lockedForSeconds = remainingSeconds(data?.locked_until ?? null);
   return {
-    failedAttempts: lockedForSeconds > 0 ? (data?.failed_attempts ?? 0) : (data?.failed_attempts ?? 0),
+    failedAttempts:
+      lockedForSeconds > 0 ? (data?.failed_attempts ?? 0) : (data?.failed_attempts ?? 0),
     lockedForSeconds,
     cooldownSeconds: null,
   };
@@ -59,7 +103,7 @@ export async function registerFailure(admin: AdminClient, userId: string): Promi
     },
     { onConflict: "user_id" },
   );
-  if (error) throw new Error(error.message);
+  if (error) persistenceFailure("register-failure");
 
   return {
     failedAttempts: attempts,
@@ -78,6 +122,6 @@ export async function clearFailures(admin: AdminClient, userId: string): Promise
     },
     { onConflict: "user_id" },
   );
-  if (error) throw new Error(error.message);
+  if (error) persistenceFailure("clear-failures");
   return { failedAttempts: 0, lockedForSeconds: 0, cooldownSeconds: null };
 }

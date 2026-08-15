@@ -29,6 +29,10 @@ import {
 import { PasswordStrengthMeter } from "@/features/auth/components/password-strength-meter";
 
 const ATTEMPTS_BEFORE_COOLDOWN = 3;
+// Shown whenever the authoritative lockout read/write cannot be completed.
+// Intentionally free of environment, database or internal error detail.
+const LOCKOUT_UNAVAILABLE_MESSAGE =
+  "Password security verification is temporarily unavailable. Please try again later.";
 
 function formatWait(seconds: number) {
   if (seconds < 60) return `${seconds} seconds`;
@@ -40,7 +44,10 @@ export const Route = createFileRoute("/_authenticated/account/security")({
   head: () => ({
     meta: [
       { title: "Account security — the Platform" },
-      { name: "description", content: "Change your password and keep your Platform account secure." },
+      {
+        name: "description",
+        content: "Change your password and keep your Platform account secure.",
+      },
       { property: "og:title", content: "Account security — the Platform" },
       {
         property: "og:description",
@@ -58,6 +65,7 @@ function AccountSecurityPage() {
   const [sessionExpired, setSessionExpired] = useState(false);
   const [failedAttempts, setFailedAttempts] = useState(0);
   const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
+  const [lockoutUnavailable, setLockoutUnavailable] = useState(false);
   const loadLockout = useServerFn(getPasswordChangeLockout);
   const reportFailure = useServerFn(recordPasswordChangeFailure);
   const resetFailures = useServerFn(clearPasswordChangeFailures);
@@ -75,18 +83,22 @@ function AccountSecurityPage() {
     void loadLockout()
       .then((state) => {
         if (!active) return;
+        setLockoutUnavailable(false);
         setFailedAttempts(state.failedAttempts);
         if (state.lockedForSeconds > 0) {
           setCooldownUntil(Date.now() + state.lockedForSeconds * 1000);
           setFormError({
             title: "Password changes are paused",
             description:
-              "Too many incorrect current-password attempts. Wait for the countdown to finish, or sign out and use the \"Forgot your password?\" reset link instead.",
+              'Too many incorrect current-password attempts. Wait for the countdown to finish, or sign out and use the "Forgot your password?" reset link instead.',
           });
         }
       })
       .catch(() => {
-        /* lockout state is advisory in the UI; the server re-checks on submit */
+        if (!active) return;
+        // Fail closed: we could not confirm attempt limiting, so warn now and
+        // block the submit path until the check succeeds again.
+        setLockoutUnavailable(true);
       });
     return () => {
       active = false;
@@ -113,8 +125,20 @@ function AccountSecurityPage() {
   const onSubmit = async (values: ChangePasswordValues) => {
     if (locked) return;
     // Re-check the persisted lockout: a refresh clears local state, not this.
-    const serverState = await loadLockout().catch(() => null);
-    if (serverState && serverState.lockedForSeconds > 0) {
+    let serverState: Awaited<ReturnType<typeof loadLockout>> | null = null;
+    try {
+      serverState = await loadLockout();
+      setLockoutUnavailable(false);
+    } catch {
+      // Fail closed: an unreachable lockout service must block the change.
+      setLockoutUnavailable(true);
+      setFormError({
+        title: "Password change unavailable",
+        description: LOCKOUT_UNAVAILABLE_MESSAGE,
+      });
+      return;
+    }
+    if (serverState.lockedForSeconds > 0) {
       setFailedAttempts(serverState.failedAttempts);
       setCooldownUntil(Date.now() + serverState.lockedForSeconds * 1000);
       setFormError({
@@ -143,13 +167,26 @@ function AccountSecurityPage() {
       password: values.currentPassword,
     });
     if (verifyError) {
-      const state = await reportFailure().catch(() => null);
-      const attempts = state?.failedAttempts ?? failedAttempts + 1;
+      let state: Awaited<ReturnType<typeof reportFailure>>;
+      try {
+        state = await reportFailure();
+      } catch {
+        // Fail closed: no client-only attempt counter or local cooldown.
+        setLockoutUnavailable(true);
+        form.setError("currentPassword", { message: "That current password is incorrect" });
+        setFormError({
+          title: "Password change unavailable",
+          description: LOCKOUT_UNAVAILABLE_MESSAGE,
+        });
+        return;
+      }
+      setLockoutUnavailable(false);
+      const attempts = state.failedAttempts;
       setFailedAttempts(attempts);
       form.setError("currentPassword", { message: "That current password is incorrect" });
       form.setFocus("currentPassword");
 
-      if (state && state.lockedForSeconds > 0) {
+      if (state.lockedForSeconds > 0) {
         const wait = state.cooldownSeconds ?? state.lockedForSeconds;
         setCooldownUntil(Date.now() + state.lockedForSeconds * 1000);
         setFormError({
@@ -169,14 +206,22 @@ function AccountSecurityPage() {
 
     setFailedAttempts(0);
     setCooldownUntil(null);
-    await resetFailures().catch(() => null);
+    try {
+      await resetFailures();
+      setLockoutUnavailable(false);
+    } catch (resetError) {
+      // Non-blocking: the verification succeeded; stale rows expire on their own.
+      void resetError;
+    }
 
     const { error } = await supabase.auth.updateUser({ password: values.password });
     if (error) {
       const expired = /jwt|session|token|not authenticated/i.test(error.message);
       setSessionExpired(expired);
       setFormError({
-        title: expired ? "Your session expired before we could save" : "We could not update your password",
+        title: expired
+          ? "Your session expired before we could save"
+          : "We could not update your password",
         description: expired
           ? "Sign in again and retry the change — nothing was saved."
           : error.message,
@@ -218,11 +263,23 @@ function AccountSecurityPage() {
                   <AlertDescription className="space-y-2">
                     <p>{formError.description}</p>
                     {sessionExpired ? (
-                      <Button type="button" size="sm" variant="outline" onClick={() => void handleReauthenticate()}>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => void handleReauthenticate()}
+                      >
                         Sign in again
                       </Button>
                     ) : null}
                   </AlertDescription>
+                </Alert>
+              ) : null}
+              {lockoutUnavailable && !formError ? (
+                <Alert role="status" aria-live="polite">
+                  <AlertTriangle className="size-4" aria-hidden />
+                  <AlertTitle>Password change unavailable</AlertTitle>
+                  <AlertDescription>{LOCKOUT_UNAVAILABLE_MESSAGE}</AlertDescription>
                 </Alert>
               ) : null}
               {locked ? (
@@ -237,7 +294,12 @@ function AccountSecurityPage() {
                   <FormItem>
                     <FormLabel>Current password</FormLabel>
                     <FormControl>
-                      <Input type="password" autoComplete="current-password" disabled={locked} {...field} />
+                      <Input
+                        type="password"
+                        autoComplete="current-password"
+                        disabled={locked}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

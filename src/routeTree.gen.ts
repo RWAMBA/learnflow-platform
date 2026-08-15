@@ -12,11 +12,17 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as McpRouteImport } from './routes/mcp'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
+import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as ApiEnvPreflightRouteImport } from './routes/api/env-preflight'
+import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
+import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
+import { Route as AuthenticatedAccountMfaRouteImport } from './routes/_authenticated/account.mfa'
 import { Route as AuthenticatedAccountSecurityRouteImport } from './routes/_authenticated/account.security'
 import { Route as AuthenticatedAccountSecurityChecklistRouteImport } from './routes/_authenticated/account.security-checklist'
 import { Route as AuthenticatedAdminTenantsRouteImport } from './routes/_authenticated/admin.tenants'
@@ -35,6 +41,7 @@ import { Route as AuthenticatedCurriculumProgressRouteImport } from './routes/_a
 import { Route as AuthenticatedCurriculumVersionsRouteImport } from './routes/_authenticated/curriculum.versions'
 import { Route as AuthenticatedMessagesIndexRouteImport } from './routes/_authenticated/messages.index'
 import { Route as AuthenticatedMessagesConversationIdRouteImport } from './routes/_authenticated/messages.$conversationId'
+import { Route as AuthenticatedMfaChallengeRouteImport } from './routes/_authenticated/mfa.challenge'
 import { Route as AuthenticatedOrganizationIndexRouteImport } from './routes/_authenticated/organization.index'
 import { Route as AuthenticatedOrganizationBillingRouteImport } from './routes/_authenticated/organization.billing'
 import { Route as AuthenticatedStudentsIndexRouteImport } from './routes/_authenticated/students.index'
@@ -60,11 +67,28 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Char91DotmcpChar93ListToolsRoute =
+  Char91DotmcpChar93ListToolsRouteImport.update({
+    id: '/.mcp/list-tools',
+    path: '/.mcp/list-tools',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const Char91DotwellKnownChar93OauthProtectedResourceRoute =
+  Char91DotwellKnownChar93OauthProtectedResourceRouteImport.update({
+    id: '/.well-known/oauth-protected-resource',
+    path: '/.well-known/oauth-protected-resource',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
@@ -85,6 +109,22 @@ const ApiEnvPreflightRoute = ApiEnvPreflightRouteImport.update({
   id: '/api/env-preflight',
   path: '/api/env-preflight',
   getParentRoute: () => rootRouteImport,
+} as any)
+const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
+  id: '/.lovable/oauth/consent',
+  path: '/.lovable/oauth/consent',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Char91DotmcpChar93InvokeToolToolRoute =
+  Char91DotmcpChar93InvokeToolToolRouteImport.update({
+    id: '/.mcp/invoke-tool/$tool',
+    path: '/.mcp/invoke-tool/$tool',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const AuthenticatedAccountMfaRoute = AuthenticatedAccountMfaRouteImport.update({
+  id: '/account/mfa',
+  path: '/account/mfa',
+  getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAccountSecurityRoute =
   AuthenticatedAccountSecurityRouteImport.update({
@@ -194,6 +234,12 @@ const AuthenticatedMessagesConversationIdRoute =
     path: '/messages/$conversationId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedMfaChallengeRoute =
+  AuthenticatedMfaChallengeRouteImport.update({
+    id: '/mfa/challenge',
+    path: '/mfa/challenge',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedOrganizationIndexRoute =
   AuthenticatedOrganizationIndexRouteImport.update({
     id: '/organization/',
@@ -258,11 +304,17 @@ const AuthenticatedCurriculumSubjectsSubjectIdRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/mcp': typeof McpRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/api/env-preflight': typeof ApiEnvPreflightRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/account/mfa': typeof AuthenticatedAccountMfaRoute
   '/account/security': typeof AuthenticatedAccountSecurityRoute
   '/account/security-checklist': typeof AuthenticatedAccountSecurityChecklistRoute
   '/admin/tenants': typeof AuthenticatedAdminTenantsRoute
@@ -277,6 +329,7 @@ export interface FileRoutesByFullPath {
   '/curriculum/progress': typeof AuthenticatedCurriculumProgressRoute
   '/curriculum/versions': typeof AuthenticatedCurriculumVersionsRoute
   '/messages/$conversationId': typeof AuthenticatedMessagesConversationIdRoute
+  '/mfa/challenge': typeof AuthenticatedMfaChallengeRoute
   '/organization/billing': typeof AuthenticatedOrganizationBillingRoute
   '/students/$studentId': typeof AuthenticatedStudentsStudentIdRoute
   '/students/new': typeof AuthenticatedStudentsNewRoute
@@ -295,11 +348,17 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/mcp': typeof McpRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/api/env-preflight': typeof ApiEnvPreflightRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/account/mfa': typeof AuthenticatedAccountMfaRoute
   '/account/security': typeof AuthenticatedAccountSecurityRoute
   '/account/security-checklist': typeof AuthenticatedAccountSecurityChecklistRoute
   '/admin/tenants': typeof AuthenticatedAdminTenantsRoute
@@ -314,6 +373,7 @@ export interface FileRoutesByTo {
   '/curriculum/progress': typeof AuthenticatedCurriculumProgressRoute
   '/curriculum/versions': typeof AuthenticatedCurriculumVersionsRoute
   '/messages/$conversationId': typeof AuthenticatedMessagesConversationIdRoute
+  '/mfa/challenge': typeof AuthenticatedMfaChallengeRoute
   '/organization/billing': typeof AuthenticatedOrganizationBillingRoute
   '/students/$studentId': typeof AuthenticatedStudentsStudentIdRoute
   '/students/new': typeof AuthenticatedStudentsNewRoute
@@ -334,11 +394,17 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/mcp': typeof McpRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
+  '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/api/env-preflight': typeof ApiEnvPreflightRoute
+  '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
+  '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
+  '/_authenticated/account/mfa': typeof AuthenticatedAccountMfaRoute
   '/_authenticated/account/security': typeof AuthenticatedAccountSecurityRoute
   '/_authenticated/account/security-checklist': typeof AuthenticatedAccountSecurityChecklistRoute
   '/_authenticated/admin/tenants': typeof AuthenticatedAdminTenantsRoute
@@ -353,6 +419,7 @@ export interface FileRoutesById {
   '/_authenticated/curriculum/progress': typeof AuthenticatedCurriculumProgressRoute
   '/_authenticated/curriculum/versions': typeof AuthenticatedCurriculumVersionsRoute
   '/_authenticated/messages/$conversationId': typeof AuthenticatedMessagesConversationIdRoute
+  '/_authenticated/mfa/challenge': typeof AuthenticatedMfaChallengeRoute
   '/_authenticated/organization/billing': typeof AuthenticatedOrganizationBillingRoute
   '/_authenticated/students/$studentId': typeof AuthenticatedStudentsStudentIdRoute
   '/_authenticated/students/new': typeof AuthenticatedStudentsNewRoute
@@ -373,11 +440,17 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/mcp'
     | '/reset-password'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/dashboard'
     | '/notifications'
     | '/onboarding'
     | '/api/env-preflight'
+    | '/.lovable/oauth/consent'
+    | '/.mcp/invoke-tool/$tool'
+    | '/account/mfa'
     | '/account/security'
     | '/account/security-checklist'
     | '/admin/tenants'
@@ -392,6 +465,7 @@ export interface FileRouteTypes {
     | '/curriculum/progress'
     | '/curriculum/versions'
     | '/messages/$conversationId'
+    | '/mfa/challenge'
     | '/organization/billing'
     | '/students/$studentId'
     | '/students/new'
@@ -410,11 +484,17 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/mcp'
     | '/reset-password'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/dashboard'
     | '/notifications'
     | '/onboarding'
     | '/api/env-preflight'
+    | '/.lovable/oauth/consent'
+    | '/.mcp/invoke-tool/$tool'
+    | '/account/mfa'
     | '/account/security'
     | '/account/security-checklist'
     | '/admin/tenants'
@@ -429,6 +509,7 @@ export interface FileRouteTypes {
     | '/curriculum/progress'
     | '/curriculum/versions'
     | '/messages/$conversationId'
+    | '/mfa/challenge'
     | '/organization/billing'
     | '/students/$studentId'
     | '/students/new'
@@ -448,11 +529,17 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/mcp'
     | '/reset-password'
+    | '/.mcp/list-tools'
+    | '/.well-known/oauth-protected-resource'
     | '/_authenticated/dashboard'
     | '/_authenticated/notifications'
     | '/_authenticated/onboarding'
     | '/api/env-preflight'
+    | '/.lovable/oauth/consent'
+    | '/.mcp/invoke-tool/$tool'
+    | '/_authenticated/account/mfa'
     | '/_authenticated/account/security'
     | '/_authenticated/account/security-checklist'
     | '/_authenticated/admin/tenants'
@@ -467,6 +554,7 @@ export interface FileRouteTypes {
     | '/_authenticated/curriculum/progress'
     | '/_authenticated/curriculum/versions'
     | '/_authenticated/messages/$conversationId'
+    | '/_authenticated/mfa/challenge'
     | '/_authenticated/organization/billing'
     | '/_authenticated/students/$studentId'
     | '/_authenticated/students/new'
@@ -487,8 +575,13 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  McpRoute: typeof McpRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
+  Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   ApiEnvPreflightRoute: typeof ApiEnvPreflightRoute
+  DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
+  Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -514,11 +607,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reset-password': {
       id: '/reset-password'
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.mcp/list-tools': {
+      id: '/.mcp/list-tools'
+      path: '/.mcp/list-tools'
+      fullPath: '/.mcp/list-tools'
+      preLoaderRoute: typeof Char91DotmcpChar93ListToolsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.well-known/oauth-protected-resource': {
+      id: '/.well-known/oauth-protected-resource'
+      path: '/.well-known/oauth-protected-resource'
+      fullPath: '/.well-known/oauth-protected-resource'
+      preLoaderRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/dashboard': {
@@ -548,6 +662,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/env-preflight'
       preLoaderRoute: typeof ApiEnvPreflightRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/.lovable/oauth/consent': {
+      id: '/.lovable/oauth/consent'
+      path: '/.lovable/oauth/consent'
+      fullPath: '/.lovable/oauth/consent'
+      preLoaderRoute: typeof DotlovableOauthConsentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/.mcp/invoke-tool/$tool': {
+      id: '/.mcp/invoke-tool/$tool'
+      path: '/.mcp/invoke-tool/$tool'
+      fullPath: '/.mcp/invoke-tool/$tool'
+      preLoaderRoute: typeof Char91DotmcpChar93InvokeToolToolRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/account/mfa': {
+      id: '/_authenticated/account/mfa'
+      path: '/account/mfa'
+      fullPath: '/account/mfa'
+      preLoaderRoute: typeof AuthenticatedAccountMfaRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/account/security': {
       id: '/_authenticated/account/security'
@@ -675,6 +810,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedMessagesConversationIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/mfa/challenge': {
+      id: '/_authenticated/mfa/challenge'
+      path: '/mfa/challenge'
+      fullPath: '/mfa/challenge'
+      preLoaderRoute: typeof AuthenticatedMfaChallengeRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/organization/': {
       id: '/_authenticated/organization/'
       path: '/organization'
@@ -752,6 +894,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedOnboardingRoute: typeof AuthenticatedOnboardingRoute
+  AuthenticatedAccountMfaRoute: typeof AuthenticatedAccountMfaRoute
   AuthenticatedAccountSecurityRoute: typeof AuthenticatedAccountSecurityRoute
   AuthenticatedAccountSecurityChecklistRoute: typeof AuthenticatedAccountSecurityChecklistRoute
   AuthenticatedAdminTenantsRoute: typeof AuthenticatedAdminTenantsRoute
@@ -766,6 +909,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCurriculumProgressRoute: typeof AuthenticatedCurriculumProgressRoute
   AuthenticatedCurriculumVersionsRoute: typeof AuthenticatedCurriculumVersionsRoute
   AuthenticatedMessagesConversationIdRoute: typeof AuthenticatedMessagesConversationIdRoute
+  AuthenticatedMfaChallengeRoute: typeof AuthenticatedMfaChallengeRoute
   AuthenticatedOrganizationBillingRoute: typeof AuthenticatedOrganizationBillingRoute
   AuthenticatedStudentsStudentIdRoute: typeof AuthenticatedStudentsStudentIdRoute
   AuthenticatedStudentsNewRoute: typeof AuthenticatedStudentsNewRoute
@@ -786,6 +930,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedOnboardingRoute: AuthenticatedOnboardingRoute,
+  AuthenticatedAccountMfaRoute: AuthenticatedAccountMfaRoute,
   AuthenticatedAccountSecurityRoute: AuthenticatedAccountSecurityRoute,
   AuthenticatedAccountSecurityChecklistRoute:
     AuthenticatedAccountSecurityChecklistRoute,
@@ -805,6 +950,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCurriculumVersionsRoute: AuthenticatedCurriculumVersionsRoute,
   AuthenticatedMessagesConversationIdRoute:
     AuthenticatedMessagesConversationIdRoute,
+  AuthenticatedMfaChallengeRoute: AuthenticatedMfaChallengeRoute,
   AuthenticatedOrganizationBillingRoute: AuthenticatedOrganizationBillingRoute,
   AuthenticatedStudentsStudentIdRoute: AuthenticatedStudentsStudentIdRoute,
   AuthenticatedStudentsNewRoute: AuthenticatedStudentsNewRoute,
@@ -833,8 +979,14 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  McpRoute: McpRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
+  Char91DotwellKnownChar93OauthProtectedResourceRoute:
+    Char91DotwellKnownChar93OauthProtectedResourceRoute,
   ApiEnvPreflightRoute: ApiEnvPreflightRoute,
+  DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
+  Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

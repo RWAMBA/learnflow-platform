@@ -24,7 +24,10 @@ import {
   listAssignmentsForStudents,
   listProgressForStudent,
 } from "@/features/assignments/api";
-import { AssignmentStatusBadge, MasteryBadge } from "@/features/assignments/components/status-badge";
+import {
+  AssignmentStatusBadge,
+  MasteryBadge,
+} from "@/features/assignments/components/status-badge";
 import {
   listOrganizationMembers,
   listRelationshipsForStudent,
@@ -39,7 +42,10 @@ export const Route = createFileRoute("/_authenticated/students/$studentId")({
   head: () => ({
     meta: [
       { title: "Student profile — the Platform" },
-      { name: "description", content: "Assignments, mastery progress and connected adults for this student." },
+      {
+        name: "description",
+        content: "Assignments, mastery progress and connected adults for this student.",
+      },
       { property: "og:title", content: "Student profile — the Platform" },
       { property: "og:description", content: "Assignments, progress and connected adults." },
       { property: "og:type", content: "website" },
@@ -126,7 +132,9 @@ function StudentAssignments({ studentId }: { studentId: string }) {
       data={query.data}
       onRetry={() => void query.refetch()}
       isEmpty={(data) => data.length === 0}
-      empty={<EmptyState title="No assignments yet" description="Assigned lessons will appear here." />}
+      empty={
+        <EmptyState title="No assignments yet" description="Assigned lessons will appear here." />
+      }
     >
       {(assignments) => (
         <ul className="space-y-2">
@@ -166,12 +174,20 @@ function StudentProgress({ studentId }: { studentId: string }) {
       data={query.data}
       onRetry={() => void query.refetch()}
       isEmpty={(data) => data.length === 0}
-      empty={<EmptyState title="No progress recorded" description="Mastery is recorded when work is graded." />}
+      empty={
+        <EmptyState
+          title="No progress recorded"
+          description="Mastery is recorded when work is graded."
+        />
+      }
     >
       {(records) => (
         <ul className="space-y-2">
           {records.map((record) => (
-            <li key={record.id} className="flex items-center justify-between gap-3 rounded-lg border p-4">
+            <li
+              key={record.id}
+              className="flex items-center justify-between gap-3 rounded-lg border p-4"
+            >
               <span>
                 <span className="block font-medium">{record.competency?.name}</span>
                 <span className="block text-sm text-muted-foreground">
@@ -235,15 +251,27 @@ function StudentRelationships({ studentId }: { studentId: string }) {
             error={relationships.error}
             data={relationships.data}
             onRetry={() => void relationships.refetch()}
-            isEmpty={(data) => data.parents.length + data.teachers.length + data.tutors.length === 0}
-            empty={<EmptyState title="Nobody connected yet" description="Invite a teacher, tutor or co-guardian." />}
+            isEmpty={(data) =>
+              data.parents.length + data.teachers.length + data.tutors.length === 0
+            }
+            empty={
+              <EmptyState
+                title="Nobody connected yet"
+                description="Invite a teacher, tutor or co-guardian."
+              />
+            }
           >
             {(data) => (
               <ul className="space-y-2">
                 {data.parents.map((row) => (
-                  <li key={row.id} className="flex items-center justify-between gap-2 rounded-md border p-3">
+                  <li
+                    key={row.id}
+                    className="flex items-center justify-between gap-2 rounded-md border p-3"
+                  >
                     <span>
-                      <span className="block font-medium">{row.parent?.full_name ?? "Invited guardian"}</span>
+                      <span className="block font-medium">
+                        {row.parent?.full_name ?? "Invited guardian"}
+                      </span>
                       <span className="block text-sm text-muted-foreground">
                         Guardian · {row.permission_level}
                       </span>
@@ -252,9 +280,14 @@ function StudentRelationships({ studentId }: { studentId: string }) {
                   </li>
                 ))}
                 {data.teachers.map((row) => (
-                  <li key={row.id} className="flex items-center justify-between gap-2 rounded-md border p-3">
+                  <li
+                    key={row.id}
+                    className="flex items-center justify-between gap-2 rounded-md border p-3"
+                  >
                     <span>
-                      <span className="block font-medium">{row.teacher?.full_name ?? "Invited teacher"}</span>
+                      <span className="block font-medium">
+                        {row.teacher?.full_name ?? "Invited teacher"}
+                      </span>
                       <span className="block text-sm text-muted-foreground">
                         Teacher · {row.subject?.name ?? "All subjects"}
                       </span>
@@ -263,9 +296,14 @@ function StudentRelationships({ studentId }: { studentId: string }) {
                   </li>
                 ))}
                 {data.tutors.map((row) => (
-                  <li key={row.id} className="flex items-center justify-between gap-2 rounded-md border p-3">
+                  <li
+                    key={row.id}
+                    className="flex items-center justify-between gap-2 rounded-md border p-3"
+                  >
                     <span>
-                      <span className="block font-medium">{row.tutor?.full_name ?? "Invited tutor"}</span>
+                      <span className="block font-medium">
+                        {row.tutor?.full_name ?? "Invited tutor"}
+                      </span>
                       <span className="block text-sm text-muted-foreground">
                         Tutor · {row.subject?.name ?? "All subjects"}
                       </span>
@@ -317,7 +355,10 @@ function StudentRelationships({ studentId }: { studentId: string }) {
                 </SelectContent>
               </Select>
             </div>
-            <Button disabled={!inviteeUserId || mutation.isPending} onClick={() => mutation.mutate()}>
+            <Button
+              disabled={!inviteeUserId || mutation.isPending}
+              onClick={() => mutation.mutate()}
+            >
               {mutation.isPending ? "Sending…" : "Send invitation"}
             </Button>
           </CardContent>

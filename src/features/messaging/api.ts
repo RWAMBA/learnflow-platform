@@ -146,7 +146,9 @@ export async function listAllowedContacts(params: {
 
   const { data, error } = await supabase
     .from("user_roles")
-    .select("id, user_id, profile:profiles!user_roles_user_id_fkey(full_name), role:roles(code, name)")
+    .select(
+      "id, user_id, profile:profiles!user_roles_user_id_fkey(full_name), role:roles(code, name)",
+    )
     .eq("organization_id", params.organizationId)
     .eq("status", "active")
     .in("user_id", Array.from(counterpartUserIds));

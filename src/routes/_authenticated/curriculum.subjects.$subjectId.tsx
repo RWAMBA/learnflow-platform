@@ -58,13 +58,10 @@ function SubjectPage() {
 
   const mayAssign = canAssignCurriculum(activeRole?.roleCode);
 
-  const mayAuthorPlatform = canAuthorPlatformCurriculum(
-    viewer.isPlatformAdmin,
-  );
+  const mayAuthorPlatform = canAuthorPlatformCurriculum(viewer.isPlatformAdmin);
 
   const mayAuthorTenant =
-    canAuthorTenantCurriculum(activeRole?.roleCode) &&
-    Boolean(organizationId);
+    canAuthorTenantCurriculum(activeRole?.roleCode) && Boolean(organizationId);
 
   const query = useQuery({
     queryKey: curriculumKeys.subject(subjectId),
@@ -77,8 +74,7 @@ function SubjectPage() {
     queryFn: () => listSubjectAssignments(subjectId),
   });
 
-  const mayCreateLesson =
-    mayAuthorPlatform || mayAuthorTenant;
+  const mayCreateLesson = mayAuthorPlatform || mayAuthorTenant;
 
   const refresh = () => {
     void queryClient.invalidateQueries({ queryKey: curriculumKeys.subject(subjectId) });
@@ -488,15 +484,8 @@ function LessonList({
   mayAuthorPlatform: boolean;
   mayAuthorTenant: boolean;
   onRefresh: () => void;
-  onStatus: (
-    id: string,
-    status: "draft" | "published",
-    auditOrganizationId: string | null,
-  ) => void;
-  onDelete: (
-    id: string,
-    auditOrganizationId: string | null,
-  ) => void;
+  onStatus: (id: string, status: "draft" | "published", auditOrganizationId: string | null) => void;
+  onDelete: (id: string, auditOrganizationId: string | null) => void;
 }) {
   if (lessons.length === 0) {
     return <p className="mt-3 text-sm text-muted-foreground">No lessons in this topic yet.</p>;
@@ -518,29 +507,17 @@ function LessonList({
           <div className="flex flex-wrap items-center gap-2">
             <span className="text-xs uppercase text-muted-foreground">{lesson.content_type}</span>
             <CurriculumStatusBadge status={lesson.status} />
-            {(
-              mayAuthorPlatform &&
+            {(mayAuthorPlatform &&
               lesson.author_type === "platform" &&
-              lesson.authoring_organization_id === null
-            ) ||
-            (
-              mayAuthorTenant &&
+              lesson.authoring_organization_id === null) ||
+            (mayAuthorTenant &&
               Boolean(organizationId) &&
               lesson.author_type === "tenant" &&
-              lesson.authoring_organization_id === organizationId
-            ) ? (
+              lesson.authoring_organization_id === organizationId) ? (
               <>
                 <LessonFormDialog
-                  organizationId={
-                    lesson.author_type === "tenant"
-                      ? organizationId
-                      : null
-                  }
-                  authorType={
-                    lesson.author_type === "platform"
-                      ? "platform"
-                      : "tenant"
-                  }
+                  organizationId={lesson.author_type === "tenant" ? organizationId : null}
+                  authorType={lesson.author_type === "platform" ? "platform" : "tenant"}
                   subjectId={subjectId}
                   topics={topics}
                   lesson={lesson}
@@ -559,30 +536,19 @@ function LessonList({
                   onClick={() =>
                     onStatus(
                       lesson.id,
-                      lesson.status === "published"
-                        ? "draft"
-                        : "published",
-                      lesson.author_type === "tenant"
-                        ? organizationId
-                        : null,
+                      lesson.status === "published" ? "draft" : "published",
+                      lesson.author_type === "tenant" ? organizationId : null,
                     )
                   }
                 >
-                  {lesson.status === "published"
-                    ? "Unpublish"
-                    : "Publish"}
+                  {lesson.status === "published" ? "Unpublish" : "Publish"}
                 </Button>
 
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() =>
-                    onDelete(
-                      lesson.id,
-                      lesson.author_type === "tenant"
-                        ? organizationId
-                        : null,
-                    )
+                    onDelete(lesson.id, lesson.author_type === "tenant" ? organizationId : null)
                   }
                 >
                   Delete

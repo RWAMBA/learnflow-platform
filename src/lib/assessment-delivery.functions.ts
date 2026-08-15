@@ -24,7 +24,9 @@ export const startAttempt = createServerFn({ method: "POST" })
 
     const { data: assessment, error } = await supabase
       .from("assessment_definitions")
-      .select("id, organization_id, status, attempts_allowed, due_at, late_submission_allowed, available_until")
+      .select(
+        "id, organization_id, status, attempts_allowed, due_at, late_submission_allowed, available_until",
+      )
       .eq("id", data.assessmentId)
       .single();
     if (error) throw new Error(error.message);

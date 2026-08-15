@@ -6,3 +6,9 @@ pnpm-lock.yaml
 package-lock.json
 bun.lock
 routeTree.gen.ts
+src/integrations/supabase/types.ts
+src/routeTree.gen.ts
+src/routes/mcp.ts
+src/routes/**/list-tools.ts
+src/routes/**/invoke-tool/**
+src/routes/**/oauth-protected-resource.ts

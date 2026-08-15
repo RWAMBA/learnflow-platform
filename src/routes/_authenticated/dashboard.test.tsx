@@ -37,7 +37,10 @@ vi.mock("@/features/relationships/api", () => ({
   listOrganizationMembers: async () => [],
 }));
 vi.mock("@/features/assignments/api", () => ({
-  assignmentKeys: { forStudent: (id: string) => ["assignments", id], progress: (id: string) => ["progress", id] },
+  assignmentKeys: {
+    forStudent: (id: string) => ["assignments", id],
+    progress: (id: string) => ["progress", id],
+  },
   listAssignmentsForStudents: (...a: unknown[]) => listAssignments(...a),
   listProgressForStudent: async () => [],
 }));
@@ -45,7 +48,9 @@ vi.mock("@/features/messaging/api", () => ({
   messagingKeys: { conversations: (id: string) => ["conversations", id] },
   listConversations: async () => [],
 }));
-vi.mock("@/features/dashboard/use-viewer-students", () => ({ useCurrentStudent: () => ({ data: null, isPending: false }) }));
+vi.mock("@/features/dashboard/use-viewer-students", () => ({
+  useCurrentStudent: () => ({ data: null, isPending: false }),
+}));
 vi.mock("@/features/roles/role-context", () => ({
   useRoleContext: () => ({
     viewer: { userId: "u1", fullName: "Grace Parent", isPlatformAdmin: false, roles: [] },
@@ -63,7 +68,8 @@ vi.mock("@/features/roles/role-context", () => ({
 }));
 
 const { Route } = await import("./dashboard");
-const DashboardPage = (Route as unknown as { options: { component: () => React.ReactElement } }).options.component;
+const DashboardPage = (Route as unknown as { options: { component: () => React.ReactElement } })
+  .options.component;
 
 function renderDashboard() {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -78,10 +84,21 @@ const visible = (id: string, first: string) => ({
   id: `rel-${id}`,
   permission_level: "full",
   status: "active",
-  student: { id, first_name: first, last_name: "Doe", organization_id: "o1", grade: { name: "Grade 4" } },
+  student: {
+    id,
+    first_name: first,
+    last_name: "Doe",
+    organization_id: "o1",
+    grade: { name: "Grade 4" },
+  },
 });
 const hiddenNull = { id: "rel-null", permission_level: "view", status: "active", student: null };
-const hiddenUndefined = { id: "rel-undef", permission_level: "view", status: "active", student: undefined };
+const hiddenUndefined = {
+  id: "rel-undef",
+  permission_level: "view",
+  status: "active",
+  student: undefined,
+};
 
 beforeEach(() => {
   vi.clearAllMocks();
@@ -107,7 +124,12 @@ describe("parent dashboard route", () => {
   });
 
   it("renders mixed visible and RLS-hidden relationships without crashing", async () => {
-    listLinked.mockResolvedValue([visible("s1", "Ada"), hiddenNull, hiddenUndefined, visible("s2", "Ben")]);
+    listLinked.mockResolvedValue([
+      visible("s1", "Ada"),
+      hiddenNull,
+      hiddenUndefined,
+      visible("s2", "Ben"),
+    ]);
     renderDashboard();
     expect(await screen.findByText(/Ada/)).toBeInTheDocument();
     expect(screen.getByText(/Ben/)).toBeInTheDocument();

@@ -21,7 +21,10 @@ export function NotificationBell() {
 
   return (
     <Button asChild variant="ghost" size="icon" className="relative">
-      <Link to="/notifications" aria-label={`Notifications${unread > 0 ? `, ${unread} unread` : ""}`}>
+      <Link
+        to="/notifications"
+        aria-label={`Notifications${unread > 0 ? `, ${unread} unread` : ""}`}
+      >
         <Bell aria-hidden="true" className="size-5" />
         {unread > 0 ? (
           <Badge

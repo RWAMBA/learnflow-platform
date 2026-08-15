@@ -1,5 +1,6 @@
 import { MIN_PASSWORD_LENGTH } from "@/features/auth/schemas";
 import { passwordRules } from "@/features/auth/password-rules";
+import { MFA_ENFORCEMENT_ENABLED, MIN_ENROLLED_PLATFORM_ADMINS } from "@/features/security/mfa";
 
 export type ChecklistStatus = "compliant" | "attention" | "manual";
 
@@ -87,6 +88,32 @@ export const securityChecklist: ChecklistItem[] = [
       label: "Supabase auth providers",
       href: "https://supabase.com/dashboard/project/smvlwwevgtwkdndxfmtp/auth/providers",
     },
+  },
+  {
+    id: "mfa-available",
+    title: "Two-factor authentication (authenticator app)",
+    description: "Any signed-in user can add a TOTP authenticator to their account.",
+    status: "compliant",
+    detail:
+      "Set up, verify and remove authenticator apps from Account → Two-factor authentication. Removing a factor always requires a freshly verified code.",
+    link: { label: "Manage two-factor authentication", href: "/account/mfa" },
+  },
+  {
+    id: "mfa-recovery-hardening",
+    title: "Password reset cannot bypass two-factor",
+    description: "A reset link alone cannot set a new password on a protected account.",
+    status: "compliant",
+    detail:
+      "The reset page requires a current authenticator code before the new password is accepted whenever the account has a verified factor, and fails closed if that check cannot run.",
+  },
+  {
+    id: "mfa-mandatory",
+    title: "Mandatory two-factor for administrators",
+    description: "Required for Platform and Organization Administrators once activated.",
+    status: MFA_ENFORCEMENT_ENABLED ? "compliant" : "attention",
+    detail: MFA_ENFORCEMENT_ENABLED
+      ? "Mandatory enforcement is active: administrators must hold a verified authenticator and complete a challenge before reaching administrative pages."
+      : `Enforcement is deliberately switched off until at least ${MIN_ENROLLED_PLATFORM_ADMINS} platform administrators have a verified authenticator, which prevents locking every administrator out.`,
   },
 ];
 

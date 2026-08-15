@@ -90,7 +90,13 @@ export function GradingQueueWidget({ studentIds }: { studentIds: string[] }) {
         onRetry={() => void query.refetch()}
         skeleton={<ListSkeleton rows={2} />}
         isEmpty={() => pending.length === 0}
-        empty={<EmptyState icon={ClipboardList} title="Nothing to grade" description="Submitted work appears here." />}
+        empty={
+          <EmptyState
+            icon={ClipboardList}
+            title="Nothing to grade"
+            description="Submitted work appears here."
+          />
+        }
       >
         {() => (
           <ul className="space-y-3">
