@@ -278,8 +278,24 @@ function extractStage1aPrecondition(sql: string): Map<string, PolicyFields> {
     if (!head) continue;
     const tail = chunk.slice(head.index + head[0].length);
     const grab = (keyword: "qual" | "with_check"): string => {
-      const m = new RegExp(`\\b${keyword}\\s*=\\s*'([\\s\\S]*?)'\\s*(?:AND\\b|$)`, "i").exec(tail);
-      return m ? m[1]!.replace(/''/g, "'") : "";
+      const m = new RegExp(`\\b${keyword}\\s*=\\s*'`, "i").exec(tail);
+      if (!m) return "";
+      // Scan the SQL string literal, honouring '' as an escaped quote.
+      let k = m.index + m[0].length;
+      let literal = "";
+      while (k < tail.length) {
+        if (tail[k] === "'") {
+          if (tail[k + 1] === "'") {
+            literal += "'";
+            k += 2;
+            continue;
+          }
+          return literal;
+        }
+        literal += tail[k];
+        k += 1;
+      }
+      throw new Error(`unterminated ${keyword} literal in precondition`);
     };
     const name = head[1]!.toLowerCase();
     if (out.has(name)) throw new Error(`duplicate precondition entry for ${name}`);
