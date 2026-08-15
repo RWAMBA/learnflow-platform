@@ -64,21 +64,13 @@ export function assertAal2(claims: unknown): void {
   }
 }
 
-/**
- * The authoritative server-side gate for a privileged mutation. Enforcement is
- * conditional: it is a no-op while `enforcementEnabled` is false, which is how
- * SEC-006 ships without risking administrator lockout.
- */
-export function enforcePrivilegedAssurance(input: {
-  enforcementEnabled: boolean;
-  role: PrincipalRole;
-  policy?: OrganizationMfaPolicy;
-  claims: unknown;
-}): void {
-  if (!input.enforcementEnabled) return;
-  if (!requiresAal2(input.role, input.policy ?? DEFAULT_ORGANIZATION_MFA_POLICY)) return;
-  assertAal2(input.claims);
-}
+// SEC-006 Gate 5: a generic `enforcePrivilegedAssurance()` helper used to live
+// here. It was wired to nothing, so it represented protection that did not
+// exist. It is intentionally removed until stage two introduces the mapped,
+// tested enforcement for application mutations. The only server-side AAL2
+// enforcement that is active today is `assertAal2()` on administrator-assisted
+// factor reset, which additionally requires active Platform Administrator
+// status verified as the caller.
 
 type AdminClient = {
   from: (table: string) => any;
