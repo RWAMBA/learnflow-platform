@@ -16,6 +16,302 @@ const has = (needle: string) => SQL.includes(needle);
 /** SQL with `--` comments stripped, for destructive-keyword scanning. */
 const SQL_CODE = SQL.replace(/^\s*--.*$/gm, "");
 
+/**
+ * Authoritative external source of the pre-Stage-1A curriculum_versions policy
+ * baseline: the SEC-005 hardening migration. The Stage 1A fail-closed
+ * precondition block is compared against THIS file, never against constants
+ * written into this test and never against Stage 1A's own later target
+ * CREATE POLICY statements.
+ */
+const SEC005_FILE = "20260809194700_harden_curriculum_authorization.sql";
+const SEC005_SQL = readFileSync(`supabase/migrations/${SEC005_FILE}`, "utf8");
+
+const CV_POLICIES = [
+  "curriculum_versions_select",
+  "curriculum_versions_insert",
+  "curriculum_versions_update",
+  "curriculum_versions_delete",
+] as const;
+
+interface PolicyFields {
+  command: string;
+  role: string;
+  using: string;
+  check: string;
+}
+
+/* ------------------------------------------------------------------ *
+ * Conservative boolean-structure normalisation.
+ *
+ * The predicate is parsed into a boolean tree (NOT > AND > OR) whose atoms
+ * are compared as text after removing only cosmetic noise: keyword/identifier
+ * case, whitespace, PostgreSQL's explicit `::text` casts on string literals,
+ * and parentheses that merely restate natural precedence. Operand order,
+ * operators, nesting shape, function names and arguments are preserved
+ * exactly, so two predicates with different authorization logic can never
+ * normalise to the same value.
+ * ------------------------------------------------------------------ */
+type BoolNode =
+  | { kind: "atom"; text: string }
+  | { kind: "not"; child: BoolNode }
+  | { kind: "op"; op: "and" | "or"; left: BoolNode; right: BoolNode };
+
+function parseBoolean(input: string): BoolNode {
+  let i = 0;
+  const src = input;
+
+  const skipWs = () => {
+    while (i < src.length && /\s/.test(src[i]!)) i += 1;
+  };
+  const peekWord = (): string => {
+    skipWs();
+    const m = /^[A-Za-z_][A-Za-z0-9_]*/.exec(src.slice(i));
+    return m ? m[0]!.toLowerCase() : "";
+  };
+  const eatWord = (word: string) => {
+    skipWs();
+    i += word.length;
+  };
+
+  const readAtom = (): BoolNode => {
+    skipWs();
+    const start = i;
+    let depth = 0;
+    let inString = false;
+    while (i < src.length) {
+      const char = src[i]!;
+      if (char === "'") {
+        inString = !inString;
+        i += 1;
+        continue;
+      }
+      if (inString) {
+        i += 1;
+        continue;
+      }
+      if (char === "(") {
+        depth += 1;
+        i += 1;
+        continue;
+      }
+      if (char === ")") {
+        if (depth === 0) break;
+        depth -= 1;
+        i += 1;
+        continue;
+      }
+      if (depth === 0 && /[A-Za-z_]/.test(char)) {
+        const word = /^[A-Za-z_][A-Za-z0-9_]*/.exec(src.slice(i))![0]!.toLowerCase();
+        // A boolean connective at depth 0 ends the atom. `is`/`not`/`null`
+        // belong to the atom (`organization_id IS NOT NULL`).
+        if (word === "and" || word === "or") break;
+        i += word.length;
+        continue;
+      }
+      i += 1;
+    }
+    const raw = src.slice(start, i).trim();
+    if (raw === "") throw new Error(`empty atom in predicate: ${input}`);
+    return { kind: "atom", text: normalizeAtom(raw) };
+  };
+
+  const parsePrimary = (): BoolNode => {
+    skipWs();
+    if (peekWord() === "not") {
+      eatWord("not");
+      return { kind: "not", child: parsePrimary() };
+    }
+    if (src[i] === "(") {
+      i += 1;
+      const node = parseOr();
+      skipWs();
+      if (src[i] !== ")") throw new Error(`unbalanced parentheses in predicate: ${input}`);
+      i += 1;
+      return node;
+    }
+    return readAtom();
+  };
+
+  const parseAnd = (): BoolNode => {
+    let left = parsePrimary();
+    while (peekWord() === "and") {
+      eatWord("and");
+      left = { kind: "op", op: "and", left, right: parsePrimary() };
+    }
+    return left;
+  };
+
+  function parseOr(): BoolNode {
+    let left = parseAnd();
+    while (peekWord() === "or") {
+      eatWord("or");
+      left = { kind: "op", op: "or", left, right: parseAnd() };
+    }
+    return left;
+  }
+
+  const tree = parseOr();
+  skipWs();
+  if (i !== src.length) throw new Error(`trailing input in predicate: ${input.slice(i)}`);
+  return tree;
+}
+
+function normalizeAtom(raw: string): string {
+  let text = raw.toLowerCase();
+  text = text.replace(/::text/g, "");
+  text = text.replace(/\s+/g, " ");
+  text = text.replace(/\s*([(),])\s*/g, "$1");
+  text = text.replace(/\s*(=|<>|!=)\s*/g, "$1");
+  // Strip parentheses that fully enclose the atom, e.g. `(organization_id is null)`.
+  while (text.startsWith("(") && text.endsWith(")")) {
+    let depth = 0;
+    let wraps = true;
+    for (let k = 0; k < text.length; k += 1) {
+      if (text[k] === "(") depth += 1;
+      else if (text[k] === ")") {
+        depth -= 1;
+        if (depth === 0 && k < text.length - 1) wraps = false;
+      }
+    }
+    if (!wraps) break;
+    text = text.slice(1, -1).trim();
+  }
+  return text;
+}
+
+function render(node: BoolNode): string {
+  if (node.kind === "atom") return node.text;
+  if (node.kind === "not") return `not(${render(node.child)})`;
+  return `${node.op}(${render(node.left)},${render(node.right)})`;
+}
+
+/** Canonical, order- and shape-preserving form of a row-security predicate. */
+function canonical(expression: string): string {
+  return render(parseBoolean(expression));
+}
+
+/** Balanced-parenthesis clause starting at the `(` after `index`. */
+function balanced(sql: string, index: number): string {
+  const open = sql.indexOf("(", index);
+  if (open === -1) throw new Error("clause parenthesis not found");
+  let depth = 0;
+  let inString = false;
+  for (let k = open; k < sql.length; k += 1) {
+    const char = sql[k];
+    if (char === "'") inString = !inString;
+    else if (!inString && char === "(") depth += 1;
+    else if (!inString && char === ")") {
+      depth -= 1;
+      if (depth === 0) return sql.slice(open + 1, k);
+    }
+  }
+  throw new Error("unbalanced clause");
+}
+
+/**
+ * Independently extracts the LATEST `CREATE POLICY` definition for each named
+ * curriculum_versions policy from the SEC-005 source migration.
+ */
+function extractSec005Policies(sql: string): Map<string, PolicyFields> {
+  const found = new Map<string, PolicyFields>();
+  const counts = new Map<string, number>();
+  const re =
+    /CREATE\s+POLICY\s+(curriculum_versions_\w+)\s+ON\s+public\.curriculum_versions\s+FOR\s+(\w+)\s+TO\s+([A-Za-z0-9_, ]+?)\s+(USING|WITH\s+CHECK)\s*\(/gi;
+  let match: RegExpExecArray | null;
+  while ((match = re.exec(sql))) {
+    const name = match[1]!.toLowerCase();
+    counts.set(name, (counts.get(name) ?? 0) + 1);
+    const bodyStart = match.index + match[0].length - 1;
+    const first = balanced(sql, bodyStart);
+    let using = "";
+    let check = "";
+    let cursor = bodyStart + first.length + 2;
+    if (/^using$/i.test(match[4]!.replace(/\s+/g, " "))) {
+      using = first;
+      const rest = sql.slice(cursor, cursor + 200);
+      const wc = /^\s*WITH\s+CHECK\s*\(/i.exec(rest);
+      if (wc) {
+        check = balanced(sql, cursor + wc.index);
+        cursor += wc.index + check.length + wc[0].length;
+      }
+    } else {
+      check = first;
+    }
+    found.set(name, {
+      command: match[2]!.toUpperCase(),
+      role: match[3]!.trim().toLowerCase(),
+      using,
+      check,
+    });
+  }
+  for (const [name, count] of counts) {
+    if (count !== 1) throw new Error(`policy ${name} defined ${count} times in SEC-005 source`);
+  }
+  return found;
+}
+
+/**
+ * Extracts the expected baseline expressions from the Stage 1A migration's
+ * FAIL-CLOSED PRECONDITION BLOCK ONLY. The slice is bounded by the `$precheck$`
+ * delimiters and further narrowed to the statement that raises
+ * `curriculum_versions policy baseline mismatch`, so the later target
+ * `CREATE POLICY` section can never be read by mistake.
+ */
+function extractStage1aPrecondition(sql: string): Map<string, PolicyFields> {
+  const blockStart = sql.indexOf("$precheck$");
+  const blockEnd = sql.lastIndexOf("$precheck$");
+  if (blockStart === -1 || blockEnd <= blockStart) throw new Error("precheck block not found");
+  const block = sql.slice(blockStart, blockEnd);
+  const raiseAt = block.indexOf("curriculum_versions policy baseline mismatch");
+  if (raiseAt === -1) throw new Error("policy baseline precondition not found");
+  // Walk back to the start of the guarding IF statement.
+  const ifAt = block.lastIndexOf("IF NOT EXISTS", raiseAt);
+  const scope = block.slice(ifAt, raiseAt);
+  if (/CREATE\s+POLICY/i.test(scope)) throw new Error("precondition scope leaked into target DDL");
+
+  const out = new Map<string, PolicyFields>();
+  for (const chunk of scope.split(/\bOR\s+NOT\s+EXISTS\b/i)) {
+    const head =
+      /policyname\s*=\s*'(curriculum_versions_\w+)'\s+AND\s+cmd\s*=\s*'(\w+)'\s+AND\s+roles\s*=\s*'\{([a-z0-9_,]+)\}'/i.exec(
+        chunk,
+      );
+    if (!head) continue;
+    const tail = chunk.slice(head.index + head[0].length);
+    const grab = (keyword: "qual" | "with_check"): string => {
+      const m = new RegExp(`\\b${keyword}\\s*=\\s*'`, "i").exec(tail);
+      if (!m) return "";
+      // Scan the SQL string literal, honouring '' as an escaped quote.
+      let k = m.index + m[0].length;
+      let literal = "";
+      while (k < tail.length) {
+        if (tail[k] === "'") {
+          if (tail[k + 1] === "'") {
+            literal += "'";
+            k += 2;
+            continue;
+          }
+          return literal;
+        }
+        literal += tail[k];
+        k += 1;
+      }
+      throw new Error(`unterminated ${keyword} literal in precondition`);
+    };
+    const name = head[1]!.toLowerCase();
+    if (out.has(name)) throw new Error(`duplicate precondition entry for ${name}`);
+    out.set(name, {
+      command: head[2]!.toUpperCase(),
+      role: head[3]!.trim().toLowerCase(),
+      using: grab("qual"),
+      check: grab("with_check"),
+    });
+  }
+  return out;
+}
+
+const SEC005_POLICIES = extractSec005Policies(SEC005_SQL);
+const STAGE1A_PRECONDITION = extractStage1aPrecondition(SQL);
+
 describe("Stage 1A — transaction and safety envelope", () => {
   it("is exactly one explicit transaction", () => {
     expect(SQL.match(/^BEGIN;$/gm)).toHaveLength(1);
@@ -80,16 +376,8 @@ describe("Stage 1A — fail-closed preconditions", () => {
     expect(has("tenant-owned curriculum versions require data-disposition review")).toBe(true);
   });
 
-  it("asserts the four SEC-005 curriculum_versions policy predicates before replacing them", () => {
+  it("has a curriculum_versions policy-baseline precondition", () => {
     expect(has("curriculum_versions policy baseline mismatch")).toBe(true);
-    expect(
-      has(
-        "'((organization_id IS NULL) AND ((status = ''published''::text) OR app_private.is_platform_admin()))'",
-      ),
-    ).toBe(true);
-    expect(
-      SQL.split("'((organization_id IS NULL) AND app_private.is_platform_admin())'").length - 1,
-    ).toBeGreaterThanOrEqual(4);
   });
 
   it("every assertion raises and therefore aborts the whole transaction", () => {
@@ -437,5 +725,108 @@ describe("Stage 1A — scope containment", () => {
     const stageTwo = readFileSync("docs/sec-006-stage-two-enforcement.sql", "utf8");
     expect(stageTwo).toContain("has_aal2");
     expect(MIGRATIONS.some((n) => n.includes("stage_two"))).toBe(false);
+  });
+});
+
+describe("Stage 1A — policy baseline proved against the SEC-005 source migration", () => {
+  it("reads the authoritative SEC-005 migration as an external source", () => {
+    expect(SEC005_SQL.length).toBeGreaterThan(0);
+    expect(SEC005_FILE).toBe("20260809194700_harden_curriculum_authorization.sql");
+    expect(MIGRATIONS).toContain(SEC005_FILE);
+    // The proof must consult a second file, not only the Stage 1A migration.
+    expect(SEC005_SQL).not.toBe(SQL);
+  });
+
+  it("finds exactly one definition of each of the four curriculum_versions policies", () => {
+    expect([...SEC005_POLICIES.keys()].sort()).toEqual([...CV_POLICIES].sort());
+    expect([...STAGE1A_PRECONDITION.keys()].sort()).toEqual([...CV_POLICIES].sort());
+  });
+
+  it("compares the precondition block, never Stage 1A's later target policies", () => {
+    // Sanity: Stage 1A's target SELECT is USING (true), which must NOT be what
+    // the precondition asserts — proving the extraction reads the right region.
+    expect(SQL).toContain("CREATE POLICY curriculum_versions_select ON public.curriculum_versions");
+    expect(canonical(STAGE1A_PRECONDITION.get("curriculum_versions_select")!.using)).not.toBe(
+      canonical("true"),
+    );
+  });
+
+  it.each(CV_POLICIES)("%s matches the SEC-005 source command, role and predicates", (name) => {
+    const source = SEC005_POLICIES.get(name)!;
+    const expected = STAGE1A_PRECONDITION.get(name)!;
+    expect(source).toBeDefined();
+    expect(expected).toBeDefined();
+
+    expect(expected.command).toBe(source.command);
+    expect(source.role).toBe("authenticated");
+    expect(expected.role).toBe("authenticated");
+
+    if (source.using !== "") {
+      expect(canonical(expected.using)).toBe(canonical(source.using));
+    } else {
+      expect(expected.using).toBe("");
+    }
+    if (source.check !== "") {
+      expect(canonical(expected.check)).toBe(canonical(source.check));
+    } else {
+      expect(expected.check).toBe("");
+    }
+  });
+
+  it("verifies UPDATE carries both a USING and a WITH CHECK predicate", () => {
+    const source = SEC005_POLICIES.get("curriculum_versions_update")!;
+    const expected = STAGE1A_PRECONDITION.get("curriculum_versions_update")!;
+    expect(source.using).not.toBe("");
+    expect(source.check).not.toBe("");
+    expect(expected.using).not.toBe("");
+    expect(expected.check).not.toBe("");
+    expect(canonical(expected.check)).toBe(canonical(source.check));
+  });
+
+  it("keeps tenant isolation and both SELECT branches", () => {
+    const select = canonical(SEC005_POLICIES.get("curriculum_versions_select")!.using);
+    expect(select).toContain("organization_id is null");
+    expect(select).toContain("status='published'");
+    expect(select).toContain("app_private.is_platform_admin()");
+    // Boolean grouping: tenant isolation ANDed over the OR of the two branches.
+    expect(select).toBe(
+      canonical(
+        "organization_id IS NULL AND (status = 'published' OR app_private.is_platform_admin())",
+      ),
+    );
+    expect(canonical(STAGE1A_PRECONDITION.get("curriculum_versions_select")!.using)).toBe(select);
+  });
+
+  it("proves no write policy admits can_author_curriculum", () => {
+    for (const name of [
+      "curriculum_versions_insert",
+      "curriculum_versions_update",
+      "curriculum_versions_delete",
+    ] as const) {
+      for (const clause of [SEC005_POLICIES.get(name)!, STAGE1A_PRECONDITION.get(name)!]) {
+        expect(`${clause.using} ${clause.check}`).not.toContain("can_author_curriculum");
+      }
+    }
+  });
+});
+
+describe("Stage 1A — predicate normalisation is conservative", () => {
+  it("ignores only case, whitespace, text casts and redundant parentheses", () => {
+    expect(canonical("((organization_id IS NULL) AND app_private.is_platform_admin())")).toBe(
+      canonical("organization_id is null AND app_private.is_platform_admin()"),
+    );
+    expect(canonical("(status = 'published'::text)")).toBe(canonical("status = 'published'"));
+  });
+
+  it("never treats different boolean grouping or operand order as equivalent", () => {
+    expect(canonical("a AND (b OR c)")).not.toBe(canonical("(a AND b) OR c"));
+    expect(canonical("a AND b")).not.toBe(canonical("b AND a"));
+    expect(canonical("a OR b")).not.toBe(canonical("a AND b"));
+    expect(canonical("NOT a")).not.toBe(canonical("a"));
+    expect(canonical("f(x)")).not.toBe(canonical("f(y)"));
+  });
+
+  it("fails loudly when a source migration is missing", () => {
+    expect(() => readFileSync("supabase/migrations/does-not-exist.sql", "utf8")).toThrow();
   });
 });
