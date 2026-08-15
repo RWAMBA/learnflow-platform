@@ -270,18 +270,22 @@ function extractStage1aPrecondition(sql: string): Map<string, PolicyFields> {
   if (/CREATE\s+POLICY/i.test(scope)) throw new Error("precondition scope leaked into target DDL");
 
   const out = new Map<string, PolicyFields>();
-  const re =
-    /policyname\s*=\s*'(curriculum_versions_\w+)'\s+AND\s+cmd\s*=\s*'(\w+)'\s+AND\s+roles\s*=\s*'\{([a-z0-9_,]+)\}'([\s\S]*?)\)\s*(?:OR NOT EXISTS|$)/gi;
-  let match: RegExpExecArray | null;
-  while ((match = re.exec(scope))) {
-    const tail = match[4]!;
+  for (const chunk of scope.split(/\bOR\s+NOT\s+EXISTS\b/i)) {
+    const head =
+      /policyname\s*=\s*'(curriculum_versions_\w+)'\s+AND\s+cmd\s*=\s*'(\w+)'\s+AND\s+roles\s*=\s*'\{([a-z0-9_,]+)\}'/i.exec(
+        chunk,
+      );
+    if (!head) continue;
+    const tail = chunk.slice(head.index + head[0].length);
     const grab = (keyword: "qual" | "with_check"): string => {
       const m = new RegExp(`\\b${keyword}\\s*=\\s*'([\\s\\S]*?)'\\s*(?:AND\\b|$)`, "i").exec(tail);
       return m ? m[1]!.replace(/''/g, "'") : "";
     };
-    out.set(match[1]!.toLowerCase(), {
-      command: match[2]!.toUpperCase(),
-      role: match[3]!.trim().toLowerCase(),
+    const name = head[1]!.toLowerCase();
+    if (out.has(name)) throw new Error(`duplicate precondition entry for ${name}`);
+    out.set(name, {
+      command: head[2]!.toUpperCase(),
+      role: head[3]!.trim().toLowerCase(),
       using: grab("qual"),
       check: grab("with_check"),
     });
