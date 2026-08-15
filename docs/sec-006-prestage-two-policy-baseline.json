@@ -1,0 +1,337 @@
+{
+  "captured_at": "2026-08-15T13:24:18Z",
+  "captured_from": "live Supabase catalog pg_policies (project smvlwwevgtwkdndxfmtp), read-only",
+  "note": "Pre-stage-two authoritative policy definitions. organization_security_settings_platform_admin_write is intentionally absent: stage one left that table read-only, so rollback drops the policy and revokes the write grants.",
+  "policies": [
+    {
+      "policy": "curriculum_versions_insert",
+      "table": "curriculum_versions",
+      "command": "INSERT",
+      "roles": [
+        "authenticated"
+      ],
+      "source": "supabase/migrations/20260809194700_harden_curriculum_authorization.sql (SEC-005 curriculum authorization hardening; live catalog is authoritative)",
+      "original_using": "",
+      "original_check": "((organization_id IS NULL) AND app_private.is_platform_admin())"
+    },
+    {
+      "policy": "curriculum_versions_update",
+      "table": "curriculum_versions",
+      "command": "UPDATE",
+      "roles": [
+        "authenticated"
+      ],
+      "source": "supabase/migrations/20260809194700_harden_curriculum_authorization.sql (SEC-005 curriculum authorization hardening; live catalog is authoritative)",
+      "original_using": "((organization_id IS NULL) AND app_private.is_platform_admin())",
+      "original_check": "((organization_id IS NULL) AND app_private.is_platform_admin())"
+    },
+    {
+      "policy": "curriculum_versions_delete",
+      "table": "curriculum_versions",
+      "command": "DELETE",
+      "roles": [
+        "authenticated"
+      ],
+      "source": "supabase/migrations/20260809194700_harden_curriculum_authorization.sql (SEC-005 curriculum authorization hardening; live catalog is authoritative)",
+      "original_using": "((organization_id IS NULL) AND app_private.is_platform_admin())",
+      "original_check": ""
+    },
+    {
+      "policy": "pathways_insert",
+      "table": "pathways",
+      "command": "INSERT",
+      "roles": [
+        "authenticated"
+      ],
+      "source": "supabase/migrations/20260809194700_harden_curriculum_authorization.sql (SEC-005 curriculum authorization hardening; live catalog is authoritative)",
+      "original_using": "",
+      "original_check": "((authoring_organization_id IS NULL) AND app_private.is_platform_admin())"
+    },
+    {
+      "policy": "pathways_update",
+      "table": "pathways",
+      "command": "UPDATE",
+      "roles": [
+        "authenticated"
+      ],
+      "source": "supabase/migrations/20260809194700_harden_curriculum_authorization.sql (SEC-005 curriculum authorization hardening; live catalog is authoritative)",
+      "original_using": "((authoring_organization_id IS NULL) AND app_private.is_platform_admin())",
+      "original_check": "((authoring_organization_id IS NULL) AND app_private.is_platform_admin())"
+    },
+    {
+      "policy": "pathways_delete",
+      "table": "pathways",
+      "command": "DELETE",
+      "roles": [
+        "authenticated"
+      ],
+      "source": "supabase/migrations/20260809194700_harden_curriculum_authorization.sql (SEC-005 curriculum authorization hardening; live catalog is authoritative)",
+      "original_using": "((authoring_organization_id IS NULL) AND app_private.is_platform_admin())",
+      "original_check": ""
+    },
+    {
+      "policy": "strands_insert",
+      "table": "strands",
+      "command": "INSERT",
+      "roles": [
+        "authenticated"
+      ],
+      "source": "supabase/migrations/20260809194700_harden_curriculum_authorization.sql (SEC-005 curriculum authorization hardening; live catalog is authoritative)",
+      "original_using": "",
+      "original_check": "((authoring_organization_id IS NULL) AND app_private.is_platform_admin())"
+    },
+    {
+      "policy": "strands_update",
+      "table": "strands",
+      "command": "UPDATE",
+      "roles": [
+        "authenticated"
+      ],
+      "source": "supabase/migrations/20260809194700_harden_curriculum_authorization.sql (SEC-005 curriculum authorization hardening; live catalog is authoritative)",
+      "original_using": "((authoring_organization_id IS NULL) AND app_private.is_platform_admin())",
+      "original_check": "((authoring_organization_id IS NULL) AND app_private.is_platform_admin())"
+    },
+    {
+      "policy": "strands_delete",
+      "table": "strands",
+      "command": "DELETE",
+      "roles": [
+        "authenticated"
+      ],
+      "source": "supabase/migrations/20260809194700_harden_curriculum_authorization.sql (SEC-005 curriculum authorization hardening; live catalog is authoritative)",
+      "original_using": "((authoring_organization_id IS NULL) AND app_private.is_platform_admin())",
+      "original_check": ""
+    },
+    {
+      "policy": "sub_strands_insert",
+      "table": "sub_strands",
+      "command": "INSERT",
+      "roles": [
+        "authenticated"
+      ],
+      "source": "supabase/migrations/20260809194700_harden_curriculum_authorization.sql (SEC-005 curriculum authorization hardening; live catalog is authoritative)",
+      "original_using": "",
+      "original_check": "((authoring_organization_id IS NULL) AND app_private.is_platform_admin())"
+    },
+    {
+      "policy": "sub_strands_update",
+      "table": "sub_strands",
+      "command": "UPDATE",
+      "roles": [
+        "authenticated"
+      ],
+      "source": "supabase/migrations/20260809194700_harden_curriculum_authorization.sql (SEC-005 curriculum authorization hardening; live catalog is authoritative)",
+      "original_using": "((authoring_organization_id IS NULL) AND app_private.is_platform_admin())",
+      "original_check": "((authoring_organization_id IS NULL) AND app_private.is_platform_admin())"
+    },
+    {
+      "policy": "sub_strands_delete",
+      "table": "sub_strands",
+      "command": "DELETE",
+      "roles": [
+        "authenticated"
+      ],
+      "source": "supabase/migrations/20260809194700_harden_curriculum_authorization.sql (SEC-005 curriculum authorization hardening; live catalog is authoritative)",
+      "original_using": "((authoring_organization_id IS NULL) AND app_private.is_platform_admin())",
+      "original_check": ""
+    },
+    {
+      "policy": "subjects_insert",
+      "table": "subjects",
+      "command": "INSERT",
+      "roles": [
+        "authenticated"
+      ],
+      "source": "supabase/migrations/20260809194700_harden_curriculum_authorization.sql (SEC-005 curriculum authorization hardening; live catalog is authoritative)",
+      "original_using": "",
+      "original_check": "((authoring_organization_id IS NULL) AND app_private.is_platform_admin())"
+    },
+    {
+      "policy": "subjects_update",
+      "table": "subjects",
+      "command": "UPDATE",
+      "roles": [
+        "authenticated"
+      ],
+      "source": "supabase/migrations/20260809194700_harden_curriculum_authorization.sql (SEC-005 curriculum authorization hardening; live catalog is authoritative)",
+      "original_using": "((authoring_organization_id IS NULL) AND app_private.is_platform_admin())",
+      "original_check": "((authoring_organization_id IS NULL) AND app_private.is_platform_admin())"
+    },
+    {
+      "policy": "subjects_delete",
+      "table": "subjects",
+      "command": "DELETE",
+      "roles": [
+        "authenticated"
+      ],
+      "source": "supabase/migrations/20260809194700_harden_curriculum_authorization.sql (SEC-005 curriculum authorization hardening; live catalog is authoritative)",
+      "original_using": "((authoring_organization_id IS NULL) AND app_private.is_platform_admin())",
+      "original_check": ""
+    },
+    {
+      "policy": "topics_insert",
+      "table": "topics",
+      "command": "INSERT",
+      "roles": [
+        "authenticated"
+      ],
+      "source": "supabase/migrations/20260809194700_harden_curriculum_authorization.sql (SEC-005 curriculum authorization hardening; live catalog is authoritative)",
+      "original_using": "",
+      "original_check": "((authoring_organization_id IS NULL) AND app_private.is_platform_admin())"
+    },
+    {
+      "policy": "topics_update",
+      "table": "topics",
+      "command": "UPDATE",
+      "roles": [
+        "authenticated"
+      ],
+      "source": "supabase/migrations/20260809194700_harden_curriculum_authorization.sql (SEC-005 curriculum authorization hardening; live catalog is authoritative)",
+      "original_using": "((authoring_organization_id IS NULL) AND app_private.is_platform_admin())",
+      "original_check": "((authoring_organization_id IS NULL) AND app_private.is_platform_admin())"
+    },
+    {
+      "policy": "topics_delete",
+      "table": "topics",
+      "command": "DELETE",
+      "roles": [
+        "authenticated"
+      ],
+      "source": "supabase/migrations/20260809194700_harden_curriculum_authorization.sql (SEC-005 curriculum authorization hardening; live catalog is authoritative)",
+      "original_using": "((authoring_organization_id IS NULL) AND app_private.is_platform_admin())",
+      "original_check": ""
+    },
+    {
+      "policy": "learning_outcomes_write",
+      "table": "learning_outcomes",
+      "command": "ALL",
+      "roles": [
+        "authenticated"
+      ],
+      "source": "supabase/migrations/20260809194700_harden_curriculum_authorization.sql (SEC-005 curriculum authorization hardening; live catalog is authoritative)",
+      "original_using": "((authoring_organization_id IS NULL) AND app_private.is_platform_admin())",
+      "original_check": "((authoring_organization_id IS NULL) AND app_private.is_platform_admin())"
+    },
+    {
+      "policy": "learning_objectives_write",
+      "table": "learning_objectives",
+      "command": "ALL",
+      "roles": [
+        "authenticated"
+      ],
+      "source": "supabase/migrations/20260809194700_harden_curriculum_authorization.sql (SEC-005 curriculum authorization hardening; live catalog is authoritative)",
+      "original_using": "(EXISTS ( SELECT 1\n   FROM lessons l\n  WHERE ((l.id = learning_objectives.lesson_id) AND (((l.author_type = 'platform'::text) AND (l.authoring_organization_id IS NULL) AND app_private.is_platform_admin()) OR ((l.author_type = 'tenant'::text) AND app_private.can_author_curriculum(l.authoring_organization_id))))))",
+      "original_check": "(EXISTS ( SELECT 1\n   FROM lessons l\n  WHERE ((l.id = learning_objectives.lesson_id) AND (((l.author_type = 'platform'::text) AND (l.authoring_organization_id IS NULL) AND app_private.is_platform_admin()) OR ((l.author_type = 'tenant'::text) AND app_private.can_author_curriculum(l.authoring_organization_id))))))"
+    },
+    {
+      "policy": "lesson_prerequisites_write",
+      "table": "lesson_prerequisites",
+      "command": "ALL",
+      "roles": [
+        "authenticated"
+      ],
+      "source": "supabase/migrations/20260809194700_harden_curriculum_authorization.sql (SEC-005 curriculum authorization hardening; live catalog is authoritative)",
+      "original_using": "(EXISTS ( SELECT 1\n   FROM lessons l\n  WHERE ((l.id = lesson_prerequisites.lesson_id) AND (((l.author_type = 'platform'::text) AND (l.authoring_organization_id IS NULL) AND app_private.is_platform_admin()) OR ((l.author_type = 'tenant'::text) AND app_private.can_author_curriculum(l.authoring_organization_id))))))",
+      "original_check": "(EXISTS ( SELECT 1\n   FROM lessons l\n  WHERE ((l.id = lesson_prerequisites.lesson_id) AND (((l.author_type = 'platform'::text) AND (l.authoring_organization_id IS NULL) AND app_private.is_platform_admin()) OR ((l.author_type = 'tenant'::text) AND app_private.can_author_curriculum(l.authoring_organization_id))))))"
+    },
+    {
+      "policy": "lessons_insert",
+      "table": "lessons",
+      "command": "INSERT",
+      "roles": [
+        "authenticated"
+      ],
+      "source": "supabase/migrations/20260809194700_harden_curriculum_authorization.sql (SEC-005 curriculum authorization hardening; live catalog is authoritative)",
+      "original_using": "",
+      "original_check": "(((author_type = 'platform'::text) AND (authoring_organization_id IS NULL) AND app_private.is_platform_admin()) OR ((author_type = 'tenant'::text) AND (authoring_organization_id IS NOT NULL) AND app_private.can_author_curriculum(authoring_organization_id)))"
+    },
+    {
+      "policy": "lessons_update",
+      "table": "lessons",
+      "command": "UPDATE",
+      "roles": [
+        "authenticated"
+      ],
+      "source": "supabase/migrations/20260809194700_harden_curriculum_authorization.sql (SEC-005 curriculum authorization hardening; live catalog is authoritative)",
+      "original_using": "(((author_type = 'platform'::text) AND (authoring_organization_id IS NULL) AND app_private.is_platform_admin()) OR ((author_type = 'tenant'::text) AND app_private.can_author_curriculum(authoring_organization_id)))",
+      "original_check": "(((author_type = 'platform'::text) AND (authoring_organization_id IS NULL) AND app_private.is_platform_admin()) OR ((author_type = 'tenant'::text) AND (authoring_organization_id IS NOT NULL) AND app_private.can_author_curriculum(authoring_organization_id)))"
+    },
+    {
+      "policy": "lessons_delete",
+      "table": "lessons",
+      "command": "DELETE",
+      "roles": [
+        "authenticated"
+      ],
+      "source": "supabase/migrations/20260809194700_harden_curriculum_authorization.sql (SEC-005 curriculum authorization hardening; live catalog is authoritative)",
+      "original_using": "(((author_type = 'platform'::text) AND (authoring_organization_id IS NULL) AND app_private.is_platform_admin()) OR ((author_type = 'tenant'::text) AND app_private.can_author_curriculum(authoring_organization_id)))",
+      "original_check": ""
+    },
+    {
+      "policy": "curriculum_resources_write",
+      "table": "curriculum_resources",
+      "command": "ALL",
+      "roles": [
+        "authenticated"
+      ],
+      "source": "supabase/migrations/20260809194700_harden_curriculum_authorization.sql (SEC-005 curriculum authorization hardening; live catalog is authoritative)",
+      "original_using": "(((organization_id IS NULL) AND app_private.is_platform_admin()) OR app_private.can_author_curriculum(organization_id))",
+      "original_check": "(((organization_id IS NULL) AND app_private.is_platform_admin()) OR app_private.can_author_curriculum(organization_id))"
+    },
+    {
+      "policy": "org_platform_admin_write",
+      "table": "organizations",
+      "command": "UPDATE",
+      "roles": [
+        "authenticated"
+      ],
+      "source": "supabase/migrations/20260808181352_harden_critical_access_control.sql (SEC-001/SEC-002/SEC-003 access-control hardening; live catalog is authoritative)",
+      "original_using": "(app_private.is_platform_admin() OR app_private.has_org_role(id, 'org_admin'::text))",
+      "original_check": "(app_private.is_platform_admin() OR app_private.has_org_role(id, 'org_admin'::text))"
+    },
+    {
+      "policy": "membership_admin_update",
+      "table": "organization_memberships",
+      "command": "UPDATE",
+      "roles": [
+        "authenticated"
+      ],
+      "source": "supabase/migrations/20260808181352_harden_critical_access_control.sql (SEC-001/SEC-002/SEC-003 access-control hardening; live catalog is authoritative)",
+      "original_using": "(app_private.has_org_role(organization_id, 'org_admin'::text) OR app_private.is_platform_admin())",
+      "original_check": ""
+    },
+    {
+      "policy": "membership_self_join",
+      "table": "organization_memberships",
+      "command": "INSERT",
+      "roles": [
+        "authenticated"
+      ],
+      "source": "supabase/migrations/20260808181352_harden_critical_access_control.sql (SEC-001/SEC-002/SEC-003 access-control hardening; live catalog is authoritative)",
+      "original_using": "",
+      "original_check": "(app_private.has_org_role(organization_id, 'org_admin'::text) OR app_private.is_platform_admin() OR ((user_id = auth.uid()) AND (status = 'active'::text) AND (created_by = auth.uid()) AND ((updated_by IS NULL) OR (updated_by = auth.uid())) AND app_private.is_open_enrollment(organization_id)))"
+    },
+    {
+      "policy": "user_role_update",
+      "table": "user_roles",
+      "command": "UPDATE",
+      "roles": [
+        "authenticated"
+      ],
+      "source": "supabase/migrations/20260808181352_harden_critical_access_control.sql (SEC-001/SEC-002/SEC-003 access-control hardening; live catalog is authoritative)",
+      "original_using": "(app_private.has_org_role(organization_id, 'org_admin'::text) OR app_private.is_platform_admin())",
+      "original_check": ""
+    },
+    {
+      "policy": "user_role_insert",
+      "table": "user_roles",
+      "command": "INSERT",
+      "roles": [
+        "authenticated"
+      ],
+      "source": "supabase/migrations/20260808181352_harden_critical_access_control.sql (SEC-001/SEC-002/SEC-003 access-control hardening; live catalog is authoritative)",
+      "original_using": "",
+      "original_check": "(app_private.is_platform_admin() OR app_private.has_org_role(organization_id, 'org_admin'::text) OR ((user_id = auth.uid()) AND (status = 'active'::text) AND (created_by = auth.uid()) AND ((updated_by IS NULL) OR (updated_by = auth.uid())) AND app_private.is_open_enrollment(organization_id) AND (organization_id IN ( SELECT app_private.auth_organization_ids() AS auth_organization_ids)) AND (EXISTS ( SELECT 1\n   FROM roles r\n  WHERE ((r.id = user_roles.role_id) AND (r.code = 'parent_guardian'::text))))))"
+    }
+  ]
+}

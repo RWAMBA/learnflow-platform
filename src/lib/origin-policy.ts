@@ -19,13 +19,14 @@ const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
  */
 export const ORIGIN_EXEMPT_PREFIXES = [
   "/mcp", // OAuth 2.1 bearer-token authenticated MCP transport
+  "/.mcp", // MCP REST fallback (list-tools / invoke-tool), same bearer auth
   "/.well-known/", // static discovery documents
   "/api/public/", // documented external webhook/cron surface, self-verifying
 ] as const;
 
 export function isOriginExemptPath(pathname: string): boolean {
   // Matched on whole path segments: "/mcp-admin-console" must NOT inherit the
-  // "/mcp" exemption.
+  // "/mcp" exemption, and "/.mcpx/…" must NOT inherit the "/.mcp" one.
   return ORIGIN_EXEMPT_PREFIXES.some((prefix) => {
     const base = prefix.replace(/\/$/, "");
     return pathname === base || pathname.startsWith(`${base}/`);

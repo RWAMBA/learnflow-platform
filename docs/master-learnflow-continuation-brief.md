@@ -157,19 +157,60 @@ zero high, zero moderate, zero low. Compatibility was proven by the full
 regression suite (typecheck, 164 unit tests, RLS, 5 E2E, lint, production
 build) re-run after the overrides were applied.
 
+## 3a. MCP (agent-integration) surface
+
+The app exposes a Model Context Protocol server so Lovable/agent clients can
+read LearnFlow data **as the signed-in user**. Full review evidence lives in
+`docs/final-security-handoff-report.md` §2.
+
+- Routes: `/mcp` (Streamable HTTP transport), `/.mcp/list-tools`,
+  `/.mcp/invoke-tool/$tool`, `/.well-known/oauth-protected-resource`, plus the
+  `/.lovable/oauth/consent` screen. All transport routes are generated verbatim
+  by the `@lovable.dev/mcp-js` Vite plugin from `src/lib/mcp/index.ts` and are
+  excluded from Prettier/ESLint because they are regenerated on every build.
+- Auth: OAuth 2.1 bearer tokens issued by the project's Supabase issuer,
+  `acceptedAudiences: "authenticated"`. No anonymous mode, no shared key, no
+  bypass. Handlers additionally re-check `ctx.isAuthenticated()`.
+- Data access: `supabaseForUser` builds a **publishable-key** client that
+  forwards the caller's verified token, with `persistSession: false`. No MCP
+  file imports a service-role client or logs anything. **RLS is the
+  authoritative boundary.**
+- Tools (all read-only, `.select()` only, no `rpc`, no writes): `whoami`,
+  `list_students`, `list_assignments`, `search_curriculum`. Inputs are Zod
+  validated with bounded limits (100/100/50) and uuid/enum constraints; tenant
+  and student ids are *narrowing filters only* and cannot widen RLS. `whoami`
+  identity comes solely from the verified token. Errors return `error.message`
+  only.
+- CSRF: `/.mcp` was missing from the origin-exemption list and is now included
+  (`src/lib/origin-policy.ts`), matched on whole path segments so
+  `/mcp-admin-console` and `/.mcpx/...` stay origin-validated. Exemption is safe
+  only because these endpoints verify a bearer token themselves.
+- Tests: `src/lib/mcp-surface.test.ts` (25 tests) pins auth requirement, token
+  handling, secret absence, input bounds, spoofed-identifier behaviour,
+  read-only usage and origin exemptions.
+
+## 3b. Exact rollback verification (stage two)
+
+`docs/sec-006-prestage-two-policy-baseline.json` captures pre-stage-two policy
+definitions from the live catalog; `src/lib/sql-predicate-normalize.ts`
+normalises SQL predicates for machine comparison; and
+`src/lib/sec006-rollback-parity.test.ts` (36 tests) proves the rollback
+transaction restores each original predicate losslessly, removes every
+`has_aal2()` term, preserves self-service branches and contains no destructive
+DML.
+
 ## 4. Verification results
 
 - `bunx tsgo --noEmit`: clean.
-- `bun run test`: **164/164 unit tests pass** across 15 files (the 162 from the
-  previous package plus 2 new stage-two structural tests; the stage-two suite is
-  now 9 tests covering both the forward and rollback sections).
-- `bun run test:rls`: RLS recursion check passes; live allow/deny policy testing
+- `bun run test`: **225/225 tests pass** across 17 files, including the 25-test
+  MCP surface suite and the 36-test stage-two rollback parity suite.
+- `bun run test:rls`: RLS recursion check passes; live allow/deny testing
   against the hosted database is **skipped by design** in this block, because it
   would require authenticated write attempts as real principals.
 - `bun run test:e2e`: 5/5.
-- Changed-file lint: clean. `bun run lint`: **0 errors**, 7 pre-existing
-  react-refresh warnings (four MCP route files were mechanically reformatted by
-  Prettier to clear the remaining errors).
+- `bun run lint`: **0 errors**, 7 pre-existing react-refresh warnings. The
+  plugin-generated MCP route files are now excluded in `.prettierignore` and
+  `eslint.config.js`, since the build regenerates them verbatim.
 - `bun audit` against `registry.npmjs.org`: **no vulnerabilities found**.
 - `bun run build`: succeeds; no server-only module or service-role key appears
   in client assets.
@@ -206,7 +247,8 @@ build) re-run after the overrides were applied.
 - Reviewer/user: manual runtime verification (MFA enrollment, challenge,
   recovery, lockout, keyboard navigation, 360px layout) and all Supabase
   dashboard settings including leaked-password protection and TOTP enablement.
-- Claude review inputs: this brief;
+- Claude review inputs: this brief; `docs/final-security-handoff-report.md`
+  (evidence appendix, MCP review, rollback parity, integrity hashes);
   `docs/sec-006-stage-two-enforcement.sql` (with the three SHA-256 values);
   `docs/sec-006-aal2-enforcement.md`; `src/lib/csp.ts`, `src/lib/csp-ssr.ts`,
   `src/lib/security-headers.ts`, `src/lib/origin-policy.ts`, `src/start.ts`,
@@ -215,7 +257,10 @@ build) re-run after the overrides were applied.
   test suites `src/lib/sec006-stage-two-migration.test.ts`,
   `src/lib/csp.test.ts`, `src/lib/security-headers.test.ts`,
   `src/lib/organization-security-settings-acl.test.ts`,
-  `src/lib/security-tables-acl.test.ts`, `e2e/env-preflight.spec.ts`.
+  `src/lib/security-tables-acl.test.ts`, `src/lib/sec006-rollback-parity.test.ts`,
+  `src/lib/mcp-surface.test.ts`, `e2e/env-preflight.spec.ts`; and the MCP
+  surface `src/lib/mcp/index.ts`, `src/lib/mcp/supabase.ts`,
+  `src/lib/mcp/tools/*.ts`.
 
 ## 7. Responsibilities and main protection
 
