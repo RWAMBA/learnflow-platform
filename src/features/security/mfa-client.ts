@@ -173,7 +173,7 @@ export async function readMandatoryMfa(userId: string): Promise<boolean> {
 }
 
 /** Maps database role codes onto the policy evaluator's principal roles. */
-export function mapRoleCode(code: string): import("./mfa").PrincipalRole {
+export function mapRoleCode(code: string): PrincipalRole {
   switch (code) {
     case "org_admin":
     case "organization_admin":
