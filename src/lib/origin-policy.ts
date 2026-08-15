@@ -24,9 +24,12 @@ export const ORIGIN_EXEMPT_PREFIXES = [
 ] as const;
 
 export function isOriginExemptPath(pathname: string): boolean {
-  return ORIGIN_EXEMPT_PREFIXES.some(
-    (prefix) => pathname === prefix.replace(/\/$/, "") || pathname.startsWith(prefix),
-  );
+  // Matched on whole path segments: "/mcp-admin-console" must NOT inherit the
+  // "/mcp" exemption.
+  return ORIGIN_EXEMPT_PREFIXES.some((prefix) => {
+    const base = prefix.replace(/\/$/, "");
+    return pathname === base || pathname.startsWith(`${base}/`);
+  });
 }
 
 export function requiresOriginValidation(input: {
