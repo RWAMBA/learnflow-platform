@@ -9,9 +9,7 @@
 import {
   DEFAULT_ORGANIZATION_MFA_POLICY,
   MFA_UNAVAILABLE_MESSAGE,
-  requiresAal2,
   type OrganizationMfaPolicy,
-  type PrincipalRole,
 } from "@/features/security/mfa";
 
 export const MFA_FORBIDDEN_MESSAGE =
