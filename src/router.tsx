@@ -2,6 +2,7 @@ import { QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
 import { createIsomorphicFn } from "@tanstack/react-start";
 import { routeTree } from "./routeTree.gen";
+import { installDocumentCsp } from "./lib/csp-ssr";
 
 /**
  * Mints the per-response CSP nonce and installs the matching policy header
@@ -12,10 +13,7 @@ import { routeTree } from "./routeTree.gen";
  */
 const resolveCspNonce = createIsomorphicFn()
   .client((): string | undefined => undefined)
-  .server((): string | undefined => {
-    const { installDocumentCsp } = require("./lib/csp-ssr") as typeof import("./lib/csp-ssr");
-    return installDocumentCsp();
-  });
+  .server((): string | undefined => installDocumentCsp());
 
 export const getRouter = () => {
   const queryClient = new QueryClient();
