@@ -23,6 +23,25 @@
  * silently compared.
  */
 
+const SQL_KEYWORDS = new Set([
+  "and",
+  "or",
+  "not",
+  "in",
+  "exists",
+  "where",
+  "select",
+  "from",
+  "on",
+  "using",
+  "check",
+  "by",
+  "is",
+  "all",
+  "any",
+  "values",
+]);
+
 /** Removes parentheses that group sub-expressions, keeping call parentheses. */
 function stripGroupingParens(input: string): string {
   const drop = new Set<number>();
@@ -38,8 +57,16 @@ function stripGroupingParens(input: string): string {
     if (char === "(") {
       let j = i - 1;
       while (j >= 0 && input[j] === " ") j -= 1;
-      const previous = j >= 0 ? input[j]! : "";
-      const isCall = /[A-Za-z0-9_]/.test(previous);
+      let word = "";
+      while (j >= 0 && /[A-Za-z0-9_.]/.test(input[j]!)) {
+        word = input[j]! + word;
+        j -= 1;
+      }
+      // A parenthesis that follows a SQL keyword groups an expression; one that
+      // follows an identifier is a function-call argument list. Keyword-led
+      // parens are dropped on both sides of the comparison, so `exists (…)` and
+      // `in (…)` normalise consistently.
+      const isCall = word !== "" && !SQL_KEYWORDS.has(word.toLowerCase());
       stack.push({ index: i, grouping: !isCall });
       continue;
     }
