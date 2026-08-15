@@ -1,27 +1,27 @@
 # LearnFlow — Master Continuation Brief
 
-Generated at the close of the security-hardening block on branch
-`security/authentication-hardening`. Synchronized at controlled commit
-`e3089da193d2aa7b43fefd60d60f20024995beae` ("Implemented security headers"),
-which is 80 commits ahead of and 0 behind `origin/main`
-(`0193d736bbaff8d9a4409265288604cc5acdaaee`). `local`, `origin` and
-`secondary` `security/authentication-hardening` are identical; `main` is
-untouched.
+Verified final state of the security-hardening block on branch
+`security/authentication-hardening`. `main` is untouched; nothing in this block
+has been merged into it.
 
 ## 1. Authoritative state
 
 - Stack: TanStack Start + React 19 + TypeScript + Vite + Supabase. **Not** Next.js.
   Routing is TanStack Router file routes under `src/routes`; server logic is
-  `createServerFn` plus server routes. No Next.js App Router, no react-router.
+  `createServerFn` plus server routes.
 - Supabase project: `smvlwwevgtwkdndxfmtp`.
 - RLS is the authoritative security boundary. UI checks are visibility only.
 - `MFA_ENFORCEMENT_ENABLED = false` in `src/features/security/mfa.ts`.
 - Stage-two AAL2 RLS enforcement is **prepared but unapplied**
-  (`docs/sec-006-stage-two-enforcement.sql`).
-- Live migration history through `20260815110738`; the three migrations added
-  by this branch (`20260814230011`, `20260815092853`, `20260815110738`) are
-  applied and match the repository files. No historical migration was edited
-  and no unrelated migration is pending.
+  (`docs/sec-006-stage-two-enforcement.sql`). It is not in
+  `supabase/migrations/` and no migration, database, Auth setting, MFA factor or
+  administrator record was changed while producing this brief.
+- Live migration history through `20260815110738`. No historical migration was
+  edited and no unrelated migration is pending.
+- Administrator readiness (aggregates only): **2** active Platform
+  Administrators, both with a verified TOTP factor; **1** active Organization
+  Administrator, with a verified TOTP factor; **0** Organization Administrators
+  pending enrollment.
 
 ## 2. Closed security findings (must not regress)
 
@@ -30,72 +30,186 @@ memberships; SEC-003 org-role helpers require active membership; SEC-004
 published tenant content stays tenant-isolated; SEC-005 Teacher/Tutor
 curriculum-authoring authority removed; SEC-006 stage one (TOTP MFA surface,
 recovery-session safety, factor-removal challenge, administrator-assisted
-reset, least-privilege ACLs).
+reset, least-privilege ACLs on `organization_security_settings`,
+`security_events` and `platform_admins`).
 
-## 3. Applied in this block
+## 3. Delivered in the final blocker-remediation block
 
-| Change                                            | Effect                                                                                                                                                                                                                                                                                  |
-| ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Migration `…_least_privilege_security_tables`     | `security_events` and `platform_admins`: `anon`/`authenticated` write privileges revoked, `SELECT` only, `service_role` retains full access, RLS re-asserted. Additive; no data touched.                                                                                                |
-| `src/lib/security-headers.ts` + `src/server.ts`   | `nosniff`, `strict-origin-when-cross-origin`, restrictive `Permissions-Policy`, `Cross-Origin-Opener-Policy: same-origin`, HSTS on https only, `no-store` on `/account`, `/admin`, `/dashboard`, `/mfa`, `/reset-password`, `/auth`, `/api`, `/_serverFn`.                              |
-| `readMandatoryMfa()` + `_authenticated/route.tsx` | The MFA guard now derives _who_ is mandatory from live role state (Platform Admin, Org Admin, and Teacher/Tutor only under explicit organization policy) instead of treating everyone as mandatory. Read failures fail closed to enrollment-only. Still inert while enforcement is off. |
-| Tests                                             | 147 unit tests pass, including new stage-two structural, ACL and header suites.                                                                                                                                                                                                         |
-| Second Platform Administrator promotion           | One controlled transactional insert into `public.platform_admins` plus one `security_events` record. No Auth users, factors, roles or memberships changed.                                                                                                                              |
+### Formatting and lint
 
-## 4. Stage-two readiness
+Changed-file Prettier drift is resolved. The remaining repository-wide drift
+came from two generated files (`src/integrations/supabase/types.ts`,
+`src/routeTree.gen.ts`), which are never hand-edited and are now excluded in
+`.prettierignore` and `eslint.config.js`, plus four MCP route files that were
+reformatted. Repository-wide `bun run lint` now reports **0 errors and seven
+pre-existing react-refresh warnings** (components exporting both a component and a
+non-component value); these predate the security block and are warnings, not
+errors.
 
-Administrator readiness is now **PASS** (aggregate counts only):
+### E2E environment preflight
 
-- Active Platform Administrators: 2; with a verified TOTP factor: 2.
-- Active Organization Administrators: 1; with a verified factor: 1; without: 0.
-- Teacher/Tutor assignments under an enabled organization MFA policy: 0.
+`e2e/env-preflight.spec.ts` was failing because `EnvPreflightBanner` had moved
+from a `useServerFn` call to a plain `fetch("/api/env-preflight")` that the
+harness never intercepted. The spec and `e2e/harness/react-start-mock.ts` now
+intercept the API route. Result: **5/5 E2E specs pass**. No production preflight
+behaviour was weakened and no secret value is exposed — only variable names and
+presence are reported.
 
-Remaining steps, to be taken only after Claude review approves activation:
+### CSP and framing
 
-1. Apply `docs/sec-006-stage-two-enforcement.sql` as a timestamped migration.
-2. Flip `MFA_ENFORCEMENT_ENABLED` to `true` in the **same** release.
-3. Rollback is documented at the bottom of the prepared SQL and is lossless.
+- `src/lib/csp.ts` builds the policy: `default-src 'self'`, `object-src 'none'`,
+  `base-uri 'self'`, `form-action 'self'`, nonce-based `script-src`
+  (`'self' 'nonce-…' 'strict-dynamic'`) and `style-src`.
+- A per-response nonce is minted with `crypto.getRandomValues` in
+  `src/lib/csp-ssr.ts` and threaded through `router.options.ssr.nonce`
+  (`src/router.tsx`, `createIsomorphicFn`), so both TanStack Start inline
+  hydration scripts carry the matching nonce. The nonce never reaches the
+  client bundle as a constant.
+- **Production framing:** `frame-ancestors 'none'` plus
+  `X-Frame-Options: DENY`.
+- **Preview framing:** hosts matching `lovable.app` / `lovableproject.com` get a
+  policy that permits framing so the editor preview keeps working. This is the
+  only intentional difference between the two environments.
+- **Known limitation:** `style-src-attr` still requires `'unsafe-inline'`
+  because shadcn/Radix components set inline `style` attributes at runtime;
+  element-level `style-src` remains nonce-based. Removing this needs a UI-level
+  change and is deliberately out of scope for the security block.
 
-Note: the header comment inside the prepared SQL still says "currently 1
-active, 0 with a verified factor". That sentence is stale as of the second
-administrator promotion and should be corrected when the file is copied into
-`supabase/migrations/`.
+### CSRF and origin validation
+
+`src/lib/origin-policy.ts` decides which requests require `Origin` validation;
+`src/start.ts` applies `csrfMiddleware` to all state-changing server-function
+and server-route requests. **Exempt paths (external callers only):** `/mcp`,
+`/.mcp/`, `/.well-known/`, and `/api/public/`. Exemption matching is
+segment-bounded — a fixed bug previously let `/mcp-admin-console` inherit the
+`/mcp` exemption.
+
+### Stage-two SQL rewrite
+
+`docs/sec-006-stage-two-enforcement.sql` was rewritten:
+
+- All stale hard-coded administrator counts removed. Section 0 provides
+  read-only, aggregate-only prerequisite queries; section 1 re-asserts them
+  transactionally and **fails closed** with `raise exception` if Platform
+  Administrator readiness is not met. No identity is ever selected.
+- Teacher/Tutor: no in-scope RLS write policy authorizes Teacher or Tutor
+  (`can_author_curriculum` is Organization Administrator only, per SEC-005), so
+  the drafted `org_requires_mfa()` / `org_mfa_satisfied()` helpers were
+  **removed** rather than shipped unused. The requirement to add authoritative
+  conditional enforcement alongside any future Teacher/Tutor write surface is
+  documented, and the guard fails closed if such a surface appears first. The
+  implemented role-aware route guard is preserved.
+- A complete, executable rollback transaction restores every original policy
+  predicate, revokes the `organization_security_settings` write grants and
+  drops the drafted helpers. No placeholders, no DML.
+- SEC-001–SEC-005 predicates, open-enrollment/self-service branches,
+  Parent/Guardian and Student branches, tenant isolation, mixed
+  platform/tenant ownership and unconditional Platform/Organization
+  Administrator AAL2 are all preserved verbatim.
+
+Integrity hashes (SHA-256, recompute command in
+`docs/sec-006-aal2-enforcement.md`):
+
+| Artifact      | SHA-256                                                            |
+| ------------- | ------------------------------------------------------------------ |
+| Forward SQL   | `c5174cd9c1458266210ad1212873257c587f276f302f9ed59a1fbfaecfab70be` |
+| Rollback SQL  | `05fed47231c8c332497f5eeb2f96cef7eb3f6462a42ae4fdf4278e958a80bc86` |
+| Full document | `9be38a67e95a9a32a1adbf11dd14f59243284633130481ed6622afb0d25d67d2` |
+
+The SQL becomes a timestamped migration only after Claude review, independent
+security/release approval, the security code being merged and deployed from
+`main`, and a final administrator-readiness preflight.
+
+### Dependency audit
+
+Root cause of the earlier HTTP 404: the sandbox sets `NPM_CONFIG_REGISTRY` to a
+proxy registry that does not implement the npm bulk-advisory endpoint. Using
+existing package-manager capability only (no new packages, no dependency
+changes), the audit was re-run against the public registry:
+
+```
+NPM_CONFIG_REGISTRY=https://registry.npmjs.org BUN_CONFIG_REGISTRY=https://registry.npmjs.org bun audit
+```
+
+Bun 1.3.3. Result: **6 advisories (5 high, 1 low)** — all transitive, none in
+first-party code:
+
+| Package         | Installed                   | Affected range     | Severity | Advisory            | Path                                                           |
+| --------------- | --------------------------- | ------------------ | -------- | ------------------- | -------------------------------------------------------------- |
+| brace-expansion | 1.1.16 (5.0.8 also present) | `<1.1.17`          | high     | GHSA-mh99-v99m-4gvg | eslint → @eslint/eslintrc → minimatch                          |
+| brace-expansion | 1.1.16                      | `<1.1.17`          | high     | GHSA-rgw5-rvv9-x895 | eslint / typescript-eslint → minimatch                         |
+| nanoid          | 3.3.16                      | `<3.3.18`          | high     | GHSA-2v37-7h3g-55p8 | vite → postcss                                                 |
+| js-yaml         | 4.3.0                       | `>=4.0.0 <4.3.1`   | high     | GHSA-5p4m-2wfm-xmqj | eslint → @eslint/eslintrc; @tanstack/react-start → xmlbuilder2 |
+| esbuild         | 0.27.7                      | `>=0.27.3 <0.28.1` | low      | GHSA-g7r4-m6w7-qqqr | vite / @tanstack/router-plugin / @lovable.dev/mcp-js           |
+
+Assessment: all five high advisories are denial-of-service in build/lint-time
+dependencies; the esbuild advisory affects the Windows dev server only. None is
+reachable from the deployed Worker runtime. No upgrade was performed — the
+remediation block forbade dependency changes, and no automatic major upgrade
+was attempted. Dependency remediation is an open follow-up item, not a blocker
+of this security package.
+
+## 4. Verification results
+
+- `bunx tsgo --noEmit`: clean.
+- `bun run test`: **164/164 unit tests pass** across 15 files (the 162 from the
+  previous package plus 2 new stage-two structural tests; the stage-two suite is
+  now 9 tests covering both the forward and rollback sections).
+- `bun run test:rls`: RLS recursion check passes; live allow/deny policy testing
+  against the hosted database is **skipped by design** in this block, because it
+  would require authenticated write attempts as real principals.
+- `bun run test:e2e`: 5/5.
+- Changed-file lint: clean. `bun run lint`: passes with 7 pre-existing
+  react-refresh warnings.
+- `bun run build`: succeeds; no server-only module or service-role key appears
+  in client assets.
+- Header verification: production responses carry `frame-ancestors 'none'`,
+  `X-Frame-Options: DENY`, nonce-matched CSP, `nosniff`,
+  `strict-origin-when-cross-origin`, restrictive `Permissions-Policy`,
+  `Cross-Origin-Opener-Policy: same-origin`, HSTS on https, and `no-store` on
+  `/account`, `/admin`, `/dashboard`, `/mfa`, `/reset-password`, `/auth`,
+  `/api`, `/_serverFn`. Preview responses are identical except that framing is
+  permitted for Lovable preview hosts.
 
 ## 5. Known open gaps (not invented, not silently closed)
 
+- **Stage-two enforcement is unapplied** and `MFA_ENFORCEMENT_ENABLED` is
+  `false`.
 - **Storage**: only `curriculum-resources` exists. An `assignment-submissions`
-  bucket and its ownership policies are unimplemented; the submission
-  ownership model must be agreed before RLS is written.
-- **Leaked-password protection** remains disabled in Supabase Auth. It is a
-  dashboard toggle and cannot be set from a migration.
-- **CSP**: no script/style CSP and no `frame-ancestors` directive are emitted.
-  Vite/TanStack Start injects inline hydration payloads with no per-request
-  nonce hook, and the approved production framing origins are unknown; the app
-  is currently served inside the Lovable preview iframe. Both require an
-  explicit decision before a policy is shipped.
-- **Auth page hydration mismatch** is reported in the browser console on
-  `/routes/auth.tsx`; it is cosmetic but unresolved.
-- **Lint**: ~2.9k repo-wide Prettier drift errors predate this block.
-- **E2E**: `e2e/env-preflight.spec.ts` has pre-existing failures unrelated to
-  security work.
-- **Changed-file lint**: the files touched on this branch still report 40
-  Prettier formatting errors (formatting only, no rule violations). They were
-  not auto-fixed because the verification pass forbade application edits.
-- **Dependency audit**: `bun audit` returns HTTP 404 in this environment; no
-  vulnerability evidence could be produced.
+  bucket and its ownership policies are unimplemented; the submission ownership
+  model must be agreed first (Phase 10 Stage 2).
+- **Leaked-password protection** remains disabled in Supabase Auth — dashboard
+  toggle, not settable from a migration.
+- **`style-src-attr 'unsafe-inline'`** as described above.
+- **Auth page hydration mismatch** on `/routes/auth.tsx` — cosmetic, unresolved.
+- **Dependency advisories** listed in section 3 remain unremediated.
+- **Live RLS allow/deny testing** against the hosted database has not been run.
 
-## 5b. Responsibilities and main protection
+## 6. Manual and review requirements
+
+- Reviewer/user: manual runtime verification (MFA enrollment, challenge,
+  recovery, lockout, keyboard navigation, 360px layout) and all Supabase
+  dashboard settings including leaked-password protection and TOTP enablement.
+- Claude review inputs: this brief;
+  `docs/sec-006-stage-two-enforcement.sql` (with the three SHA-256 values);
+  `docs/sec-006-aal2-enforcement.md`; `src/lib/csp.ts`, `src/lib/csp-ssr.ts`,
+  `src/lib/security-headers.ts`, `src/lib/origin-policy.ts`, `src/start.ts`,
+  `src/server.ts`, `src/router.tsx`; `src/features/security/mfa.ts`,
+  `src/lib/mfa-policy.server.ts`, `src/routes/_authenticated/route.tsx`; and the
+  test suites `src/lib/sec006-stage-two-migration.test.ts`,
+  `src/lib/csp.test.ts`, `src/lib/security-headers.test.ts`,
+  `src/lib/organization-security-settings-acl.test.ts`,
+  `src/lib/security-tables-acl.test.ts`, `e2e/env-preflight.spec.ts`.
+
+## 7. Responsibilities and main protection
 
 - **Lovable**: implementation, migrations, tests, evidence packages.
-- **Claude**: architecture and security review of each block before it may
-  reach `main` or before any enforcement flag is activated.
-- **Reviewer/user**: manual runtime verification (MFA enrollment, challenge,
-  recovery, lockout, keyboard and 360px checks) and all Supabase dashboard
-  settings.
-- `main` is never edited or merged into directly by the agent. Work lands on a
-  controlled security or feature branch, is reviewed, then merged by the user.
+- **Claude**: architecture and security review of each block before it may reach
+  `main` or before any enforcement flag is activated.
+- `main` is never edited or merged into by the agent. Work lands on a controlled
+  security or feature branch, is reviewed, then merged by the user.
 
-## 5c. Architecture invariants carried forward
+## 8. Architecture invariants carried forward
 
 - Phase 1–9 decisions stand: explicit parent/teacher/tutor–student relationship
   tables, separate `user_roles`, `platform_admins` distinct from tenant roles,
@@ -109,19 +223,18 @@ administrator promotion and should be corrected when the file is copied into
 - Security travels with each stage: RLS before UI exposure, tenant isolation,
   ownership integrity, private instructor documents, server-mediated uploads,
   abuse protection on anonymous writes, fixed-precision money with currency.
-- Deferred (V2/V3/V4) and out of current scope: native mobile apps, AI tutor
-  and AI quiz generation, marketplace, public API, white-label deployments.
+- Deferred (V2/V3/V4): native mobile apps, AI tutor and AI quiz generation,
+  marketplace, public API, white-label deployments.
 
-## 6. Next scope after security
+## 9. Continuation state
 
-Phase 10 Stage 1 (Universal Curriculum Engine) → Stage 2 Programmes → Stage 3
-Public Website → Stage 4 Community → Stage 5 Career Pathways → Stage 6 Billing,
-each independently testable and deployable, followed by a full gap analysis
-against Phase 10A–10L and unfinished Phase 1–9 work.
-
-Private instructor-document controls and the `assignment-submissions` bucket
-belong to Phase 10 Stage 2 (Programmes), where the submission ownership model
-is defined.
+Phase 1–9 functionality is implemented with the gaps listed in section 5.
+Phase 10 has not started. Next scope after security: Stage 1 Universal
+Curriculum Engine → Stage 2 Programmes → Stage 3 Public Website → Stage 4
+Community → Stage 5 Career Pathways → Stage 6 Billing, each independently
+testable and deployable, followed by a full gap analysis against Phase 10A–10L
+and unfinished Phase 1–9 work. Private instructor-document controls and the
+`assignment-submissions` bucket belong to Stage 2.
 
 **Exact next action: Claude review of this security branch before any merge to
 `main`, before stage-two application, and before enforcement activation.**
