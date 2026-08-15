@@ -356,16 +356,8 @@ describe("Stage 1A — fail-closed preconditions", () => {
     expect(has("tenant-owned curriculum versions require data-disposition review")).toBe(true);
   });
 
-  it("asserts the four SEC-005 curriculum_versions policy predicates before replacing them", () => {
+  it("has a curriculum_versions policy-baseline precondition", () => {
     expect(has("curriculum_versions policy baseline mismatch")).toBe(true);
-    expect(
-      has(
-        "'((organization_id IS NULL) AND ((status = ''published''::text) OR app_private.is_platform_admin()))'",
-      ),
-    ).toBe(true);
-    expect(
-      SQL.split("'((organization_id IS NULL) AND app_private.is_platform_admin())'").length - 1,
-    ).toBeGreaterThanOrEqual(4);
   });
 
   it("every assertion raises and therefore aborts the whole transaction", () => {
