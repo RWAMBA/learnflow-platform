@@ -15,6 +15,10 @@ export default tseslint.config(
       ".vinxi",
       "src/integrations/supabase/types.ts",
       "src/routeTree.gen.ts",
+      // Regenerated verbatim by the MCP Vite plugin on every build.
+      "src/routes/mcp.ts",
+      "src/routes/[.mcp]/**",
+      "src/routes/[.well-known]/**",
     ],
   },
   {
