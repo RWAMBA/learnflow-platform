@@ -6,7 +6,17 @@ import reactRefresh from "eslint-plugin-react-refresh";
 import tseslint from "typescript-eslint";
 
 export default tseslint.config(
-  { ignores: ["dist", ".output", ".vinxi"] },
+  {
+    // Supabase- and router-generated files are never hand-edited, so they are
+    // exempt from formatting rules.
+    ignores: [
+      "dist",
+      ".output",
+      ".vinxi",
+      "src/integrations/supabase/types.ts",
+      "src/routeTree.gen.ts",
+    ],
+  },
   {
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],
