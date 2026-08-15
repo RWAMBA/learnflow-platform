@@ -185,8 +185,14 @@ export function requiresAal2ForAny(
 }
 
 /**
- * A principal under mandatory MFA may never drop below one verified factor.
- * Replacement requires enrolling and verifying the new factor first.
+ * UX-level rule: a principal under mandatory MFA should not drop below one
+ * verified factor. This is NOT an authoritative security boundary — the
+ * browser can call the Supabase SDK directly, and Supabase's own AAL2
+ * requirement on unenroll is what actually protects removal. The authoritative
+ * consequence is that a mandatory principal with no verified factor is
+ * restricted to enrollment-only access once enforcement is enabled
+ * (`resolveMfaGuard` redirects everything except the exempt routes to
+ * /account/mfa).
  */
 export function canRemoveFactor(input: {
   mandatory: boolean;
