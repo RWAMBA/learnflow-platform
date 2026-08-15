@@ -31,7 +31,9 @@ export function ProfileMenu() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" size="icon" aria-label="Open profile menu">
           <Avatar className="size-8">
-            <AvatarFallback>{initialsOf(viewer.fullName) || <User className="size-4" />}</AvatarFallback>
+            <AvatarFallback>
+              {initialsOf(viewer.fullName) || <User className="size-4" />}
+            </AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
@@ -39,7 +41,9 @@ export function ProfileMenu() {
         <DropdownMenuLabel>
           <span className="block truncate font-medium">{viewer.fullName || "Your account"}</span>
           <span className="block truncate text-xs font-normal text-muted-foreground">
-            {activeRole ? `${activeRole.roleName} · ${activeRole.organizationName}` : "No active role"}
+            {activeRole
+              ? `${activeRole.roleName} · ${activeRole.organizationName}`
+              : "No active role"}
           </span>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />

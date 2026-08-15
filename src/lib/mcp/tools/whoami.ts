@@ -18,10 +18,17 @@ export default defineTool({
       supabase.from("profiles").select("id, full_name").eq("id", userId).maybeSingle(),
       supabase
         .from("user_roles")
-        .select("id, status, role:roles(code, name), organization:organizations(id, name, tenant_type)")
+        .select(
+          "id, status, role:roles(code, name), organization:organizations(id, name, tenant_type)",
+        )
         .eq("user_id", userId)
         .eq("status", "active"),
-      supabase.from("platform_admins").select("id").eq("user_id", userId).eq("status", "active").maybeSingle(),
+      supabase
+        .from("platform_admins")
+        .select("id")
+        .eq("user_id", userId)
+        .eq("status", "active")
+        .maybeSingle(),
     ]);
     const error = profile.error ?? roles.error ?? admin.error;
     if (error) return { content: [{ type: "text", text: error.message }], isError: true };

@@ -20,7 +20,7 @@ signature, no RLS, no MFA work.
    and return. This is the fail-closed switch: an unreachable lockout service must block the
    password change, not wave it through.
 4. **Failure recording (line ~146).** If `recordPasswordChangeFailure` rejects, fall back to the
-   local attempt counter *and* apply a client-side cooldown once the local count reaches the
+   local attempt counter _and_ apply a client-side cooldown once the local count reaches the
    threshold, plus surface that the attempt could not be recorded server-side. An attacker can
    still refresh past the local counter, but combined with step 3 the submit path stays blocked
    while the service is down.

@@ -97,7 +97,10 @@ function AuthPage() {
                 <SignInForm onForgotPassword={() => setShowReset(true)} next={next} />
               </TabsContent>
               <TabsContent value="sign-up" className="pt-4">
-                <SignUpForm onAwaitingVerification={() => setAwaitingVerification(true)} next={next} />
+                <SignUpForm
+                  onAwaitingVerification={() => setAwaitingVerification(true)}
+                  next={next}
+                />
               </TabsContent>
             </Tabs>
           )}

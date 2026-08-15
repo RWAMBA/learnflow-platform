@@ -29,7 +29,10 @@ export function logLockoutDiagnostic(operation: string, reason: string): void {
  * reads/writes is present, before any client is constructed or used.
  */
 export function assertLockoutServiceConfigured(
-  env: { SUPABASE_URL?: string | undefined; SUPABASE_SERVICE_ROLE_KEY?: string | undefined } = process.env,
+  env: {
+    SUPABASE_URL?: string | undefined;
+    SUPABASE_SERVICE_ROLE_KEY?: string | undefined;
+  } = process.env,
 ): void {
   if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
     logLockoutDiagnostic("configuration-check", "admin-configuration-incomplete");
@@ -68,7 +71,8 @@ export async function readLockout(admin: AdminClient, userId: string): Promise<L
 
   const lockedForSeconds = remainingSeconds(data?.locked_until ?? null);
   return {
-    failedAttempts: lockedForSeconds > 0 ? (data?.failed_attempts ?? 0) : (data?.failed_attempts ?? 0),
+    failedAttempts:
+      lockedForSeconds > 0 ? (data?.failed_attempts ?? 0) : (data?.failed_attempts ?? 0),
     lockedForSeconds,
     cooldownSeconds: null,
   };

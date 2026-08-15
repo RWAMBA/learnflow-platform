@@ -65,7 +65,9 @@ export const getMfaActivationReadiness = createServerFn({ method: "GET" })
     const isAdmin = await mod.isActivePlatformAdmin(context.supabase as never, context.userId);
     if (!isAdmin) {
       mod.logMfaDiagnostic("activation-readiness", "not-platform-admin");
-      throw new mod.MfaAssuranceError("Only Platform Administrators can read activation readiness.");
+      throw new mod.MfaAssuranceError(
+        "Only Platform Administrators can read activation readiness.",
+      );
     }
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -90,7 +92,9 @@ export const adminResetUserMfa = createServerFn({ method: "POST" })
     const isAdmin = await mod.isActivePlatformAdmin(context.supabase as never, context.userId);
     if (!isAdmin) {
       mod.logMfaDiagnostic("admin-factor-reset", "not-platform-admin");
-      throw new mod.MfaAssuranceError("Only Platform Administrators can reset another user's factors.");
+      throw new mod.MfaAssuranceError(
+        "Only Platform Administrators can reset another user's factors.",
+      );
     }
     // 2. Caller must have server-observed AAL2.
     mod.assertAal2(context.claims);
@@ -102,7 +106,10 @@ export const adminResetUserMfa = createServerFn({ method: "POST" })
         targetUserId: data.targetUserId,
       });
     } catch (error) {
-      if (error instanceof mod.MfaAssuranceError || error instanceof mod.MfaServiceUnavailableError) {
+      if (
+        error instanceof mod.MfaAssuranceError ||
+        error instanceof mod.MfaServiceUnavailableError
+      ) {
         throw error;
       }
       mod.logMfaDiagnostic("admin-factor-reset", "unexpected-failure");

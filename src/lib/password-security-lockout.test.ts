@@ -110,10 +110,15 @@ describe("fail-closed behaviour", () => {
   });
 
   it("rejects when admin configuration is missing", () => {
-    expect(() => assertLockoutServiceConfigured({ SUPABASE_URL: "https://x", SUPABASE_SERVICE_ROLE_KEY: undefined }))
-      .toThrow(LockoutServiceUnavailableError);
-    expect(() => assertLockoutServiceConfigured({ SUPABASE_URL: undefined, SUPABASE_SERVICE_ROLE_KEY: "k" }))
-      .toThrow(LOCKOUT_UNAVAILABLE_MESSAGE);
+    expect(() =>
+      assertLockoutServiceConfigured({
+        SUPABASE_URL: "https://x",
+        SUPABASE_SERVICE_ROLE_KEY: undefined,
+      }),
+    ).toThrow(LockoutServiceUnavailableError);
+    expect(() =>
+      assertLockoutServiceConfigured({ SUPABASE_URL: undefined, SUPABASE_SERVICE_ROLE_KEY: "k" }),
+    ).toThrow(LOCKOUT_UNAVAILABLE_MESSAGE);
     expect(() =>
       assertLockoutServiceConfigured({ SUPABASE_URL: "https://x", SUPABASE_SERVICE_ROLE_KEY: "k" }),
     ).not.toThrow();
@@ -130,7 +135,9 @@ describe("fail-closed behaviour", () => {
   });
 
   it("never leaks configuration or database detail in the failure message", () => {
-    expect(LOCKOUT_UNAVAILABLE_MESSAGE).not.toMatch(/SUPABASE|SERVICE_ROLE|password_change_attempts|permission/i);
+    expect(LOCKOUT_UNAVAILABLE_MESSAGE).not.toMatch(
+      /SUPABASE|SERVICE_ROLE|password_change_attempts|permission/i,
+    );
   });
 });
 
