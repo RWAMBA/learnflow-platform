@@ -72,10 +72,66 @@ describe("SEC-006 stage two (prepared, unapplied)", () => {
     expect(parentBranch).toContain("parent_guardian");
   });
 
-  it("makes Teacher/Tutor MFA conditional on explicit organization policy", () => {
-    expect(PREPARED).toContain("create or replace function app_private.org_requires_mfa");
-    expect(PREPARED).toContain("when _organization_id is null then false");
-    expect(PREPARED).toContain("), false)");
+  it("does not ship an unused Teacher/Tutor conditional helper", () => {
+    // SEC-005 removed Teacher/Tutor curriculum-authoring authority and no
+    // in-scope write policy references those roles, so no helper may be
+    // created and presented as active enforcement.
+    expect(PREPARED).not.toContain("create or replace function app_private.org_requires_mfa");
+    expect(PREPARED).not.toContain("create or replace function app_private.org_mfa_satisfied");
+    expect(PREPARED).toContain("DELIBERATELY NOT IMPLEMENTED");
+    // The forward guard fails closed if such a surface ever appears.
+    expect(PREPARED).toContain("teacher_tutor_write_policies");
+    expect(PREPARED).toContain("Teacher/Tutor write policies exist on in-scope tables");
+  });
+
+  it("carries no hard-coded administrator counts and gates on live aggregates", () => {
+    expect(PREPARED).not.toContain("currently 1 active");
+    expect(PREPARED).toContain("DEPLOYMENT PREREQUISITE CHECKS (READ ONLY, AGGREGATES ONLY)");
+    expect(PREPARED).toContain("active_platform_admins_with_verified_factor");
+    expect(PREPARED).toContain("platform administrator readiness failed");
+    // Aggregates only: no identity column is ever selected.
+    expect(PREPARED).not.toMatch(/select[^;]*\bmf\.id\b/i);
+    expect(PREPARED).not.toContain("u.email");
+  });
+
+  it("provides an executable rollback section restoring the original predicates", () => {
+    const forward = PREPARED.slice(
+      PREPARED.indexOf(">>> FORWARD SQL BEGIN"),
+      PREPARED.indexOf("<<< FORWARD SQL END"),
+    );
+    const rollback = PREPARED.slice(
+      PREPARED.indexOf(">>> ROLLBACK SQL BEGIN"),
+      PREPARED.indexOf("<<< ROLLBACK SQL END"),
+    );
+    expect(forward).toContain("begin;");
+    expect(forward).toContain("commit;");
+    expect(rollback).toContain("begin;");
+    expect(rollback).toContain("commit;");
+    // Rollback removes AAL2 entirely and keeps no placeholders or DML.
+    expect(rollback).not.toContain("has_aal2()");
+    expect(rollback).not.toMatch(/<[A-Z_ ]+>/);
+    expect(rollback).not.toMatch(/\b(insert into|update .* set|delete from|truncate|drop table)\b/i);
+    // Original predicates are restored for each surface.
+    for (const policy of [
+      "curriculum_versions_insert",
+      "learning_outcomes_write",
+      "learning_objectives_write",
+      "lesson_prerequisites_write",
+      "lessons_insert",
+      "curriculum_resources_write",
+      "org_platform_admin_write",
+      "membership_admin_update",
+      "membership_self_join",
+      "user_role_update",
+      "user_role_insert",
+    ]) {
+      expect(rollback).toContain(`create policy ${policy}`);
+    }
+    // Helper state restored and stage-one read-only ACL re-asserted.
+    expect(rollback).toContain("drop function if exists app_private.org_requires_mfa(uuid, text)");
+    expect(rollback).toContain(
+      "revoke insert, update, delete on table public.organization_security_settings from authenticated",
+    );
   });
 
   it("documents an exact rollback procedure", () => {
