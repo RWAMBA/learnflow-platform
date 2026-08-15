@@ -146,7 +146,11 @@ describe.each([
   ["whoami", () => import("./mcp/tools/whoami"), {}],
   ["list_students", () => import("./mcp/tools/list-students"), { limit: 25 }],
   ["list_assignments", () => import("./mcp/tools/list-assignments"), { limit: 25 }],
-  ["search_curriculum", () => import("./mcp/tools/search-curriculum"), { query: "maths", limit: 20 }],
+  [
+    "search_curriculum",
+    () => import("./mcp/tools/search-curriculum"),
+    { query: "maths", limit: 20 },
+  ],
 ] as const)("MCP tool %s", (_name, load, input) => {
   it("refuses a missing, invalid or expired token", async () => {
     const tool = (await load()).default;
@@ -189,12 +193,22 @@ describe("MCP input validation and bounds", () => {
   it("rejects malformed identifiers and unknown properties", async () => {
     const list = await tools();
     const students = z
-      .object(list.find((tool) => tool.name === "list_students")!.inputSchema! as Record<string, z.ZodTypeAny>)
+      .object(
+        list.find((tool) => tool.name === "list_students")!.inputSchema! as Record<
+          string,
+          z.ZodTypeAny
+        >,
+      )
       .strict();
     expect(() => students.parse({ organizationId: "not-a-uuid" })).toThrow();
     expect(() => students.parse({ userId: "11111111-1111-1111-1111-111111111111" })).toThrow();
     const assignments = z
-      .object(list.find((tool) => tool.name === "list_assignments")!.inputSchema! as Record<string, z.ZodTypeAny>)
+      .object(
+        list.find((tool) => tool.name === "list_assignments")!.inputSchema! as Record<
+          string,
+          z.ZodTypeAny
+        >,
+      )
       .strict();
     expect(() => assignments.parse({ status: "deleted" })).toThrow();
   });
