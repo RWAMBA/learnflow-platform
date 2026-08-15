@@ -126,6 +126,8 @@ export function sanitizeRedirect(value: unknown): string | null {
   if (candidate.length === 0 || candidate.length > 512) return null;
   if (!candidate.startsWith("/")) return null;
   if (candidate.startsWith("//") || candidate.startsWith("/\\")) return null;
+  // Control characters are rejected on purpose; the escapes below are intentional.
+  // eslint-disable-next-line no-control-regex
   if (/[\u0000-\u001f\u007f]/.test(candidate)) return null;
   if (/^\/+[a-z][a-z0-9+.-]*:/i.test(candidate)) return null;
   return candidate;

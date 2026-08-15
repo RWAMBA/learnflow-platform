@@ -70,6 +70,10 @@ export function assertAal2(claims: unknown): void {
 // factor reset, which additionally requires active Platform Administrator
 // status verified as the caller.
 
+// Structural shape of the Supabase admin client surface used here. The
+// generated client types are not importable in this server-only module, so the
+// narrow `any` payloads below are deliberate.
+/* eslint-disable @typescript-eslint/no-explicit-any */
 type AdminClient = {
   from: (table: string) => any;
   auth: {
@@ -84,6 +88,8 @@ type AdminClient = {
     };
   };
 };
+
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 export type MfaSecurityEventType =
   | "mfa_enroll_started"
