@@ -132,12 +132,7 @@ export function sanitizeRedirect(value: unknown): string | null {
 }
 
 export type PrincipalRole =
-  | "platform_admin"
-  | "org_admin"
-  | "teacher"
-  | "tutor"
-  | "parent"
-  | "student";
+  "platform_admin" | "org_admin" | "teacher" | "tutor" | "parent" | "student";
 
 export type OrganizationMfaPolicy = {
   teacherMfaRequired: boolean;
@@ -200,7 +195,10 @@ export function canRemoveFactor(input: {
   currentLevel: AssuranceLevel | null;
 }): { allowed: boolean; reason?: string } {
   if (input.currentLevel !== "aal2") {
-    return { allowed: false, reason: "Verify a code from your authenticator app before removing a factor." };
+    return {
+      allowed: false,
+      reason: "Verify a code from your authenticator app before removing a factor.",
+    };
   }
   if (input.mandatory && input.verifiedFactorCount <= 1) {
     return {
@@ -265,7 +263,11 @@ export function resolveMfaGuard(input: {
   if (input.status.unavailable) return { action: "redirect", to: "/account/mfa" };
   if (!input.status.hasVerifiedFactor) return { action: "redirect", to: "/account/mfa" };
   if (input.status.currentLevel !== "aal2") {
-    return { action: "redirect", to: "/mfa/challenge", redirect: sanitizeRedirect(input.pathname) ?? "/dashboard" };
+    return {
+      action: "redirect",
+      to: "/mfa/challenge",
+      redirect: sanitizeRedirect(input.pathname) ?? "/dashboard",
+    };
   }
   return { action: "allow" };
 }

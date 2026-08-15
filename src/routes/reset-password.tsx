@@ -186,7 +186,11 @@ function ResetPasswordPage() {
                 <AlertTitle>Password reset unavailable</AlertTitle>
                 <AlertDescription>{blockedMessage}</AlertDescription>
               </Alert>
-              <Button variant="outline" className="w-full" onClick={() => void navigate({ to: "/auth" })}>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => void navigate({ to: "/auth" })}
+              >
                 Back to sign in
               </Button>
             </div>

@@ -76,7 +76,10 @@ type AdminClient = {
     admin: {
       mfa: {
         listFactors: (params: { userId: string }) => Promise<{ data: any; error: any }>;
-        deleteFactor: (params: { id: string; userId: string }) => Promise<{ data: any; error: any }>;
+        deleteFactor: (params: {
+          id: string;
+          userId: string;
+        }) => Promise<{ data: any; error: any }>;
       };
     };
   };

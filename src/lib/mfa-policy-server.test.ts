@@ -40,13 +40,15 @@ function tableClient(result: { data?: unknown; error?: unknown }) {
 
 describe("isActivePlatformAdmin", () => {
   it("is true only for an active row", async () => {
-    await expect(isActivePlatformAdmin(tableClient({ data: { id: "x" } }), "u")).resolves.toBe(true);
+    await expect(isActivePlatformAdmin(tableClient({ data: { id: "x" } }), "u")).resolves.toBe(
+      true,
+    );
   });
 
   it("fails closed on read error", async () => {
-    await expect(isActivePlatformAdmin(tableClient({ error: { message: "x" } }), "u")).resolves.toBe(
-      false,
-    );
+    await expect(
+      isActivePlatformAdmin(tableClient({ error: { message: "x" } }), "u"),
+    ).resolves.toBe(false);
   });
 });
 

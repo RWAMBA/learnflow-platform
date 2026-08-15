@@ -60,9 +60,9 @@ describe("resolveRecoveryPhase", () => {
   });
 
   it("expires an unconfirmed marker", () => {
-    expect(
-      resolveRecoveryPhase({ ...base, markerPresent: true, confirmationTimedOut: true }),
-    ).toBe("expired");
+    expect(resolveRecoveryPhase({ ...base, markerPresent: true, confirmationTimedOut: true })).toBe(
+      "expired",
+    );
   });
 
   it("expires an errored link", () => {

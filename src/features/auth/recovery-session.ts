@@ -74,8 +74,7 @@ export function resolveRecoveryPhase(input: {
 }
 
 export type PasswordUpdateGate =
-  | { allowed: true }
-  | { allowed: false; reason: string; requiresChallenge?: boolean };
+  { allowed: true } | { allowed: false; reason: string; requiresChallenge?: boolean };
 
 /**
  * Final gate immediately before `updateUser`. Recovery validity is rechecked
@@ -100,7 +99,8 @@ export function canReplacePassword(input: {
   if (input.mfa.unavailable) {
     return {
       allowed: false,
-      reason: "Two-factor security verification is temporarily unavailable. Please try again later.",
+      reason:
+        "Two-factor security verification is temporarily unavailable. Please try again later.",
     };
   }
   if (input.mfa.hasVerifiedFactor && input.mfa.currentLevel !== "aal2") {

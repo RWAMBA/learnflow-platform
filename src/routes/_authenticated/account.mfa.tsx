@@ -33,12 +33,14 @@ export const Route = createFileRoute("/_authenticated/account/mfa")({
       { title: "Two-factor authentication — the Platform" },
       {
         name: "description",
-        content: "Set up an authenticator app and manage two-factor security for your Platform account.",
+        content:
+          "Set up an authenticator app and manage two-factor security for your Platform account.",
       },
       { property: "og:title", content: "Two-factor authentication — the Platform" },
       {
         property: "og:description",
-        content: "Set up an authenticator app and manage two-factor security for your Platform account.",
+        content:
+          "Set up an authenticator app and manage two-factor security for your Platform account.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
@@ -75,7 +77,10 @@ function AccountMfaPage() {
   useEffect(() => () => setMaterial(null), []);
 
   const record = useCallback(
-    (event: "mfa_enroll_started" | "mfa_factor_verified" | "mfa_challenge_failed" | "mfa_unenroll", outcome?: string) => {
+    (
+      event: "mfa_enroll_started" | "mfa_factor_verified" | "mfa_challenge_failed" | "mfa_unenroll",
+      outcome?: string,
+    ) => {
       void logEvent({ data: { event, outcome } }).catch(() => {
         // Audit is best-effort from the browser; the server owns the record.
       });
@@ -260,10 +265,7 @@ function AccountMfaPage() {
           {status?.verifiedFactors.length ? (
             <ul className="space-y-3">
               {status.verifiedFactors.map((factor) => (
-                <li
-                  key={factor.id}
-                  className="space-y-3 rounded-md border p-3"
-                >
+                <li key={factor.id} className="space-y-3 rounded-md border p-3">
                   <div className="flex flex-wrap items-center justify-between gap-3">
                     <span className="text-sm font-medium">
                       {factor.friendlyName ?? "Authenticator app"}
@@ -385,7 +387,9 @@ function AccountMfaPage() {
                 />
               </div>
               <Button disabled={busy || status?.unavailable} onClick={() => void beginEnrollment()}>
-                {status?.hasVerifiedFactor ? "Add another authenticator" : "Set up authenticator app"}
+                {status?.hasVerifiedFactor
+                  ? "Add another authenticator"
+                  : "Set up authenticator app"}
               </Button>
             </div>
           )}
