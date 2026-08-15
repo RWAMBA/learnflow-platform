@@ -152,7 +152,7 @@ describe.each([
     const tool = (await load()).default;
     const result = await tool.handler(input as never, anonymousCtx);
     expect(result.isError).toBe(true);
-    expect(result.content[0]).toMatchObject({ text: "Not authenticated" });
+    expect(result.content?.[0]).toMatchObject({ text: "Not authenticated" });
   });
 
   it("queries only through the caller-scoped client", async () => {
@@ -169,7 +169,7 @@ describe("MCP input validation and bounds", () => {
     const list = await tools();
     for (const name of ["list_students", "list_assignments"]) {
       const shape = list.find((tool) => tool.name === name)!.inputSchema!;
-      const limit = z.object(shape as never).shape.limit as z.ZodTypeAny;
+      const limit = (shape as Record<string, z.ZodTypeAny>)["limit"]!;
       expect(limit.parse(undefined)).toBe(25);
       expect(() => limit.parse(101)).toThrow();
       expect(() => limit.parse(0)).toThrow();
@@ -180,21 +180,21 @@ describe("MCP input validation and bounds", () => {
   it("bounds search_curriculum to 50 rows and requires a non-empty query", async () => {
     const list = await tools();
     const shape = list.find((tool) => tool.name === "search_curriculum")!.inputSchema!;
-    const schema = z.object(shape as never);
+    const schema = z.object(shape as Record<string, z.ZodTypeAny>);
     expect(() => schema.parse({ query: "" })).toThrow();
     expect(() => schema.parse({ query: "x", limit: 51 })).toThrow();
-    expect(schema.parse({ query: "x" }).limit).toBe(20);
+    expect(schema.parse({ query: "x" })["limit"]).toBe(20);
   });
 
   it("rejects malformed identifiers and unknown properties", async () => {
     const list = await tools();
     const students = z
-      .object(list.find((tool) => tool.name === "list_students")!.inputSchema! as never)
+      .object(list.find((tool) => tool.name === "list_students")!.inputSchema! as Record<string, z.ZodTypeAny>)
       .strict();
     expect(() => students.parse({ organizationId: "not-a-uuid" })).toThrow();
     expect(() => students.parse({ userId: "11111111-1111-1111-1111-111111111111" })).toThrow();
     const assignments = z
-      .object(list.find((tool) => tool.name === "list_assignments")!.inputSchema! as never)
+      .object(list.find((tool) => tool.name === "list_assignments")!.inputSchema! as Record<string, z.ZodTypeAny>)
       .strict();
     expect(() => assignments.parse({ status: "deleted" })).toThrow();
   });
