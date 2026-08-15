@@ -1,19 +1,22 @@
 /**
- * Block 7 — response security headers for the TanStack Start / Nitro
+ * Block 7/8 — response security headers for the TanStack Start / Nitro
  * (Cloudflare Worker) pipeline.
  *
- * Deliberate limitations, recorded rather than guessed:
- *  - No `frame-ancestors` / `X-Frame-Options` is emitted. The application is
- *    served inside the Lovable preview iframe, and the production framing
- *    origins have not been approved. Choosing one here would invent policy and
- *    break the current preview. See docs/master-learnflow-continuation-brief.md.
- *  - No script/style CSP is emitted. The Vite/TanStack Start rendering pipeline
- *    injects inline hydration and style payloads without a per-request nonce
- *    hook, so a nonce-based policy cannot be implemented today without
- *    breaking assets, and `unsafe-inline` would be security theatre.
+ *  - Framing: production hosts get `frame-ancestors 'none'` plus the legacy
+ *    `X-Frame-Options: DENY`. Verified preview hosts (see `isPreviewHost`)
+ *    keep the Lovable editor iframe working and never receive X-Frame-Options.
+ *    Production protection is never weakened to accommodate preview.
+ *  - CSP: this module emits the *fallback* policy (no nonce). Document
+ *    responses get a stronger nonce-bearing policy set during SSR by
+ *    `src/lib/csp-request.server.ts`; the merge below never overwrites it.
  *  - HSTS is emitted only for https requests, so local http development and
  *    the sandbox preview are unaffected.
  */
+import {
+  buildContentSecurityPolicy,
+  isPreviewHost,
+  supabaseConnectOrigins,
+} from "./csp";
 
 export const NO_STORE = "no-store, no-cache, must-revalidate, private";
 
@@ -40,13 +43,16 @@ export function buildSecurityHeaders(input: {
 }): Record<string, string> {
   let pathname = "/";
   let secure = false;
+  let preview = false;
   try {
     const parsed = new URL(input.url);
     pathname = parsed.pathname;
     secure = parsed.protocol === "https:";
+    preview = isPreviewHost(parsed.hostname);
   } catch {
     // Malformed URL: fall back to the strictest safe defaults.
     secure = false;
+    preview = false;
   }
 
   const headers: Record<string, string> = {
@@ -65,6 +71,20 @@ export function buildSecurityHeaders(input: {
     ].join(", "),
     "cross-origin-opener-policy": "same-origin",
   };
+
+  // Fallback policy for responses that carry no document (server functions,
+  // API routes, error pages). Script/style directives are handled by the
+  // nonce-bearing SSR policy; here only the framing and injection guards
+  // apply, which is why `enforceScriptPolicy` is false.
+  headers["content-security-policy"] = buildContentSecurityPolicy({
+    preview,
+    secure,
+    enforceScriptPolicy: false,
+    connectOrigins: supabaseConnectOrigins(
+      import.meta.env["VITE_SUPABASE_URL"] as string | undefined,
+    ),
+  });
+  if (!preview) headers["x-frame-options"] = "DENY";
 
   if (secure) {
     headers["strict-transport-security"] = "max-age=31536000; includeSubDomains";
