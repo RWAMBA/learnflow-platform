@@ -8,7 +8,13 @@
  * or retained after the enrollment UI is closed.
  */
 import { supabase } from "@/integrations/supabase/client";
-import { deriveMfaStatus, UNAVAILABLE_STATUS, type MfaStatus } from "./mfa";
+import {
+  deriveMfaStatus,
+  requiresAal2ForAny,
+  UNAVAILABLE_STATUS,
+  type MfaStatus,
+  type PrincipalRole,
+} from "./mfa";
 
 /** Reads factors + assurance level, failing closed on any error. */
 export async function readMfaStatus(): Promise<MfaStatus> {
@@ -115,11 +121,6 @@ export function normalizeMfaError(message: string | undefined): string {
  * enrollment rather than granting anything.
  */
 export async function readMandatoryMfa(userId: string): Promise<boolean> {
-  const { requiresAal2ForAny, DEFAULT_ORGANIZATION_MFA_POLICY, type PrincipalRole } = await import(
-    "./mfa"
-  ).then((m) => ({ ...m, type: undefined as never }));
-  void PrincipalRole;
-  void DEFAULT_ORGANIZATION_MFA_POLICY;
   try {
     const [adminResult, rolesResult] = await Promise.all([
       supabase
