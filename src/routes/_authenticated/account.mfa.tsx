@@ -55,7 +55,10 @@ function AccountMfaPage() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [announcement, setAnnouncement] = useState("");
+  const [pendingRemovalId, setPendingRemovalId] = useState<string | null>(null);
+  const [removalCode, setRemovalCode] = useState("");
   const otpRef = useRef<HTMLDivElement | null>(null);
+  const removalOtpRef = useRef<HTMLDivElement | null>(null);
   const logEvent = useServerFn(recordMfaEvent);
 
   const refresh = useCallback(async () => {
@@ -130,26 +133,62 @@ function AccountMfaPage() {
     toast.success("Two-factor authentication is on.");
   };
 
-  const removeFactor = async (factorId: string) => {
+  // SEC-006 Gate 4: this is a UX guard, not a security boundary. Supabase's
+  // own AAL2 requirement on `unenroll` is the authoritative control, and a
+  // user can always call the SDK directly. What must hold is that a mandatory
+  // principal without a verified factor keeps no privileged access once
+  // enforcement is enabled (the guard then allows enrollment routes only).
+  const beginRemoval = (factorId: string) => {
     if (!status) return;
-    // Client checks are UX only; the server and RLS remain authoritative.
     const decision = canRemoveFactor({
       mandatory: MFA_ENFORCEMENT_ENABLED,
       verifiedFactorCount: status.verifiedFactors.length,
-      currentLevel: status.currentLevel,
+      currentLevel: "aal2",
     });
     if (!decision.allowed) {
       setError(decision.reason ?? MFA_UNAVAILABLE_MESSAGE);
       setAnnouncement(decision.reason ?? "");
       return;
     }
+    setError(null);
+    setRemovalCode("");
+    setPendingRemovalId(factorId);
+    setAnnouncement("Enter a fresh code from your authenticator app to confirm removal.");
+    window.setTimeout(() => removalOtpRef.current?.querySelector("input")?.focus(), 50);
+  };
+
+  const confirmRemoval = async (factorId: string, value: string) => {
+    if (!status) return;
     setBusy(true);
-    // Re-read assurance immediately before removal so a stale page cannot act.
+    setError(null);
+    // Fresh challenge, then an immediate AAL re-read: a stale page must not act.
+    const challenge = await verifyTotpCode(factorId, value);
+    if (!challenge.ok) {
+      setBusy(false);
+      setRemovalCode("");
+      record("mfa_challenge_failed", "remove");
+      setError(challenge.message);
+      setAnnouncement(challenge.message ?? "That code was not accepted.");
+      removalOtpRef.current?.querySelector("input")?.focus();
+      return;
+    }
     const fresh = await readMfaStatus();
     if (fresh.unavailable || fresh.currentLevel !== "aal2") {
       setBusy(false);
       setStatus(fresh);
       setError("Verify a fresh code from your authenticator app before removing a factor.");
+      return;
+    }
+    const decision = canRemoveFactor({
+      mandatory: MFA_ENFORCEMENT_ENABLED,
+      verifiedFactorCount: fresh.verifiedFactors.length,
+      currentLevel: fresh.currentLevel,
+    });
+    if (!decision.allowed) {
+      setBusy(false);
+      setStatus(fresh);
+      setPendingRemovalId(null);
+      setError(decision.reason ?? MFA_UNAVAILABLE_MESSAGE);
       return;
     }
     const { ok, message } = await unenrollFactor(factorId);
@@ -159,6 +198,10 @@ function AccountMfaPage() {
       return;
     }
     record("mfa_unenroll");
+    // Drop cached factor/AAL state before re-reading it from the provider.
+    setPendingRemovalId(null);
+    setRemovalCode("");
+    setStatus(null);
     await refresh();
     setAnnouncement("Authenticator removed.");
     toast.success("Authenticator removed.");
