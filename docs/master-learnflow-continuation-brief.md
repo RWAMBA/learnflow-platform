@@ -131,23 +131,31 @@ changes), the audit was re-run against the public registry:
 NPM_CONFIG_REGISTRY=https://registry.npmjs.org BUN_CONFIG_REGISTRY=https://registry.npmjs.org bun audit
 ```
 
-Bun 1.3.3. Result: **6 advisories (5 high, 1 low)** — all transitive, none in
-first-party code:
+Bun 1.3.3. The pre-remediation audit returned **6 advisories (5 high, 1 low)**,
+all transitive. Every one has now been remediated with package-manager
+`overrides` in `package.json` — the smallest safe remediation, since each
+advisory was a transitive dependency with exactly one installed version and a
+patch-level fix accepted by every parent range. No direct dependency was
+upgraded, no major upgrade was required, no package was added or removed.
 
-| Package         | Installed                   | Affected range     | Severity | Advisory            | Path                                                           |
-| --------------- | --------------------------- | ------------------ | -------- | ------------------- | -------------------------------------------------------------- |
-| brace-expansion | 1.1.16 (5.0.8 also present) | `<1.1.17`          | high     | GHSA-mh99-v99m-4gvg | eslint → @eslint/eslintrc → minimatch                          |
-| brace-expansion | 1.1.16                      | `<1.1.17`          | high     | GHSA-rgw5-rvv9-x895 | eslint / typescript-eslint → minimatch                         |
-| nanoid          | 3.3.16                      | `<3.3.18`          | high     | GHSA-2v37-7h3g-55p8 | vite → postcss                                                 |
-| js-yaml         | 4.3.0                       | `>=4.0.0 <4.3.1`   | high     | GHSA-5p4m-2wfm-xmqj | eslint → @eslint/eslintrc; @tanstack/react-start → xmlbuilder2 |
-| esbuild         | 0.27.7                      | `>=0.27.3 <0.28.1` | low      | GHSA-g7r4-m6w7-qqqr | vite / @tanstack/router-plugin / @lovable.dev/mcp-js           |
+| Package         | Before | After  | Fixed at | Severity | Advisory                                 | Class      | Path                                                                 |
+| --------------- | ------ | ------ | -------- | -------- | ---------------------------------------- | ---------- | -------------------------------------------------------------------- |
+| brace-expansion | 1.1.16 | 1.1.18 | 1.1.17   | high     | GHSA-mh99-v99m-4gvg, GHSA-rgw5-rvv9-x895 | lint       | eslint → @eslint/eslintrc → minimatch; typescript-eslint → minimatch |
+| nanoid          | 3.3.16 | 3.3.18 | 3.3.18   | high     | GHSA-2v37-7h3g-55p8                      | build      | vite → postcss                                                       |
+| js-yaml         | 4.3.0  | 4.3.1  | 4.3.1    | high     | GHSA-5p4m-2wfm-xmqj                      | build/lint | eslint → @eslint/eslintrc; @tanstack/react-start → xmlbuilder2       |
+| esbuild         | 0.27.7 | 0.28.2 | 0.28.1   | low      | GHSA-g7r4-m6w7-qqqr                      | build      | vite; @tanstack/router-plugin → unplugin; @lovable.dev/mcp-js        |
 
-Assessment: all five high advisories are denial-of-service in build/lint-time
-dependencies; the esbuild advisory affects the Windows dev server only. None is
-reachable from the deployed Worker runtime. No upgrade was performed — the
-remediation block forbade dependency changes, and no automatic major upgrade
-was attempted. Dependency remediation is an open follow-up item, not a blocker
-of this security package.
+Overrides added to `package.json`:
+`brace-expansion: ^1.1.17`, `nanoid: ^3.3.18`, `js-yaml: ^4.3.1`,
+`esbuild: ^0.28.1`. Each override stays inside the semver range every parent
+declares (all four are patch/minor bumps within the parents' existing major),
+so no parent range was violated. `bun.lock` was updated by `bun install` and
+is a lockfile-only change (5 packages replaced).
+
+Post-remediation audit result: **No vulnerabilities found** — zero critical,
+zero high, zero moderate, zero low. Compatibility was proven by the full
+regression suite (typecheck, 164 unit tests, RLS, 5 E2E, lint, production
+build) re-run after the overrides were applied.
 
 ## 4. Verification results
 
@@ -159,8 +167,10 @@ of this security package.
   against the hosted database is **skipped by design** in this block, because it
   would require authenticated write attempts as real principals.
 - `bun run test:e2e`: 5/5.
-- Changed-file lint: clean. `bun run lint`: passes with 7 pre-existing
-  react-refresh warnings.
+- Changed-file lint: clean. `bun run lint`: **0 errors**, 7 pre-existing
+  react-refresh warnings (four MCP route files were mechanically reformatted by
+  Prettier to clear the remaining errors).
+- `bun audit` against `registry.npmjs.org`: **no vulnerabilities found**.
 - `bun run build`: succeeds; no server-only module or service-role key appears
   in client assets.
 - Header verification: production responses carry `frame-ancestors 'none'`,
@@ -182,8 +192,14 @@ of this security package.
   toggle, not settable from a migration.
 - **`style-src-attr 'unsafe-inline'`** as described above.
 - **Auth page hydration mismatch** on `/routes/auth.tsx` — cosmetic, unresolved.
-- **Dependency advisories** listed in section 3 remain unremediated.
-- **Live RLS allow/deny testing** against the hosted database has not been run.
+- **Live RLS allow/deny testing** against the hosted database has not been run;
+  the stage-two SQL tests are structural, not live allow/deny execution.
+- **Student session duration** remains an unresolved operational setting: no
+  approved duration exists, and none was invented.
+- **Rate limiting**: server-persisted password-change lockout is implemented;
+  all other rate limiting, CAPTCHA and provider controls are hosted Supabase
+  Auth dashboard settings and remain manual. Anonymous public-form abuse
+  controls ship with Public Website / Community.
 
 ## 6. Manual and review requirements
 
