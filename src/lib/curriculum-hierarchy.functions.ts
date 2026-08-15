@@ -369,9 +369,7 @@ export const saveCurriculumVersion = createServerFn({ method: "POST" })
 export const cloneCurriculumVersion = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
-    z
-      .object({ versionId: uuid, label: z.string().trim().min(1).max(60) })
-      .parse(input),
+    z.object({ versionId: uuid, label: z.string().trim().min(1).max(60) }).parse(input),
   )
   .handler(async ({ data, context }) => {
     const { supabase } = context;
@@ -431,9 +429,7 @@ export const cloneCurriculumVersion = createServerFn({ method: "POST" })
 /** Publish / archive / restore a version. Restoring returns it to draft. */
 export const setCurriculumVersionStatus = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) =>
-    z.object({ versionId: uuid, status }).parse(input),
-  )
+  .inputValidator((input: unknown) => z.object({ versionId: uuid, status }).parse(input))
   .handler(async ({ data, context }) => {
     const { error } = await context.supabase
       .from("curriculum_versions")

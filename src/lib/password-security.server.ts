@@ -29,7 +29,10 @@ export function logLockoutDiagnostic(operation: string, reason: string): void {
  * reads/writes is present, before any client is constructed or used.
  */
 export function assertLockoutServiceConfigured(
-  env: { SUPABASE_URL?: string | undefined; SUPABASE_SERVICE_ROLE_KEY?: string | undefined } = process.env,
+  env: {
+    SUPABASE_URL?: string | undefined;
+    SUPABASE_SERVICE_ROLE_KEY?: string | undefined;
+  } = process.env,
 ): void {
   if (!env.SUPABASE_URL || !env.SUPABASE_SERVICE_ROLE_KEY) {
     logLockoutDiagnostic("configuration-check", "admin-configuration-incomplete");
@@ -55,6 +58,7 @@ function remainingSeconds(lockedUntil: string | null | undefined): number {
 }
 
 type AdminClient = {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- PostgREST query builders are deeply generic; narrowing here would duplicate the generated types without adding safety.
   from: (table: string) => any;
 };
 
@@ -68,7 +72,8 @@ export async function readLockout(admin: AdminClient, userId: string): Promise<L
 
   const lockedForSeconds = remainingSeconds(data?.locked_until ?? null);
   return {
-    failedAttempts: lockedForSeconds > 0 ? (data?.failed_attempts ?? 0) : (data?.failed_attempts ?? 0),
+    failedAttempts:
+      lockedForSeconds > 0 ? (data?.failed_attempts ?? 0) : (data?.failed_attempts ?? 0),
     lockedForSeconds,
     cooldownSeconds: null,
   };

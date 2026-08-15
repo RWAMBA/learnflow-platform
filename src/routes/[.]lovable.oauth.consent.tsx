@@ -42,9 +42,15 @@ export const Route = createFileRoute("/.lovable/oauth/consent")({
   head: () => ({
     meta: [
       { title: "Authorize access — LearnFlow Platform" },
-      { name: "description", content: "Approve or deny an application requesting access to your LearnFlow account." },
+      {
+        name: "description",
+        content: "Approve or deny an application requesting access to your LearnFlow account.",
+      },
       { property: "og:title", content: "Authorize access — LearnFlow Platform" },
-      { property: "og:description", content: "Approve or deny an application requesting access to your LearnFlow account." },
+      {
+        property: "og:description",
+        content: "Approve or deny an application requesting access to your LearnFlow account.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -104,7 +110,12 @@ function Consent() {
           <Button className="w-full" disabled={busy} onClick={() => void decide(true)}>
             {busy ? "Working…" : "Approve"}
           </Button>
-          <Button variant="outline" className="w-full" disabled={busy} onClick={() => void decide(false)}>
+          <Button
+            variant="outline"
+            className="w-full"
+            disabled={busy}
+            onClick={() => void decide(false)}
+          >
             Deny
           </Button>
         </CardContent>

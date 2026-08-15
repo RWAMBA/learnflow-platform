@@ -34,13 +34,13 @@ reset, least-privilege ACLs).
 
 ## 3. Applied in this block
 
-| Change | Effect |
-| --- | --- |
-| Migration `…_least_privilege_security_tables` | `security_events` and `platform_admins`: `anon`/`authenticated` write privileges revoked, `SELECT` only, `service_role` retains full access, RLS re-asserted. Additive; no data touched. |
-| `src/lib/security-headers.ts` + `src/server.ts` | `nosniff`, `strict-origin-when-cross-origin`, restrictive `Permissions-Policy`, `Cross-Origin-Opener-Policy: same-origin`, HSTS on https only, `no-store` on `/account`, `/admin`, `/dashboard`, `/mfa`, `/reset-password`, `/auth`, `/api`, `/_serverFn`. |
-| `readMandatoryMfa()` + `_authenticated/route.tsx` | The MFA guard now derives *who* is mandatory from live role state (Platform Admin, Org Admin, and Teacher/Tutor only under explicit organization policy) instead of treating everyone as mandatory. Read failures fail closed to enrollment-only. Still inert while enforcement is off. |
-| Tests | 147 unit tests pass, including new stage-two structural, ACL and header suites. |
-| Second Platform Administrator promotion | One controlled transactional insert into `public.platform_admins` plus one `security_events` record. No Auth users, factors, roles or memberships changed. |
+| Change                                            | Effect                                                                                                                                                                                                                                                                                  |
+| ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Migration `…_least_privilege_security_tables`     | `security_events` and `platform_admins`: `anon`/`authenticated` write privileges revoked, `SELECT` only, `service_role` retains full access, RLS re-asserted. Additive; no data touched.                                                                                                |
+| `src/lib/security-headers.ts` + `src/server.ts`   | `nosniff`, `strict-origin-when-cross-origin`, restrictive `Permissions-Policy`, `Cross-Origin-Opener-Policy: same-origin`, HSTS on https only, `no-store` on `/account`, `/admin`, `/dashboard`, `/mfa`, `/reset-password`, `/auth`, `/api`, `/_serverFn`.                              |
+| `readMandatoryMfa()` + `_authenticated/route.tsx` | The MFA guard now derives _who_ is mandatory from live role state (Platform Admin, Org Admin, and Teacher/Tutor only under explicit organization policy) instead of treating everyone as mandatory. Read failures fail closed to enrollment-only. Still inert while enforcement is off. |
+| Tests                                             | 147 unit tests pass, including new stage-two structural, ACL and header suites.                                                                                                                                                                                                         |
+| Second Platform Administrator promotion           | One controlled transactional insert into `public.platform_admins` plus one `security_events` record. No Auth users, factors, roles or memberships changed.                                                                                                                              |
 
 ## 4. Stage-two readiness
 

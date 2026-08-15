@@ -2,6 +2,7 @@
 import { gradeAnswer, percentageOf } from "@/lib/assessment-grading";
 import { MASTERY_FROM_PERCENTAGE, gradeLabelFor } from "@/features/assessments/constants";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- PostgREST query builders are deeply generic; narrowing here would duplicate the generated types without adding safety.
 type Db = { from: (table: string) => any };
 
 export interface ScoredSubmission {
@@ -67,7 +68,11 @@ export async function materialiseAnswers(
 }
 
 /** Recomputes the total from stored per-answer marks after manual grading. */
-export async function recomputeSubmissionScore(supabase: Db, submissionId: string, maxScore: number) {
+export async function recomputeSubmissionScore(
+  supabase: Db,
+  submissionId: string,
+  maxScore: number,
+) {
   const { data: answers } = await supabase
     .from("submission_answers")
     .select("awarded_points, question:question_bank_items(points)")
@@ -93,7 +98,12 @@ export async function recomputeSubmissionScore(supabase: Db, submissionId: strin
 /** Notifies the teachers who own an assessment that work has arrived. */
 export async function notifyAssessmentAuthor(
   supabase: Db,
-  params: { organizationId: string; assessmentId: string; type: string; payload: Record<string, unknown> },
+  params: {
+    organizationId: string;
+    assessmentId: string;
+    type: string;
+    payload: Record<string, unknown>;
+  },
 ) {
   const { data: assessment } = await supabase
     .from("assessment_definitions")
@@ -120,7 +130,12 @@ export async function notifyAssessmentAuthor(
 /** Notifies a learner and their guardians that marks are available. */
 export async function notifyStudentAudience(
   supabase: Db,
-  params: { organizationId: string; studentId: string; type: string; payload: Record<string, unknown> },
+  params: {
+    organizationId: string;
+    studentId: string;
+    type: string;
+    payload: Record<string, unknown>;
+  },
 ) {
   const recipients = new Set<string>();
   const { data: student } = await supabase
@@ -139,7 +154,10 @@ export async function notifyStudentAudience(
     const { data: guardianRoles } = await supabase
       .from("user_roles")
       .select("id")
-      .in("user_id", guardians.map((row: { parent_id: string }) => row.parent_id))
+      .in(
+        "user_id",
+        guardians.map((row: { parent_id: string }) => row.parent_id),
+      )
       .eq("organization_id", params.organizationId)
       .eq("status", "active");
     (guardianRoles ?? []).forEach((row: { id: string }) => recipients.add(row.id));

@@ -20,7 +20,9 @@ export default defineTool({
     const supabase = supabaseForUser(ctx);
     let query = supabase
       .from("students")
-      .select("id, first_name, last_name, organization_id, grade:grades(name), pathway:pathways(name)")
+      .select(
+        "id, first_name, last_name, organization_id, grade:grades(name), pathway:pathways(name)",
+      )
       .order("first_name")
       .limit(limit ?? 25);
     if (organizationId) query = query.eq("organization_id", organizationId);

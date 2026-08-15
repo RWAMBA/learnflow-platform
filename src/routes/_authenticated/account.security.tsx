@@ -44,7 +44,10 @@ export const Route = createFileRoute("/_authenticated/account/security")({
   head: () => ({
     meta: [
       { title: "Account security — the Platform" },
-      { name: "description", content: "Change your password and keep your Platform account secure." },
+      {
+        name: "description",
+        content: "Change your password and keep your Platform account secure.",
+      },
       { property: "og:title", content: "Account security — the Platform" },
       {
         property: "og:description",
@@ -87,7 +90,7 @@ function AccountSecurityPage() {
           setFormError({
             title: "Password changes are paused",
             description:
-              "Too many incorrect current-password attempts. Wait for the countdown to finish, or sign out and use the \"Forgot your password?\" reset link instead.",
+              'Too many incorrect current-password attempts. Wait for the countdown to finish, or sign out and use the "Forgot your password?" reset link instead.',
           });
         }
       })
@@ -216,7 +219,9 @@ function AccountSecurityPage() {
       const expired = /jwt|session|token|not authenticated/i.test(error.message);
       setSessionExpired(expired);
       setFormError({
-        title: expired ? "Your session expired before we could save" : "We could not update your password",
+        title: expired
+          ? "Your session expired before we could save"
+          : "We could not update your password",
         description: expired
           ? "Sign in again and retry the change — nothing was saved."
           : error.message,
@@ -258,7 +263,12 @@ function AccountSecurityPage() {
                   <AlertDescription className="space-y-2">
                     <p>{formError.description}</p>
                     {sessionExpired ? (
-                      <Button type="button" size="sm" variant="outline" onClick={() => void handleReauthenticate()}>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => void handleReauthenticate()}
+                      >
                         Sign in again
                       </Button>
                     ) : null}
@@ -284,7 +294,12 @@ function AccountSecurityPage() {
                   <FormItem>
                     <FormLabel>Current password</FormLabel>
                     <FormControl>
-                      <Input type="password" autoComplete="current-password" disabled={locked} {...field} />
+                      <Input
+                        type="password"
+                        autoComplete="current-password"
+                        disabled={locked}
+                        {...field}
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

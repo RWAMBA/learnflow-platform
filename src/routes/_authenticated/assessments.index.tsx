@@ -20,7 +20,11 @@ import {
 } from "@/components/ui/select";
 import { useRoleContext } from "@/features/roles/role-context";
 import { useCurrentStudent } from "@/features/dashboard/use-viewer-students";
-import { assessmentKeys, listAssessments, listStudentAssessments } from "@/features/assessments/api";
+import {
+  assessmentKeys,
+  listAssessments,
+  listStudentAssessments,
+} from "@/features/assessments/api";
 import { AssessmentStatusBadge } from "@/features/assessments/components/status-badge";
 import { ASSESSMENT_STATUSES, ASSESSMENT_STATUS_LABELS } from "@/features/assessments/constants";
 import { canAuthorAssessments } from "@/features/roles/permissions";
@@ -74,8 +78,7 @@ function Page() {
 
   const start = useServerFn(startAttempt);
   const startMutation = useMutation({
-    mutationFn: (assessmentId: string) =>
-      start({ data: { assessmentId, studentId: studentId! } }),
+    mutationFn: (assessmentId: string) => start({ data: { assessmentId, studentId: studentId! } }),
     onSuccess: (result) =>
       void navigate({
         to: "/assessments/take/$submissionId",

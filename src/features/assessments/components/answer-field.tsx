@@ -150,7 +150,12 @@ export function AnswerField({
     );
   }
 
-  if (type === "file_upload" || type === "drawing" || type === "audio_response" || type === "video_response") {
+  if (
+    type === "file_upload" ||
+    type === "drawing" ||
+    type === "audio_response" ||
+    type === "video_response"
+  ) {
     return (
       <div className="space-y-2">
         <Input

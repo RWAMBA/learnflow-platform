@@ -5,7 +5,8 @@ import type { ActiveRole, RoleCode } from "./types";
  * policy — this only decides what is worth rendering.
  */
 export const can = {
-  manageStudents: (role: RoleCode | undefined) => role === "parent_guardian" || role === "org_admin",
+  manageStudents: (role: RoleCode | undefined) =>
+    role === "parent_guardian" || role === "org_admin",
   createRelationships: (role: RoleCode | undefined) =>
     role === "parent_guardian" || role === "org_admin",
   createAssignments: (role: RoleCode | undefined) =>
@@ -21,8 +22,7 @@ export const can = {
  * This is a UI capability helper only. PostgreSQL RLS remains the
  * authoritative authorization boundary.
  */
-export const canAuthorTenantCurriculum = (role: RoleCode | undefined) =>
-  role === "org_admin";
+export const canAuthorTenantCurriculum = (role: RoleCode | undefined) => role === "org_admin";
 
 /**
  * Platform curriculum structure is administered through the separate
@@ -30,8 +30,7 @@ export const canAuthorTenantCurriculum = (role: RoleCode | undefined) =>
  *
  * This is a UI capability helper only. PostgreSQL RLS remains authoritative.
  */
-export const canAuthorPlatformCurriculum = (isPlatformAdmin: boolean) =>
-  isPlatformAdmin;
+export const canAuthorPlatformCurriculum = (isPlatformAdmin: boolean) => isPlatformAdmin;
 
 /** Who may attach a subject to a student's learning plan. */
 export const canAssignCurriculum = (role: RoleCode | undefined) =>

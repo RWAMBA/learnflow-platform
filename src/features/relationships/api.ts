@@ -70,7 +70,9 @@ export async function listPendingInvitationsForUser(userId: string) {
 export async function listOrganizationMembers(organizationId: string) {
   const { data, error } = await supabase
     .from("user_roles")
-    .select("id, user_id, role:roles(code, name), profile:profiles!user_roles_user_id_fkey(id, full_name)")
+    .select(
+      "id, user_id, role:roles(code, name), profile:profiles!user_roles_user_id_fkey(id, full_name)",
+    )
     .eq("organization_id", organizationId)
     .eq("status", "active");
   if (error) throw error;

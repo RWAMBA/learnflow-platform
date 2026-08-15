@@ -26,12 +26,14 @@ export const Route = createFileRoute("/_authenticated/account/security-checklist
       { title: "Security checklist — the Platform" },
       {
         name: "description",
-        content: "Review which authentication and password settings are compliant and what still needs attention.",
+        content:
+          "Review which authentication and password settings are compliant and what still needs attention.",
       },
       { property: "og:title", content: "Security checklist — the Platform" },
       {
         property: "og:description",
-        content: "Review which authentication and password settings are compliant and what still needs attention.",
+        content:
+          "Review which authentication and password settings are compliant and what still needs attention.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },

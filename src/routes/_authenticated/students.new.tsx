@@ -51,9 +51,15 @@ export const Route = createFileRoute("/_authenticated/students/new")({
   head: () => ({
     meta: [
       { title: "Add a student — the Platform" },
-      { name: "description", content: "Create a student record and link yourself as their guardian." },
+      {
+        name: "description",
+        content: "Create a student record and link yourself as their guardian.",
+      },
       { property: "og:title", content: "Add a student — the Platform" },
-      { property: "og:description", content: "Create a student record and link yourself as guardian." },
+      {
+        property: "og:description",
+        content: "Create a student record and link yourself as guardian.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
@@ -123,7 +129,10 @@ function NewStudentPage() {
 
   return (
     <div className="mx-auto max-w-2xl">
-      <PageHeader title="Add a student" description="You'll be linked as their guardian with full management access." />
+      <PageHeader
+        title="Add a student"
+        description="You'll be linked as their guardian with full management access."
+      />
       <Card>
         <CardContent className="pt-6">
           <Form {...form}>
@@ -166,7 +175,9 @@ function NewStudentPage() {
                     <FormControl>
                       <Input type="date" {...field} />
                     </FormControl>
-                    <FormDescription>Optional, used to suggest an appropriate grade.</FormDescription>
+                    <FormDescription>
+                      Optional, used to suggest an appropriate grade.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}

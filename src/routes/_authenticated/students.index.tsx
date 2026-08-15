@@ -19,7 +19,10 @@ export const Route = createFileRoute("/_authenticated/students/")({
   head: () => ({
     meta: [
       { title: "Students — the Platform" },
-      { name: "description", content: "The students you manage or teach, with grade and pathway at a glance." },
+      {
+        name: "description",
+        content: "The students you manage or teach, with grade and pathway at a glance.",
+      },
       { property: "og:title", content: "Students — the Platform" },
       { property: "og:description", content: "The students you manage or teach." },
       { property: "og:type", content: "website" },
@@ -50,7 +53,10 @@ function StudentsPage() {
     enabled: Boolean(activeRole),
     queryFn: async () => {
       if (isEducator) {
-        const rows = await listRosterForEducator(viewer.userId, roleCode === "teacher" ? "teacher" : "tutor");
+        const rows = await listRosterForEducator(
+          viewer.userId,
+          roleCode === "teacher" ? "teacher" : "tutor",
+        );
         return rows.map((row) => ({
           id: row.student!.id,
           name: `${row.student?.first_name} ${row.student?.last_name}`,
