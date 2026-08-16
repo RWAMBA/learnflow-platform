@@ -60,7 +60,7 @@ jobs:
         run: supabase start -x realtime,storage-api,imgproxy,studio,edge-runtime,logflare,vector,supavisor,mailpit
 
       - name: Apply the complete migration history (Stage 1C included)
-        run: supabase db reset --no-seed
+        run: supabase db reset
 
       - name: Verify Stage 1C objects exist in the disposable database
         run: |
