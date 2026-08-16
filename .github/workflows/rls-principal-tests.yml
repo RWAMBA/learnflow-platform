@@ -1,0 +1,40 @@
+name: RLS principal tests (disposable)
+
+# Live-principal RLS allow/deny proof for Phase 10 Stage 1C.
+# Runs ONLY against a disposable Postgres service container created for the job
+# and destroyed with it. Production credentials are never referenced.
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  rls-principal-tests:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: disposable
+          POSTGRES_DB: disposable
+        options: >-
+          --health-cmd pg_isready --health-interval 5s --health-timeout 5s --health-retries 10
+        ports:
+          - 5432:5432
+    env:
+      RLS_DISPOSABLE_DB: "1"
+      RLS_TEST_DATABASE_URL: postgres://postgres:disposable@localhost:5432/disposable
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+      - name: Static Stage 1C structural suite (always on)
+        run: bunx vitest run src/lib/stage1c-enrollment-lifecycle.test.ts
+      - name: Apply migrations to the disposable database
+        run: |
+          set -e
+          for f in supabase/migrations/*.sql; do
+            psql "$RLS_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -f "$f"
+          done
+      - name: Live-principal allow/deny proof (always rolled back)
+        run: node scripts/run-rls-principal-tests.mjs
