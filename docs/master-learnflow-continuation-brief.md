@@ -178,7 +178,7 @@ read LearnFlow data **as the signed-in user**. Full review evidence lives in
 - Tools (all read-only, `.select()` only, no `rpc`, no writes): `whoami`,
   `list_students`, `list_assignments`, `search_curriculum`. Inputs are Zod
   validated with bounded limits (100/100/50) and uuid/enum constraints; tenant
-  and student ids are *narrowing filters only* and cannot widen RLS. `whoami`
+  and student ids are _narrowing filters only_ and cannot widen RLS. `whoami`
   identity comes solely from the verified token. Errors return `error.message`
   only.
 - CSRF: `/.mcp` was missing from the origin-exemption list and is now included
@@ -287,10 +287,59 @@ DML.
 - Deferred (V2/V3/V4): native mobile apps, AI tutor and AI quiz generation,
   marketplace, public API, white-label deployments.
 
+## 8a. Phase 10 Stage 1A/1B state (branch `repair/phase10-stage1b-controlled-reconciliation`)
+
+Baseline `c07227925b639d1182e008f6e268bd00f37977ac`; `origin/main` unchanged at
+the same commit. Applied migrations:
+
+| Migration        | Content                                                                                                                                                                                          |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `20260816092346` | Stage 1A foundation: `curriculum_providers`, `curriculum_versions`, `education_stages`, `subject_groups`, additive columns, version lifecycle enforcement.                                       |
+| `20260816135844` | Stage 1A reference mappings: 4 providers, CBC attributed to KICD, CBC `Baseline` version, 4 education stages, Grades 7–10 mapped, 5 subject groups.                                              |
+| `20260816140135` | Stage 1B content spine: recursive `curriculum_nodes`, `learning_resources`, compatibility columns on `lessons`/`learning_objectives`/`assessments`, legacy backfill with parity post-conditions. |
+| `20260816145744` | Stage 1B controlled-reconciliation repair (this block).                                                                                                                                          |
+
+The repair migration is forward-only and additive; neither applied migration
+was edited:
+
+- **Platform-only hierarchy ownership** — validated
+  `curriculum_nodes_platform_owned_chk` guarantees
+  `authoring_organization_id IS NULL`, so curriculum structure can never become
+  tenant-attributed. SEC-004/SEC-005 predicates are untouched; tenant-owned
+  content remains confined to `learning_resources`/`lessons`.
+- **Subtree depth and cycle enforcement** —
+  `app_private.enforce_curriculum_node_acyclic()` now validates the moved node's
+  _descendants_, not only its ancestors: a recursive subtree probe enforces a
+  bounded maximum depth of 8, rejects cycles, and rejects cross-subject
+  subtrees on a subject move.
+- **Lifecycle immutability** — new
+  `app_private.enforce_curriculum_node_lifecycle()` and
+  `app_private.enforce_learning_resource_lifecycle()` triggers enforce
+  draft → review → published → archived; published rows may only be archived
+  (status-only, all content columns immutable), archived rows are frozen,
+  published/archived rows cannot be deleted, and `published_at` is set by the
+  database. All three helpers are revoked from `anon`/`authenticated`/`PUBLIC`.
+- **Lesson backfill gap closure** — lessons linked only through a legacy
+  `learning_outcome_id` inherit the node of the matching objective
+  (`legacy_outcome_id` join). A transactional post-condition fails closed if any
+  lesson retains a legacy link without a curriculum node. Live result: 30
+  lessons, 0 unmapped, 0 tenant-owned nodes.
+- **Legacy tables preserved** — `strands`, `sub_strands`, `topics`,
+  `learning_outcomes` remain for a later verified deprecation migration.
+
+Verification: `bunx tsgo --noEmit` clean; `bun run test` **302/302 across 19
+files**, including the new 22-test `src/lib/stage1b-content-spine.test.ts`.
+`MFA_ENFORCEMENT_ENABLED = false`; no `has_aal2()` policy exists in the live
+database; SEC-006 stage two remains unapplied. The Supabase linter reports only
+the pre-existing, previously-triaged Auth-dashboard warning
+"Leaked Password Protection Disabled" — not introduced by this block and not
+remediable from SQL.
+
 ## 9. Continuation state
 
 Phase 1–9 functionality is implemented with the gaps listed in section 5.
-Phase 10 has not started. Next scope after security: Stage 1 Universal
+Phase 10 Stage 1A and Stage 1B are implemented and reconciled (section 8a);
+Stage 1C has not started. Next scope after security: Stage 1 Universal
 Curriculum Engine → Stage 2 Programmes → Stage 3 Public Website → Stage 4
 Community → Stage 5 Career Pathways → Stage 6 Billing, each independently
 testable and deployable, followed by a full gap analysis against Phase 10A–10L

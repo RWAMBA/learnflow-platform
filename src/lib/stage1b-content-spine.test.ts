@@ -119,7 +119,9 @@ describe("Stage 1B — lifecycle immutability", () => {
   });
 
   it("published and archived nodes cannot be deleted", () => {
-    expect(REPAIR).toMatch(/TG_OP = 'DELETE'[\s\S]{0,200}OLD\.status IN \('published','archived'\)/);
+    expect(REPAIR).toMatch(
+      /TG_OP = 'DELETE'[\s\S]{0,200}OLD\.status IN \('published','archived'\)/,
+    );
   });
 
   it("learning resources enforce the same lifecycle", () => {
