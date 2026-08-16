@@ -21,7 +21,7 @@ export default defineTool({
     let query = supabase
       .from("students")
       .select(
-        "id, first_name, last_name, organization_id, grade:grades!subjects_grade_id_fkey(name), pathway:pathways!subjects_pathway_id_fkey(name)",
+        "id, first_name, last_name, organization_id, grade:grades(name), pathway:pathways(name)",
       )
       .order("first_name")
       .limit(limit ?? 25);

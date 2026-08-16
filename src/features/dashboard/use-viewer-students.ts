@@ -14,7 +14,7 @@ export function useCurrentStudent() {
       const { data, error } = await supabase
         .from("students")
         .select(
-          "id, first_name, last_name, organization_id, grade:grades!subjects_grade_id_fkey(id, name, sequence_order)",
+          "id, first_name, last_name, organization_id, grade:grades(id, name, sequence_order)",
         )
         .eq("user_role_id", userRoleId!)
         .maybeSingle();

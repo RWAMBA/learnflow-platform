@@ -10,7 +10,7 @@ export async function listStudents(organizationId: string) {
   const { data, error } = await supabase
     .from("students")
     .select(
-      "id, first_name, last_name, date_of_birth, organization_id, user_role_id, grade:grades!subjects_grade_id_fkey(id, name, sequence_order), pathway:pathways!subjects_pathway_id_fkey(id, name)",
+      "id, first_name, last_name, date_of_birth, organization_id, user_role_id, grade:grades(id, name, sequence_order), pathway:pathways(id, name)",
     )
     .eq("organization_id", organizationId)
     .order("first_name");
@@ -22,7 +22,7 @@ export async function getStudent(studentId: string) {
   const { data, error } = await supabase
     .from("students")
     .select(
-      "id, first_name, last_name, date_of_birth, organization_id, user_role_id, created_by, grade:grades!subjects_grade_id_fkey(id, name, sequence_order, pathway_required), pathway:pathways!subjects_pathway_id_fkey(id, name)",
+      "id, first_name, last_name, date_of_birth, organization_id, user_role_id, created_by, grade:grades(id, name, sequence_order, pathway_required), pathway:pathways(id, name)",
     )
     .eq("id", studentId)
     .maybeSingle();
@@ -35,7 +35,7 @@ export async function listLinkedStudentsForParent(userId: string) {
   const { data, error } = await supabase
     .from("parent_student_relationships")
     .select(
-      "id, permission_level, status, student:students(id, first_name, last_name, organization_id, grade:grades!subjects_grade_id_fkey(name))",
+      "id, permission_level, status, student:students(id, first_name, last_name, organization_id, grade:grades(name))",
     )
     .eq("parent_id", userId)
     .eq("status", "active");
@@ -45,7 +45,7 @@ export async function listLinkedStudentsForParent(userId: string) {
 
 export async function listRosterForEducator(userId: string, kind: "teacher" | "tutor") {
   const select =
-    "id, status, subject:subjects(id, name), student:students(id, first_name, last_name, organization_id, grade:grades!subjects_grade_id_fkey(name))";
+    "id, status, subject:subjects(id, name), student:students(id, first_name, last_name, organization_id, grade:grades(name))";
   const { data, error } =
     kind === "teacher"
       ? await supabase
