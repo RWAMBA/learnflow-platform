@@ -419,16 +419,76 @@ the pre-existing, previously-triaged Auth-dashboard warning
 "Leaked Password Protection Disabled" — not introduced by this block and not
 remediable from SQL.
 
+### 8b. Phase 10 Stage 1C — curriculum enrollment lifecycle (BUILT, NOT APPLIED)
+
+Branch `feature/phase10-stage1c-enrollment-lifecycle`. The migration
+`supabase/migrations/20260816175000_phase10_stage1c_enrollment_lifecycle.sql`
+is **hand-authored and deliberately NOT applied**: it awaits Claude
+pre-application review. Nothing in the live database changed in this block.
+
+What it introduces:
+
+- `public.academic_periods` — organization-owned, self-referencing calendar
+  hierarchy (`year`/`term`/`semester`/`quarter`). Acyclic, same-organization
+  ancestry and descendants, bidirectional date containment, and the same
+  authoritative maximum depth of **32** used by Stage 1B (ancestor depth plus
+  deepest descendant relative depth). Sibling overlap is permitted by explicit
+  decision — no exclusion constraint is created.
+- `public.curriculum_enrollments` — a Student's placement against a specific
+  Curriculum Version, Academic Level, optional Track and optional Academic
+  Period. Lifecycle is strictly
+  `pending -> active -> (completed|transferred|withdrawn) -> archived`; every
+  other transition, including backward transitions, is rejected. `enrolled_at`
+  and `ended_at` are database-assigned, never client-supplied. Placement fields
+  freeze on activation. Deletion is possible only while still `pending`. A
+  partial unique index permits at most one active primary enrollment per
+  Student. Transfer chains are student-consistent and acyclic.
+- `app_private.can_administer_academic_period(uuid)` — purpose-specific
+  calendar authority (Platform Administrator or active Organization
+  Administrator). SEC-005 is preserved: `can_author_curriculum` is neither
+  reused nor broadened.
+- RLS: reads use the existing authoritative `app_private.can_view_student`
+  predicate; writes are Platform Administrator or the Student's organization
+  `org_admin` only. `anon` holds no grant on either table; all guard trigger
+  functions are revoked from PUBLIC, `anon` and `authenticated`.
+- `student_curriculum_assignments.curriculum_enrollment_id` — additive,
+  nullable, **not backfilled** (no deterministic historical mapping exists),
+  guarded so a non-null value must reference an enrollment for the same Student.
+- No DML of any kind: no seed, no backfill, no delete. Single transaction with
+  a fail-closed precondition gate and a self-verifying postcondition gate.
+
+Supporting work: `src/features/curriculum/effective-placement.ts` is a
+read-only compatibility path that prefers a Stage 1C enrollment and falls back
+to the legacy `students.grade_id`/`pathway_id` columns; no existing write path
+changed and no CRUD UI was added. `src/lib/stage1c-enrollment-lifecycle.test.ts`
+(32 tests) verifies the migration structurally, deriving the depth limit from
+the external Stage 1B artifact so the proof cannot be self-referential.
+
+**Item 22 (live-principal RLS gate) is now unblocked in CI, not in production.**
+`scripts/rls/stage1c-principal-tests.sql` proves allow/deny outcomes under real
+principals (`SET LOCAL ROLE authenticated` plus `request.jwt.claims`) and always
+ends in `ROLLBACK`. `scripts/run-rls-principal-tests.mjs` refuses to run unless
+`RLS_DISPOSABLE_DB=1` with a recognised disposable target, and hard-refuses any
+hosted Supabase endpoint. `.github/workflows/rls-principal-tests.yml` runs it
+against a throwaway Postgres service container only. No production database is
+ever touched.
+
+Full gates: `tsgo` clean, ESLint clean, **360/360 tests pass** across 20 files.
+`MFA_ENFORCEMENT_ENABLED = false`; no `has_aal2()` policy exists.
+
+
 ## 9. Continuation state
 
 Phase 1–9 functionality is implemented with the gaps listed in section 5.
-Phase 10 Stage 1A and Stage 1B are implemented and reconciled (section 8a);
-Stage 1C has not started. Next scope after security: Stage 1 Universal
+Phase 10 Stage 1A and Stage 1B are implemented and reconciled (section 8a).
+Stage 1C is fully built but UNAPPLIED and awaiting review (section 8b). Next scope after security: Stage 1 Universal
 Curriculum Engine → Stage 2 Programmes → Stage 3 Public Website → Stage 4
 Community → Stage 5 Career Pathways → Stage 6 Billing, each independently
 testable and deployable, followed by a full gap analysis against Phase 10A–10L
 and unfinished Phase 1–9 work. Private instructor-document controls and the
 `assignment-submissions` bucket belong to Stage 2.
 
-**Exact next action: Claude review of this security branch before any merge to
-`main`, before stage-two application, and before enforcement activation.**
+**Exact next action: Claude pre-application review of the Stage 1C migration
+`20260816175000_phase10_stage1c_enrollment_lifecycle.sql` before it is applied
+through the platform migration tool and before any merge to `main`. Stage-two
+SEC-006 application and MFA enforcement activation remain separately gated.**
