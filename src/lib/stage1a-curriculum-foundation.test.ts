@@ -335,8 +335,11 @@ describe("Stage 1A — transaction and safety envelope", () => {
     expect(SQL_CODE).not.toMatch(/DELETE\s+FROM/i);
   });
 
-  it("is the newest migration and later than the SEC-006 ACL migration", () => {
-    expect(MIGRATIONS.at(-1)).toBe(MIGRATION_FILE);
+  it("is ordered after the SEC-006 ACL migration and before later stages", () => {
+    const index = MIGRATIONS.indexOf(MIGRATION_FILE);
+    expect(index).toBeGreaterThanOrEqual(0);
+    expect(MIGRATIONS.slice(0, index).every((file) => file < MIGRATION_FILE)).toBe(true);
+    expect(MIGRATIONS.slice(index + 1).every((file) => file > MIGRATION_FILE)).toBe(true);
     expect(MIGRATION_FILE > "20260815110738").toBe(true);
   });
 });
