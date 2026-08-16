@@ -33,8 +33,13 @@ const REPAIR2_CODE = stripComments(REPAIR2);
  * parsed from that external source so the proof cannot become self-referential.
  */
 const AUTHORITATIVE_MAX_DEPTH = (() => {
-  const match = SPINE.match(/IF v_depth > (\d+) THEN\s*\n\s*RAISE EXCEPTION 'curriculum node depth limit exceeded'/);
-  if (!match) throw new Error("cannot derive the authoritative depth limit from the Stage 1B spine migration");
+  const match = SPINE.match(
+    /IF v_depth > (\d+) THEN\s*\n\s*RAISE EXCEPTION 'curriculum node depth limit exceeded'/,
+  );
+  if (!match)
+    throw new Error(
+      "cannot derive the authoritative depth limit from the Stage 1B spine migration",
+    );
   return Number(match[1]);
 })();
 
@@ -44,16 +49,23 @@ const AUTHORITATIVE_MAX_DEPTH = (() => {
  */
 function depthProofFailures(sql: string, expected: number): string[] {
   const failures: string[] = [];
-  const declared = [...sql.matchAll(/v_max_depth constant int := (\d+);/g)].map((m) => Number(m[1]));
+  const declared = [...sql.matchAll(/v_max_depth constant int := (\d+);/g)].map((m) =>
+    Number(m[1]),
+  );
   if (declared.length === 0) failures.push("no declared limit");
-  if (!declared.every((d) => d === expected)) failures.push("declared limit differs from authoritative source");
-  if (!/IF v_ancestor_depth > v_max_depth THEN/.test(sql)) failures.push("ancestor check not tied to the shared limit");
+  if (!declared.every((d) => d === expected))
+    failures.push("declared limit differs from authoritative source");
+  if (!/IF v_ancestor_depth > v_max_depth THEN/.test(sql))
+    failures.push("ancestor check not tied to the shared limit");
   if (!/coalesce\(v_subtree_depth, 1\) \+ v_ancestor_depth > v_max_depth THEN/.test(sql))
     failures.push("descendant check not tied to the shared limit");
   if (/v_ancestor_depth > \d/.test(sql)) failures.push("ancestor check uses a hardcoded limit");
-  if (/\+ v_ancestor_depth > \d/.test(sql)) failures.push("descendant check uses a hardcoded limit");
-  if (!/s\.depth < \(v_max_depth \+ 1\)/.test(sql)) failures.push("descendant traversal not bounded by the shared limit");
-  if (/s\.depth < \(?\d/.test(sql)) failures.push("descendant traversal bounded by a hardcoded value");
+  if (/\+ v_ancestor_depth > \d/.test(sql))
+    failures.push("descendant check uses a hardcoded limit");
+  if (!/s\.depth < \(v_max_depth \+ 1\)/.test(sql))
+    failures.push("descendant traversal not bounded by the shared limit");
+  if (/s\.depth < \(?\d/.test(sql))
+    failures.push("descendant traversal bounded by a hardcoded value");
   return failures;
 }
 
@@ -144,7 +156,9 @@ describe("Stage 1B — authoritative depth limit (structural proof)", () => {
   it("malformed descendant cycles fail closed rather than being accepted", () => {
     expect(REPAIR2).toContain("c.id = ANY(s.path)");
     expect(REPAIR2).toContain("coalesce(bool_or(s.is_cycle), false)");
-    expect(REPAIR2).toMatch(/IF v_subtree_cycle THEN\s*\n\s*RAISE EXCEPTION 'curriculum node cycle violation'/);
+    expect(REPAIR2).toMatch(
+      /IF v_subtree_cycle THEN\s*\n\s*RAISE EXCEPTION 'curriculum node cycle violation'/,
+    );
   });
 
   it("cross-subject descendants and same-subject parents remain enforced", () => {
@@ -171,19 +185,28 @@ describe("Stage 1B — depth proof rejects defective variants (negative tests)",
 
   it("rejects a correction that keeps the depth-8 limit", () => {
     expect(
-      depthProofFailures(mutate(/v_max_depth constant int := 32;/g, "v_max_depth constant int := 8;"), AUTHORITATIVE_MAX_DEPTH),
+      depthProofFailures(
+        mutate(/v_max_depth constant int := 32;/g, "v_max_depth constant int := 8;"),
+        AUTHORITATIVE_MAX_DEPTH,
+      ),
     ).toContain("declared limit differs from authoritative source");
   });
 
   it("rejects a correction that uses 31", () => {
     expect(
-      depthProofFailures(mutate(/v_max_depth constant int := 32;/g, "v_max_depth constant int := 31;"), AUTHORITATIVE_MAX_DEPTH),
+      depthProofFailures(
+        mutate(/v_max_depth constant int := 32;/g, "v_max_depth constant int := 31;"),
+        AUTHORITATIVE_MAX_DEPTH,
+      ),
     ).toContain("declared limit differs from authoritative source");
   });
 
   it("rejects a correction that uses 33", () => {
     expect(
-      depthProofFailures(mutate(/v_max_depth constant int := 32;/g, "v_max_depth constant int := 33;"), AUTHORITATIVE_MAX_DEPTH),
+      depthProofFailures(
+        mutate(/v_max_depth constant int := 32;/g, "v_max_depth constant int := 33;"),
+        AUTHORITATIVE_MAX_DEPTH,
+      ),
     ).toContain("declared limit differs from authoritative source");
   });
 
@@ -211,7 +234,8 @@ describe("Stage 1B — depth proof rejects defective variants (negative tests)",
 
 describe("Stage 1B — server-authoritative published_at", () => {
   const NODE_DEF = "CREATE OR REPLACE FUNCTION app_private.enforce_curriculum_node_lifecycle()";
-  const RESOURCE_DEF = "CREATE OR REPLACE FUNCTION app_private.enforce_learning_resource_lifecycle()";
+  const RESOURCE_DEF =
+    "CREATE OR REPLACE FUNCTION app_private.enforce_learning_resource_lifecycle()";
   const nodeFn = REPAIR2.slice(REPAIR2.indexOf(NODE_DEF), REPAIR2.indexOf(RESOURCE_DEF));
   const resourceFn = REPAIR2.slice(REPAIR2.indexOf(RESOURCE_DEF));
 
@@ -224,13 +248,19 @@ describe("Stage 1B — server-authoritative published_at", () => {
 
   it("a client-supplied timestamp (past or future) cannot survive publication", () => {
     // Any client value is overwritten on the transition, and discarded otherwise.
-    expect(nodeFn).toMatch(/IF NEW\.status = 'published' THEN\s*\n\s*NEW\.published_at := now\(\);\s*\n\s*ELSE\s*\n\s*NEW\.published_at := OLD\.published_at;/);
-    expect(resourceFn).toMatch(/NEW\.published_at := now\(\);\s*\n\s*ELSE\s*\n\s*NEW\.published_at := OLD\.published_at;/);
+    expect(nodeFn).toMatch(
+      /IF NEW\.status = 'published' THEN\s*\n\s*NEW\.published_at := now\(\);\s*\n\s*ELSE\s*\n\s*NEW\.published_at := OLD\.published_at;/,
+    );
+    expect(resourceFn).toMatch(
+      /NEW\.published_at := now\(\);\s*\n\s*ELSE\s*\n\s*NEW\.published_at := OLD\.published_at;/,
+    );
   });
 
   it("insert-as-published is also database-timed and unpublished inserts are NULL", () => {
     for (const fn of [nodeFn, resourceFn]) {
-      expect(fn).toMatch(/TG_OP = 'INSERT'[\s\S]{0,400}NEW\.published_at := now\(\);[\s\S]{0,80}ELSE[\s\S]{0,80}NEW\.published_at := NULL;/);
+      expect(fn).toMatch(
+        /TG_OP = 'INSERT'[\s\S]{0,400}NEW\.published_at := now\(\);[\s\S]{0,80}ELSE[\s\S]{0,80}NEW\.published_at := NULL;/,
+      );
     }
     expect(REPAIR2).toMatch(
       /CREATE TRIGGER curriculum_nodes_enforce_lifecycle\s+BEFORE INSERT OR UPDATE OR DELETE/,
@@ -241,7 +271,9 @@ describe("Stage 1B — server-authoritative published_at", () => {
   });
 
   it("archival cannot modify published_at", () => {
-    expect(nodeFn).toMatch(/NEW\.status <> 'archived'[\s\S]{0,1400}NEW\.published_at := OLD\.published_at;/);
+    expect(nodeFn).toMatch(
+      /NEW\.status <> 'archived'[\s\S]{0,1400}NEW\.published_at := OLD\.published_at;/,
+    );
     expect(resourceFn).toContain("NEW.published_at := OLD.published_at;");
   });
 });
@@ -254,8 +286,12 @@ describe("Stage 1B — explicit lifecycle release decision", () => {
   });
 
   it("archived rows stay frozen and published/archived rows cannot be deleted", () => {
-    expect(REPAIR2).toMatch(/OLD\.status = 'archived'[\s\S]{0,120}RAISE EXCEPTION 'curriculum node lifecycle violation'/);
-    expect(REPAIR2).toMatch(/TG_OP = 'DELETE'[\s\S]{0,200}OLD\.status IN \('published','archived'\)/);
+    expect(REPAIR2).toMatch(
+      /OLD\.status = 'archived'[\s\S]{0,120}RAISE EXCEPTION 'curriculum node lifecycle violation'/,
+    );
+    expect(REPAIR2).toMatch(
+      /TG_OP = 'DELETE'[\s\S]{0,200}OLD\.status IN \('published','archived'\)/,
+    );
   });
 
   it("curriculum_versions lifecycle is untouched and its normalization deferred", () => {
@@ -271,7 +307,9 @@ describe("Stage 1B — legacy link precedence", () => {
     expect(subStrand).toBeGreaterThan(-1);
     expect(topic).toBeGreaterThan(subStrand);
     // The outcome-only pass runs last and only where no node was already mapped.
-    expect(REPAIR).toMatch(/l\.curriculum_node_id IS NULL[\s\S]{0,200}o\.legacy_outcome_id = l\.learning_outcome_id/);
+    expect(REPAIR).toMatch(
+      /l\.curriculum_node_id IS NULL[\s\S]{0,200}o\.legacy_outcome_id = l\.learning_outcome_id/,
+    );
   });
 
   it("precedence is documented as precedence-based, not conflict-rejecting", () => {

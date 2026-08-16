@@ -301,9 +301,9 @@ the same commit. Applied migrations:
 
 Prepared but **unapplied** (awaiting Claude review):
 
-| Migration file                                              | SHA-256                                                            | Content                                                                             |
-| ----------------------------------------------------------- | ------------------------------------------------------------------ | ----------------------------------------------------------------------------------- |
-| `20260816171500_phase10_stage1b_depth32_published_at.sql`   | `f9b5162e2661a71a421918597bcaf8358626096b9b66abd7aa45ea22d0ee5e8e` | Stage 1B repair 2: restores the authoritative depth limit **32** and makes `published_at` database-authoritative. |
+| Migration file                                            | SHA-256                                                            | Content                                                                                                           |
+| --------------------------------------------------------- | ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
+| `20260816171500_phase10_stage1b_depth32_published_at.sql` | `f9b5162e2661a71a421918597bcaf8358626096b9b66abd7aa45ea22d0ee5e8e` | Stage 1B repair 2: restores the authoritative depth limit **32** and makes `published_at` database-authoritative. |
 
 The repair migration is forward-only and additive; neither applied migration
 was edited:
