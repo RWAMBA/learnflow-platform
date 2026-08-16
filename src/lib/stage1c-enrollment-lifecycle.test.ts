@@ -340,12 +340,37 @@ describe("Stage 1C — live-principal RLS infrastructure", () => {
     expect(PROOF).toMatch(/LIFECYCLE FAILED: enrolled_at was not database-assigned/);
   });
 
-  it("runs only against a disposable service container in CI", () => {
-    expect(WORKFLOW).toMatch(/services:\s*\n\s*postgres:/);
+  it("runs only against a disposable local Supabase stack in CI", () => {
+    expect(WORKFLOW).toMatch(/supabase\/setup-cli@v1/);
+    expect(WORKFLOW).toMatch(/version: \$\{\{ env\.SUPABASE_CLI_VERSION \}\}/);
+    expect(WORKFLOW).toMatch(/SUPABASE_CLI_VERSION: \d+\.\d+\.\d+/);
+    expect(WORKFLOW).toMatch(/supabase start/);
+    expect(WORKFLOW).toMatch(/supabase db reset/);
     expect(WORKFLOW).toMatch(/RLS_DISPOSABLE_DB: "1"/);
-    expect(WORKFLOW).toMatch(/localhost:5432/);
+    expect(WORKFLOW).toMatch(
+      /RLS_TEST_DATABASE_URL: postgresql:\/\/postgres:postgres@127\.0\.0\.1:54322\/postgres/,
+    );
+    expect(WORKFLOW).not.toMatch(/services:\s*\n\s*postgres:/);
     expect(WORKFLOW).not.toMatch(/secrets\./);
-    expect(WORKFLOW).not.toMatch(/supabase\.co/);
+    expect(WORKFLOW).not.toMatch(/pull_request_target/);
+  });
+
+  it("rejects hosted endpoints and tears the environment down", () => {
+    expect(WORKFLOW).toMatch(/Reject any hosted Supabase \/ pooler endpoint/);
+    expect(WORKFLOW).toMatch(/\*supabase\.co\*\|\*supabase\.com\*\|\*pooler\.\*/);
+    expect(WORKFLOW).toMatch(/supabase stop --no-backup/);
+    expect(WORKFLOW).toMatch(/if: always\(\)/);
+    expect(WORKFLOW).toMatch(/stage1c-residue-check\.sql/);
+  });
+
+  it("proves zero residue after the rolled-back proof", () => {
+    const residue = readFileSync(
+      join(process.cwd(), "scripts", "rls", "stage1c-residue-check.sql"),
+      "utf8",
+    );
+    expect(residue).toMatch(/RESIDUE: % curriculum_enrollments rows persisted/);
+    expect(residue).toMatch(/RESIDUE: % academic_periods rows persisted/);
+    expect(residue).toMatch(/auth\.users WHERE email LIKE '%@example\.test'/);
   });
 });
 
