@@ -173,7 +173,7 @@ export interface PlannedSubject {
 export async function getStudentLearningPlan(studentId: string) {
   const { data: assignments, error: assignmentError } = await supabase
     .from("student_curriculum_assignments")
-    .select("id, status, subject:subjects(id, name, grade:grades(id, name))")
+    .select("id, status, subject:subjects(id, name, grade:grades!subjects_grade_id_fkey(id, name))")
     .eq("student_id", studentId);
   if (assignmentError) throw assignmentError;
 

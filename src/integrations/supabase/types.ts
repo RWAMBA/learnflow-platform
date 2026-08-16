@@ -760,6 +760,41 @@ export type Database = {
           created_at: string
           id: string
           name: string
+          provider_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          name: string
+          provider_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          name?: string
+          provider_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "curricula_provider_id_fkey"
+            columns: ["provider_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      curriculum_providers: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          name: string
           updated_at: string
         }
         Insert: {
@@ -844,6 +879,7 @@ export type Database = {
           created_by: string | null
           curriculum_id: string
           id: string
+          is_current: boolean
           label: string
           notes: string | null
           organization_id: string | null
@@ -857,6 +893,7 @@ export type Database = {
           created_by?: string | null
           curriculum_id: string
           id?: string
+          is_current?: boolean
           label: string
           notes?: string | null
           organization_id?: string | null
@@ -870,6 +907,7 @@ export type Database = {
           created_by?: string | null
           curriculum_id?: string
           id?: string
+          is_current?: boolean
           label?: string
           notes?: string | null
           organization_id?: string | null
@@ -909,30 +947,80 @@ export type Database = {
           },
         ]
       }
+      education_stages: {
+        Row: {
+          created_at: string
+          curriculum_version_id: string
+          id: string
+          name: string
+          published_at: string | null
+          sequence_order: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          curriculum_version_id: string
+          id?: string
+          name: string
+          published_at?: string | null
+          sequence_order?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          curriculum_version_id?: string
+          id?: string
+          name?: string
+          published_at?: string | null
+          sequence_order?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "education_stages_curriculum_version_id_fkey"
+            columns: ["curriculum_version_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_versions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       grades: {
         Row: {
           created_at: string
           curriculum_id: string
+          education_stage_id: string | null
           id: string
           name: string
           pathway_required: boolean
+          published_at: string | null
           sequence_order: number
+          status: string
         }
         Insert: {
           created_at?: string
           curriculum_id: string
+          education_stage_id?: string | null
           id?: string
           name: string
           pathway_required?: boolean
+          published_at?: string | null
           sequence_order: number
+          status?: string
         }
         Update: {
           created_at?: string
           curriculum_id?: string
+          education_stage_id?: string | null
           id?: string
           name?: string
           pathway_required?: boolean
+          published_at?: string | null
           sequence_order?: number
+          status?: string
         }
         Relationships: [
           {
@@ -940,6 +1028,13 @@ export type Database = {
             columns: ["curriculum_id"]
             isOneToOne: false
             referencedRelation: "curricula"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "grades_education_stage_id_fkey"
+            columns: ["education_stage_id"]
+            isOneToOne: false
+            referencedRelation: "education_stages"
             referencedColumns: ["id"]
           },
         ]
@@ -2490,8 +2585,30 @@ export type Database = {
           },
         ]
       }
+      subject_groups: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       subjects: {
         Row: {
+          academic_level_id: string | null
           authoring_organization_id: string | null
           code: string | null
           created_at: string
@@ -2503,9 +2620,12 @@ export type Database = {
           published_at: string | null
           search_vector: unknown
           status: string
+          subject_group_id: string | null
+          track_id: string | null
           updated_at: string
         }
         Insert: {
+          academic_level_id?: string | null
           authoring_organization_id?: string | null
           code?: string | null
           created_at?: string
@@ -2517,9 +2637,12 @@ export type Database = {
           published_at?: string | null
           search_vector?: unknown
           status?: string
+          subject_group_id?: string | null
+          track_id?: string | null
           updated_at?: string
         }
         Update: {
+          academic_level_id?: string | null
           authoring_organization_id?: string | null
           code?: string | null
           created_at?: string
@@ -2531,9 +2654,18 @@ export type Database = {
           published_at?: string | null
           search_vector?: unknown
           status?: string
+          subject_group_id?: string | null
+          track_id?: string | null
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "subjects_academic_level_id_fkey"
+            columns: ["academic_level_id"]
+            isOneToOne: false
+            referencedRelation: "grades"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "subjects_authoring_organization_id_fkey"
             columns: ["authoring_organization_id"]
@@ -2551,6 +2683,20 @@ export type Database = {
           {
             foreignKeyName: "subjects_pathway_id_fkey"
             columns: ["pathway_id"]
+            isOneToOne: false
+            referencedRelation: "pathways"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subjects_subject_group_id_fkey"
+            columns: ["subject_group_id"]
+            isOneToOne: false
+            referencedRelation: "subject_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "subjects_track_id_fkey"
+            columns: ["track_id"]
             isOneToOne: false
             referencedRelation: "pathways"
             referencedColumns: ["id"]

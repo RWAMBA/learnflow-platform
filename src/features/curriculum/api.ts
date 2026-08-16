@@ -84,7 +84,7 @@ export async function getSubjectWithContent(subjectId: string) {
     supabase
       .from("subjects")
       .select(
-        "id, name, code, description, status, authoring_organization_id, grade:grades(id, name), pathway:pathways(id, name)",
+        "id, name, code, description, status, authoring_organization_id, grade:grades!subjects_grade_id_fkey(id, name), pathway:pathways!subjects_pathway_id_fkey(id, name)",
       )
       .eq("id", subjectId)
       .maybeSingle(),
@@ -125,7 +125,7 @@ export async function getLesson(lessonId: string) {
     supabase
       .from("lessons")
       .select(
-        "id, title, sequence_order, content_type, content_body, storage_path, status, published_at, topic_id, summary, estimated_minutes, sub_strand_id, learning_outcome_id, author_type, authoring_organization_id, topic:topics(id, title), subject:subjects(id, name, grade:grades(id, name))",
+        "id, title, sequence_order, content_type, content_body, storage_path, status, published_at, topic_id, summary, estimated_minutes, sub_strand_id, learning_outcome_id, author_type, authoring_organization_id, topic:topics(id, title), subject:subjects(id, name, grade:grades!subjects_grade_id_fkey(id, name))",
       )
       .eq("id", lessonId)
       .maybeSingle(),
@@ -143,7 +143,7 @@ export async function getLesson(lessonId: string) {
 export async function listAllSubjects() {
   const { data, error } = await supabase
     .from("subjects")
-    .select("id, name, grade:grades(id, name, sequence_order)")
+    .select("id, name, grade:grades!subjects_grade_id_fkey(id, name, sequence_order)")
     .order("name");
   if (error) throw error;
   return data;
@@ -164,7 +164,7 @@ export async function searchLessons(params: CurriculumSearchParams) {
   let query = supabase
     .from("lessons")
     .select(
-      "id, title, status, content_type, sequence_order, subject:subjects!inner(id, name, grade_id, grade:grades(id, name))",
+      "id, title, status, content_type, sequence_order, subject:subjects!inner(id, name, grade_id, grade:grades!subjects_grade_id_fkey(id, name))",
       { count: "exact" },
     )
     .order("title");
@@ -211,7 +211,7 @@ export async function listStudentCurriculumAssignments(studentId: string) {
   const { data, error } = await supabase
     .from("student_curriculum_assignments")
     .select(
-      "id, status, notes, created_at, subject:subjects(id, name, status, grade:grades(id, name))",
+      "id, status, notes, created_at, subject:subjects(id, name, status, grade:grades!subjects_grade_id_fkey(id, name))",
     )
     .eq("student_id", studentId)
     .order("created_at", { ascending: false });
