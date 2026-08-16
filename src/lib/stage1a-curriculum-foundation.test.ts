@@ -8,7 +8,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { MFA_ENFORCEMENT_ENABLED } from "@/features/security/mfa";
 
-const MIGRATION_FILE = "20260815191500_phase10_stage1a_curriculum_foundation.sql";
+const MIGRATION_FILE = "20260816092346_38143644-ad40-47ba-95f0-eed19d81aae6.sql";
 const SQL = readFileSync(`supabase/migrations/${MIGRATION_FILE}`, "utf8");
 const MIGRATIONS = readdirSync("supabase/migrations").sort();
 
