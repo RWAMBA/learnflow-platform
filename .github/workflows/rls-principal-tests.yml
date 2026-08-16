@@ -56,11 +56,24 @@ jobs:
         with:
           version: ${{ env.SUPABASE_CLI_VERSION }}
 
-      - name: Start the disposable local Supabase stack
-        run: supabase start -x realtime,storage-api,imgproxy,studio,edge-runtime,logflare,vector,supavisor,mailpit
+      - name: Start the disposable local Supabase stack (no migrations yet)
+        run: |
+          set -euo pipefail
+          # The migration history is replayed explicitly in a later step so the
+          # out-of-band prelude can run against an empty database first.
+          mv supabase/migrations /tmp/learnflow-migrations
+          mkdir -p supabase/migrations
+          supabase start -x realtime,storage-api,imgproxy,studio,edge-runtime,logflare,vector,supavisor,mailpit
+
+      - name: Apply the out-of-band prelude (replay compatibility only)
+        run: psql "$RLS_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/rls/ci-prelude.sql
 
       - name: Apply the complete migration history (Stage 1C included)
-        run: supabase db reset
+        run: |
+          set -euo pipefail
+          rmdir supabase/migrations
+          mv /tmp/learnflow-migrations supabase/migrations
+          supabase migration up --db-url "$RLS_TEST_DATABASE_URL"
 
       - name: Verify Stage 1C objects exist in the disposable database
         run: |
