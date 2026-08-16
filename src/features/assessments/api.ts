@@ -27,7 +27,7 @@ const ASSESSMENT_SELECT = `
   teacher_notes, published_at, created_at, organization_id, grade_id, subject_id, strand_id,
   sub_strand_id, lesson_id, curriculum_id, curriculum_version_id, rubric_id, assessment_type_id,
   type:assessment_types(id, name, code, category),
-  subject:subjects(id, name), grade:grades(id, name, sequence_order),
+  subject:subjects(id, name), grade:grades!subjects_grade_id_fkey(id, name, sequence_order),
   strand:strands(id, title), sub_strand:sub_strands(id, title), lesson:lessons(id, title)
 `;
 
@@ -130,7 +130,7 @@ export async function listQuestionBank(organizationId: string, filters: Question
   let query = supabase
     .from("question_bank_items")
     .select(
-      "id, prompt, question_type, body, answer_key, explanation, points, difficulty, category, tags, status, version, subject_id, grade_id, strand_id, competency_id, created_at, subject:subjects(id, name), grade:grades(id, name)",
+      "id, prompt, question_type, body, answer_key, explanation, points, difficulty, category, tags, status, version, subject_id, grade_id, strand_id, competency_id, created_at, subject:subjects(id, name), grade:grades!subjects_grade_id_fkey(id, name)",
     )
     .eq("organization_id", organizationId)
     .order("created_at", { ascending: false })
