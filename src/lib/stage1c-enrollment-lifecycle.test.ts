@@ -346,7 +346,8 @@ describe("Stage 1C — live-principal RLS infrastructure", () => {
     expect(WORKFLOW).toMatch(/version: \$\{\{ env\.SUPABASE_CLI_VERSION \}\}/);
     expect(WORKFLOW).toMatch(/SUPABASE_CLI_VERSION: \d+\.\d+\.\d+/);
     expect(WORKFLOW).toMatch(/supabase start/);
-    expect(WORKFLOW).toMatch(/supabase db reset/);
+    expect(WORKFLOW).toMatch(/supabase migration up --db-url/);
+    expect(WORKFLOW).toMatch(/scripts\/rls\/ci-prelude\.sql/);
     expect(WORKFLOW).toMatch(/RLS_DISPOSABLE_DB: "1"/);
     expect(WORKFLOW).toMatch(
       /RLS_TEST_DATABASE_URL: postgresql:\/\/postgres:postgres@127\.0\.0\.1:54322\/postgres/,
