@@ -516,6 +516,7 @@ export type Database = {
           graded_at: string | null
           graded_by_user_role_id: string | null
           id: string
+          learning_objective_id: string | null
           result: Json
         }
         Insert: {
@@ -524,6 +525,7 @@ export type Database = {
           graded_at?: string | null
           graded_by_user_role_id?: string | null
           id?: string
+          learning_objective_id?: string | null
           result?: Json
         }
         Update: {
@@ -532,6 +534,7 @@ export type Database = {
           graded_at?: string | null
           graded_by_user_role_id?: string | null
           id?: string
+          learning_objective_id?: string | null
           result?: Json
         }
         Relationships: [
@@ -547,6 +550,13 @@ export type Database = {
             columns: ["graded_by_user_role_id"]
             isOneToOne: false
             referencedRelation: "user_roles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "assessments_learning_objective_fkey"
+            columns: ["learning_objective_id"]
+            isOneToOne: false
+            referencedRelation: "learning_objectives"
             referencedColumns: ["id"]
           },
         ]
@@ -785,6 +795,89 @@ export type Database = {
             columns: ["provider_id"]
             isOneToOne: false
             referencedRelation: "curriculum_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      curriculum_nodes: {
+        Row: {
+          authoring_organization_id: string | null
+          created_at: string
+          curriculum_version_id: string | null
+          description: string | null
+          id: string
+          legacy_id: string | null
+          legacy_source: string | null
+          node_type: string
+          parent_node_id: string | null
+          published_at: string | null
+          sequence_order: number
+          status: string
+          subject_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          authoring_organization_id?: string | null
+          created_at?: string
+          curriculum_version_id?: string | null
+          description?: string | null
+          id?: string
+          legacy_id?: string | null
+          legacy_source?: string | null
+          node_type: string
+          parent_node_id?: string | null
+          published_at?: string | null
+          sequence_order?: number
+          status?: string
+          subject_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          authoring_organization_id?: string | null
+          created_at?: string
+          curriculum_version_id?: string | null
+          description?: string | null
+          id?: string
+          legacy_id?: string | null
+          legacy_source?: string | null
+          node_type?: string
+          parent_node_id?: string | null
+          published_at?: string | null
+          sequence_order?: number
+          status?: string
+          subject_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "curriculum_nodes_organization_fkey"
+            columns: ["authoring_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "curriculum_nodes_parent_node_id_fkey"
+            columns: ["parent_node_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_nodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "curriculum_nodes_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "curriculum_nodes_version_fkey"
+            columns: ["curriculum_version_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_versions"
             referencedColumns: ["id"]
           },
         ]
@@ -1043,27 +1136,33 @@ export type Database = {
         Row: {
           competency_id: string | null
           created_at: string
+          curriculum_node_id: string | null
           description: string
           id: string
-          lesson_id: string
+          legacy_outcome_id: string | null
+          lesson_id: string | null
           sequence_order: number
           updated_at: string
         }
         Insert: {
           competency_id?: string | null
           created_at?: string
+          curriculum_node_id?: string | null
           description: string
           id?: string
-          lesson_id: string
+          legacy_outcome_id?: string | null
+          lesson_id?: string | null
           sequence_order?: number
           updated_at?: string
         }
         Update: {
           competency_id?: string | null
           created_at?: string
+          curriculum_node_id?: string | null
           description?: string
           id?: string
-          lesson_id?: string
+          legacy_outcome_id?: string | null
+          lesson_id?: string | null
           sequence_order?: number
           updated_at?: string
         }
@@ -1073,6 +1172,13 @@ export type Database = {
             columns: ["competency_id"]
             isOneToOne: false
             referencedRelation: "competencies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "learning_objectives_curriculum_node_fkey"
+            columns: ["curriculum_node_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_nodes"
             referencedColumns: ["id"]
           },
           {
@@ -1142,6 +1248,82 @@ export type Database = {
           },
         ]
       }
+      learning_resources: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          curriculum_node_id: string | null
+          description: string | null
+          id: string
+          legacy_resource_id: string | null
+          lesson_id: string | null
+          organization_id: string | null
+          published_at: string | null
+          resource_type: string
+          status: string
+          storage_path: string | null
+          title: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          curriculum_node_id?: string | null
+          description?: string | null
+          id?: string
+          legacy_resource_id?: string | null
+          lesson_id?: string | null
+          organization_id?: string | null
+          published_at?: string | null
+          resource_type: string
+          status?: string
+          storage_path?: string | null
+          title: string
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          curriculum_node_id?: string | null
+          description?: string | null
+          id?: string
+          legacy_resource_id?: string | null
+          lesson_id?: string | null
+          organization_id?: string | null
+          published_at?: string | null
+          resource_type?: string
+          status?: string
+          storage_path?: string | null
+          title?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "learning_resources_lesson_fkey"
+            columns: ["lesson_id"]
+            isOneToOne: false
+            referencedRelation: "lessons"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "learning_resources_node_fkey"
+            columns: ["curriculum_node_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_nodes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "learning_resources_organization_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lesson_prerequisites: {
         Row: {
           created_at: string
@@ -1185,6 +1367,7 @@ export type Database = {
           content_body: Json | null
           content_type: string
           created_at: string
+          curriculum_node_id: string | null
           curriculum_version_id: string | null
           estimated_minutes: number | null
           id: string
@@ -1207,6 +1390,7 @@ export type Database = {
           content_body?: Json | null
           content_type: string
           created_at?: string
+          curriculum_node_id?: string | null
           curriculum_version_id?: string | null
           estimated_minutes?: number | null
           id?: string
@@ -1229,6 +1413,7 @@ export type Database = {
           content_body?: Json | null
           content_type?: string
           created_at?: string
+          curriculum_node_id?: string | null
           curriculum_version_id?: string | null
           estimated_minutes?: number | null
           id?: string
@@ -1251,6 +1436,13 @@ export type Database = {
             columns: ["authoring_organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lessons_curriculum_node_fkey"
+            columns: ["curriculum_node_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_nodes"
             referencedColumns: ["id"]
           },
           {
