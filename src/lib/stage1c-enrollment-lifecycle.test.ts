@@ -153,7 +153,7 @@ describe("Stage 1C — academic_periods", () => {
   it("permits sibling overlap by explicit decision", () => {
     expect(CODE).not.toMatch(/EXCLUDE USING/i);
     expect(CODE).not.toMatch(/daterange/i);
-    expect(CODE).toMatch(/Sibling academic periods MAY overlap/);
+    expect(SQL).toMatch(/Sibling academic periods MAY overlap/);
   });
 });
 
@@ -296,7 +296,7 @@ describe("Stage 1C — assignment bridge", () => {
       /ALTER TABLE public\.student_curriculum_assignments\s*\n\s*ADD COLUMN curriculum_enrollment_id uuid NULL;/,
     );
     expect(CODE).toMatch(/ON DELETE SET NULL ON UPDATE RESTRICT/);
-    expect(CODE).toMatch(/intentionally NOT backfilled/);
+    expect(SQL).toMatch(/intentionally NOT backfilled/);
   });
 
   it("rejects an enrollment belonging to a different student", () => {
