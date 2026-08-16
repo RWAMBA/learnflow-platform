@@ -182,7 +182,9 @@ describe("Stage 1C — curriculum_enrollments", () => {
   });
 
   it("enforces the explicit lifecycle and rejects every other transition", () => {
-    expect(CODE).toMatch(/IF NEW\.status <> 'pending' THEN\s*\n\s*RAISE EXCEPTION 'curriculum enrollment lifecycle violation'/);
+    expect(CODE).toMatch(
+      /IF NEW\.status <> 'pending' THEN\s*\n\s*RAISE EXCEPTION 'curriculum enrollment lifecycle violation'/,
+    );
     expect(CODE).toMatch(/IF OLD\.status = 'archived' THEN\s*\n\s*RAISE EXCEPTION/);
     expect(CODE).toMatch(/NEW\.status NOT IN \('completed','transferred','withdrawn'\)/);
     // Deletion is only possible while the enrollment never began.
@@ -284,7 +286,9 @@ describe("Stage 1C — authorization", () => {
       "academic_periods_delete",
     ]) {
       expect(CODE).toMatch(
-        new RegExp(`CREATE POLICY ${policy}[\\s\\S]*?can_administer_academic_period\\(organization_id\\)`),
+        new RegExp(
+          `CREATE POLICY ${policy}[\\s\\S]*?can_administer_academic_period\\(organization_id\\)`,
+        ),
       );
     }
   });
@@ -383,9 +387,9 @@ describe("Stage 1C — compatibility read path", () => {
   });
 
   it("reports no placement when neither source has one", () => {
-    expect(__testing.fromLegacy({ grade_id: null, pathway_id: null, grade: null, pathway: null })).toEqual(
-      __testing.EMPTY,
-    );
+    expect(
+      __testing.fromLegacy({ grade_id: null, pathway_id: null, grade: null, pathway: null }),
+    ).toEqual(__testing.EMPTY);
     expect(__testing.EMPTY.source).toBe("none");
   });
 });
