@@ -299,6 +299,12 @@ the same commit. Applied migrations:
 | `20260816140135` | Stage 1B content spine: recursive `curriculum_nodes`, `learning_resources`, compatibility columns on `lessons`/`learning_objectives`/`assessments`, legacy backfill with parity post-conditions. |
 | `20260816145744` | Stage 1B controlled-reconciliation repair (this block).                                                                                                                                          |
 
+Prepared but **unapplied** (awaiting Claude review):
+
+| Migration file                                              | SHA-256                                                            | Content                                                                             |
+| ----------------------------------------------------------- | ------------------------------------------------------------------ | ----------------------------------------------------------------------------------- |
+| `20260816171500_phase10_stage1b_depth32_published_at.sql`   | `f9b5162e2661a71a421918597bcaf8358626096b9b66abd7aa45ea22d0ee5e8e` | Stage 1B repair 2: restores the authoritative depth limit **32** and makes `published_at` database-authoritative. |
+
 The repair migration is forward-only and additive; neither applied migration
 was edited:
 
@@ -308,10 +314,18 @@ was edited:
   tenant-attributed. SEC-004/SEC-005 predicates are untouched; tenant-owned
   content remains confined to `learning_resources`/`lessons`.
 - **Subtree depth and cycle enforcement** —
-  `app_private.enforce_curriculum_node_acyclic()` now validates the moved node's
-  _descendants_, not only its ancestors: a recursive subtree probe enforces a
-  bounded maximum depth of 8, rejects cycles, and rejects cross-subject
-  subtrees on a subject move.
+  `app_private.enforce_curriculum_node_acyclic()` validates the moved node's
+  _descendants_, not only its ancestors: a recursive subtree probe enforces the
+  bounded **maximum effective depth of 32** (proposed ancestor depth plus the
+  deepest descendant-relative depth; level 32 accepted, level 33 rejected),
+  rejects cycles, and rejects cross-subject subtrees on a subject move.
+  The depth-8 limit shipped by `20260816145744` was a defect and is
+  **superseded** by the prepared migration `20260816171500`, whose descendant
+  traversal is cycle-safe (path-array detection) and bounded only at
+  `v_max_depth + 1`. Ancestor and descendant validation share one constant.
+  The authoritative value 32 originates in `20260816140135` and the Stage 1B
+  test suite derives it from that external source rather than from the
+  correction under test.
 - **Lifecycle immutability** — new
   `app_private.enforce_curriculum_node_lifecycle()` and
   `app_private.enforce_learning_resource_lifecycle()` triggers enforce
@@ -319,11 +333,33 @@ was edited:
   (status-only, all content columns immutable), archived rows are frozen,
   published/archived rows cannot be deleted, and `published_at` is set by the
   database. All three helpers are revoked from `anon`/`authenticated`/`PUBLIC`.
+- **Stage 1B lifecycle release decision (explicit)** — for `curriculum_nodes`
+  and `learning_resources` the strict lifecycle
+  draft → review → published → archived is retained: `draft → archived` and
+  `review → archived` are rejected, `published → archived` is permitted only as
+  a status-only archival transition, archived rows are frozen, and
+  published/archived rows cannot be deleted. `curriculum_versions` keeps its
+  previously approved, **different** archival behaviour; it is deliberately not
+  modified in this repair and **curriculum_versions lifecycle normalization
+  remains deferred** to a later lifecycle-normalization review item. The rules
+  are not identical across the three tables.
+- **`published_at` is database-authoritative** — migration `20260816171500`
+  sets `published_at := now()` unconditionally on the transition to published
+  (and on insert-as-published), discards any client-supplied past or future
+  timestamp, and preserves `OLD.published_at` on every other transition
+  including archival, so publication time can never be rewritten. The lifecycle
+  triggers therefore also fire `BEFORE INSERT`.
 - **Lesson backfill gap closure** — lessons linked only through a legacy
   `learning_outcome_id` inherit the node of the matching objective
   (`legacy_outcome_id` join). A transactional post-condition fails closed if any
   lesson retains a legacy link without a curriculum node. Live result: 30
   lessons, 0 unmapped, 0 tenant-owned nodes.
+  The mapping is **precedence-based, not conflict-rejection-based**: sub-strand
+  wins, then topic, then learning outcome; a lesson carrying several legacy
+  links is resolved by that order rather than rejected. Aggregate-only live
+  verification at this repair: **0** lessons whose non-null legacy paths resolve
+  to different curriculum nodes (sub-strand vs topic: 0; sub-strand vs outcome:
+  0), so precedence is currently unexercised by real data.
 - **Legacy tables preserved** — `strands`, `sub_strands`, `topics`,
   `learning_outcomes` remain for a later verified deprecation migration.
 
