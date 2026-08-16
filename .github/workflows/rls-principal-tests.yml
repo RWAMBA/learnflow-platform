@@ -8,7 +8,7 @@ name: RLS principal tests (disposable Supabase)
 # service_role roles. No production URL, key, password, secret or project
 # connection is referenced anywhere in this workflow.
 #
-# pull_request (never pull_request_target): forks run without repository secrets.
+# pull_request (never pull_request_target): forks run with no repository secret access at all
 
 on:
   pull_request:
