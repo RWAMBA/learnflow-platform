@@ -82,8 +82,13 @@ BEGIN
     RAISE EXCEPTION 'Precondition failed: a Stage 1A/1B object is missing';
   END IF;
 
-  -- 0e. SEC-006 stage two must remain unapplied.
-  IF to_regprocedure('app_private.has_aal2()') IS NOT NULL THEN
+  -- 0e. SEC-006 stage two must remain unapplied. app_private.has_aal2() exists
+  -- as an inert helper; stage two is defined by policies REFERENCING it.
+  IF EXISTS (
+    SELECT 1 FROM pg_policies
+     WHERE schemaname = 'public'
+       AND (coalesce(qual, '') || coalesce(with_check, '')) ILIKE '%has_aal2%'
+  ) THEN
     RAISE EXCEPTION 'Precondition failed: SEC-006 stage two appears applied';
   END IF;
 END
@@ -322,7 +327,6 @@ CREATE TABLE public.curriculum_enrollments (
   track_id uuid NULL,
   academic_period_id uuid NULL,
   enrollment_category text NOT NULL,
-  is_primary boolean GENERATED ALWAYS AS (enrollment_category = 'primary') STORED,
   status text NOT NULL DEFAULT 'pending',
   transferred_from_enrollment_id uuid NULL,
   enrolled_at timestamptz NULL,
@@ -741,7 +745,11 @@ BEGIN
      OR to_regclass('public.subject_groups') IS NULL THEN
     RAISE EXCEPTION 'Postcondition failed: a Stage 1A/1B object was lost';
   END IF;
-  IF to_regprocedure('app_private.has_aal2()') IS NOT NULL THEN
+  IF EXISTS (
+    SELECT 1 FROM pg_policies
+     WHERE schemaname = 'public'
+       AND (coalesce(qual, '') || coalesce(with_check, '')) ILIKE '%has_aal2%'
+  ) THEN
     RAISE EXCEPTION 'Postcondition failed: SEC-006 stage two became applied';
   END IF;
 END
