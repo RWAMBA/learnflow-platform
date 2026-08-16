@@ -12,6 +12,7 @@
     "format": "prettier --write .",
     "test": "vitest run",
     "test:rls": "vitest run src/lib/rls-recursion.test.ts && node scripts/check-rls-recursion.mjs",
+    "test:rls:principals": "vitest run src/lib/stage1c-enrollment-lifecycle.test.ts && node scripts/run-rls-principal-tests.mjs",
     "test:e2e": "playwright test"
   },
   "dependencies": {
