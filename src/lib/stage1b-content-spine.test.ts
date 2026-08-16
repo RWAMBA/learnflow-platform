@@ -10,7 +10,7 @@ import { MFA_ENFORCEMENT_ENABLED } from "@/features/security/mfa";
 
 const SPINE_FILE = "20260816140135_1db60abb-0075-47b6-b5bb-e3cc1003d16c.sql";
 const REPAIR_FILE = "20260816145744_7e9471d8-7e88-4a54-9523-e9cfa440aaf2.sql";
-const REPAIR2_FILE = "20260816171500_phase10_stage1b_depth32_published_at.sql";
+const REPAIR2_FILE = "20260816163607_a7813b14-5998-42b2-bcb1-491e1ffe49e5.sql";
 
 const SPINE = readFileSync(`supabase/migrations/${SPINE_FILE}`, "utf8");
 const REPAIR = readFileSync(`supabase/migrations/${REPAIR_FILE}`, "utf8");
