@@ -298,12 +298,60 @@ the same commit. Applied migrations:
 | `20260816135844` | Stage 1A reference mappings: 4 providers, CBC attributed to KICD, CBC `Baseline` version, 4 education stages, Grades 7–10 mapped, 5 subject groups.                                              |
 | `20260816140135` | Stage 1B content spine: recursive `curriculum_nodes`, `learning_resources`, compatibility columns on `lessons`/`learning_objectives`/`assessments`, legacy backfill with parity post-conditions. |
 | `20260816145744` | Stage 1B controlled-reconciliation repair (this block).                                                                                                                                          |
+| `20260816163607` | Stage 1B repair 2: authoritative depth limit **32** restored, `published_at` made database-authoritative, strict lifecycle re-asserted.                                                          |
 
-Prepared but **unapplied** (awaiting Claude review):
+### Stage 1B repair 2 — platform migration reconciliation (applied)
 
-| Migration file                                            | SHA-256                                                            | Content                                                                                                           |
-| --------------------------------------------------------- | ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------- |
-| `20260816171500_phase10_stage1b_depth32_published_at.sql` | `f9b5162e2661a71a421918597bcaf8358626096b9b66abd7aa45ea22d0ee5e8e` | Stage 1B repair 2: restores the authoritative depth limit **32** and makes `published_at` database-authoritative. |
+| Item                        | Value                                                              |
+| --------------------------- | ------------------------------------------------------------------ |
+| Reviewed hand-authored file | `20260816171500_phase10_stage1b_depth32_published_at.sql`          |
+| Reviewed SHA-256            | `f9b5162e2661a71a421918597bcaf8358626096b9b66abd7aa45ea22d0ee5e8e` |
+| Generated version           | `20260816163607`                                                   |
+| Generated filename          | `20260816163607_a7813b14-5998-42b2-bcb1-491e1ffe49e5.sql`          |
+| Generated SHA-256           | `96ede51168362687167a7b265d36a36f6adde92fbc0381443385ae6dfb104112` |
+| Application status          | Applied successfully, exactly once                                 |
+
+**Equivalence result:** the unified diff between the reviewed and generated
+files contains a single hunk whose only difference is the absence of the
+terminal line feed after the final `COMMIT;` (12 006 vs 12 005 bytes). With
+that one terminal newline normalised the files are byte-identical. No
+statement, comment, identifier, predicate, constant, function body,
+grant/revoke or transaction boundary differs, and no platform SQL was added.
+The reviewed hand-authored file was removed only after this equivalence was
+proven; the generated artifact is retained unchanged and the Stage 1B test
+suite now references it.
+
+**Remote migration history** — before: `…20260816092346, 20260816135844,
+20260816140135, 20260816145744`; after: the same list plus `20260816163607`
+(26 recorded versions, generated version present exactly once, no other
+migration added).
+
+**Live post-application verification (read-only, aggregate-only):**
+`app_private.enforce_curriculum_node_acyclic()` contains
+`v_max_depth constant int := 32` and no longer contains
+`v_max_depth constant int := 8`; ancestor and descendant checks share that one
+constant; descendant traversal keeps the reviewed path-array cycle protection
+and the `v_max_depth + 1` bound. Both lifecycle functions force non-published
+inserts to `published_at = NULL`, set `now()` on insert-as-published and on the
+transition to published, and preserve the value on archival. All three
+functions are `SECURITY INVOKER` with `search_path = ''` and are not executable
+by `PUBLIC`, `anon` or `authenticated`. Triggers:
+`curriculum_nodes_enforce_acyclic` (BEFORE INSERT OR UPDATE OF
+`parent_node_id`, `subject_id`), `curriculum_nodes_enforce_lifecycle` and
+`learning_resources_enforce_lifecycle` (BEFORE INSERT OR UPDATE OR DELETE).
+Aggregates unchanged: curriculum_nodes 0, learning_resources 0, providers 4,
+curriculum versions 1, education stages 4, subject groups 5, lessons 30,
+tenant-owned nodes 0, legacy-link conflicts 0. No synthetic rows were created
+at any point. `MFA_ENFORCEMENT_ENABLED` remains `false`, zero live policies
+reference `app_private.has_aal2()`, and SEC-006 stage two remains unapplied.
+RLS remains verified **structurally only**; live-principal allow/deny testing
+stays SKIPPED because no rollback-only authenticated test channel exists and no
+permanent principals may be created.
+
+Auth note: the Supabase linter continues to report **Leaked Password
+Protection Disabled**. That is a pre-existing Auth dashboard setting; this
+authorization explicitly forbids Auth configuration changes, so it was not
+altered.
 
 The repair migration is forward-only and additive; neither applied migration
 was edited:
@@ -320,7 +368,7 @@ was edited:
   deepest descendant-relative depth; level 32 accepted, level 33 rejected),
   rejects cycles, and rejects cross-subject subtrees on a subject move.
   The depth-8 limit shipped by `20260816145744` was a defect and is
-  **superseded** by the prepared migration `20260816171500`, whose descendant
+  **superseded** by the applied migration `20260816163607`, whose descendant
   traversal is cycle-safe (path-array detection) and bounded only at
   `v_max_depth + 1`. Ancestor and descendant validation share one constant.
   The authoritative value 32 originates in `20260816140135` and the Stage 1B
@@ -343,7 +391,7 @@ was edited:
   modified in this repair and **curriculum_versions lifecycle normalization
   remains deferred** to a later lifecycle-normalization review item. The rules
   are not identical across the three tables.
-- **`published_at` is database-authoritative** — migration `20260816171500`
+- **`published_at` is database-authoritative** — migration `20260816163607`
   sets `published_at := now()` unconditionally on the transition to published
   (and on insert-as-published), discards any client-supplied past or future
   timestamp, and preserves `OLD.published_at` on every other transition
