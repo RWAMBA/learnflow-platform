@@ -7,6 +7,7 @@
  * database (see .github/workflows/rls-principal-tests.yml).
  */
 import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { MFA_ENFORCEMENT_ENABLED } from "@/features/security/mfa";
 import { __testing } from "@/features/curriculum/effective-placement";
