@@ -490,7 +490,6 @@ DEFINER with an empty `search_path` and no `anon` execute grant, and trigger
 helpers unreachable by `authenticated`. `MFA_ENFORCEMENT_ENABLED = false`; no
 `has_aal2()` policy exists.
 
-
 ## 9. Continuation state
 
 Phase 1–9 functionality is implemented with the gaps listed in section 5.
