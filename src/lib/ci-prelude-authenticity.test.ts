@@ -81,3 +81,48 @@ describe("CI prelude reproduces the authoritative hosted prehistory object", () 
     expect(workflow).toContain("supabase stop --no-backup");
   });
 });
+
+describe("Stage 1C CI object verification is fail-closed", () => {
+  const shellDollar = "$".repeat(2);
+  const step = workflow.slice(
+    workflow.indexOf("Verify Stage 1C objects exist"),
+    workflow.indexOf("Live-principal allow/deny proof"),
+  );
+
+  it("contains no constant division-by-zero assertion sentinel anywhere", () => {
+    for (const source of [workflow, prelude, verify]) {
+      expect(source).not.toMatch(/\b1\s*\/\s*0\b/);
+    }
+  });
+
+  it("uses a PL/pgSQL DO block with explicit RAISE EXCEPTION assertions", () => {
+    expect(step).toContain(`DO \\${shellDollar[0]}\\${shellDollar[0]}`);
+    expect(step.match(/RAISE EXCEPTION 'Stage 1C object missing: /g)).toHaveLength(3);
+    expect(step).toContain("ON_ERROR_STOP=1");
+    expect(step).toContain("set -euo pipefail");
+  });
+
+  it("checks all three Stage 1C objects independently by name", () => {
+    for (const object of [
+      "public.curriculum_enrollments",
+      "public.academic_periods",
+      "app_private.can_administer_academic_period(uuid)",
+    ]) {
+      expect(step).toContain(`Stage 1C object missing: ${object}`);
+    }
+    expect(step.match(/IF to_reg\w+\(/g)).toHaveLength(3);
+    expect(step).not.toMatch(/\bOR\b/i);
+  });
+
+  it("keeps the surrounding disposable-CI guarantees unchanged", () => {
+    expect(workflow).toContain("RLS_DISPOSABLE_DB: \"1\"");
+    expect(workflow).toContain("Refusing: hosted Supabase endpoint detected.");
+    expect(workflow).toContain("scripts/rls/ci-prelude.sql");
+    expect(workflow).toContain("scripts/rls/ci-prelude-verify.sql");
+    expect(workflow).toContain("supabase migration up --db-url");
+    expect(workflow).toContain("node scripts/run-rls-principal-tests.mjs");
+    expect(workflow).toContain("scripts/rls/stage1c-residue-check.sql");
+    expect(workflow).toMatch(/if: always\(\)\s*\n\s*run: supabase stop --no-backup/);
+    expect(workflow).toContain("on:\n  pull_request:");
+  });
+});

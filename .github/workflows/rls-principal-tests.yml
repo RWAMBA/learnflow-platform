@@ -81,12 +81,23 @@ jobs:
       - name: Verify Stage 1C objects exist in the disposable database
         run: |
           set -euo pipefail
+          # Explicit fail-closed assertions. A constant division-by-zero sentinel is unsafe:
+          # PostgreSQL may constant-fold the division during planning even when
+          # the failure branch is not selected.
           psql "$RLS_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -Atq -c "
-            select case
-              when to_regclass('public.curriculum_enrollments') is null
-                or to_regclass('public.academic_periods') is null
-                or to_regprocedure('app_private.can_administer_academic_period(uuid)') is null
-              then 1/0 else 1 end;"
+            DO \$\$
+            BEGIN
+              IF to_regclass('public.curriculum_enrollments') IS NULL THEN
+                RAISE EXCEPTION 'Stage 1C object missing: public.curriculum_enrollments';
+              END IF;
+              IF to_regclass('public.academic_periods') IS NULL THEN
+                RAISE EXCEPTION 'Stage 1C object missing: public.academic_periods';
+              END IF;
+              IF to_regprocedure('app_private.can_administer_academic_period(uuid)') IS NULL THEN
+                RAISE EXCEPTION 'Stage 1C object missing: app_private.can_administer_academic_period(uuid)';
+              END IF;
+            END
+            \$\$;"
 
       - name: Live-principal allow/deny proof (always rolled back)
         run: node scripts/run-rls-principal-tests.mjs
