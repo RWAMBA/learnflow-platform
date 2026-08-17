@@ -420,3 +420,68 @@ describe("Stage 1C — compatibility read path", () => {
     expect(__testing.EMPTY.source).toBe("none");
   });
 });
+
+describe("Stage 1C — disposable live-principal fixture integrity", () => {
+  const FIXTURE = readFileSync("scripts/rls/stage1c-principal-tests.sql", "utf8");
+  const FIXTURE_CODE = stripComments(FIXTURE);
+
+  const insertColumns = (table: string) => {
+    const match = FIXTURE_CODE.match(
+      new RegExp(`INSERT INTO public\\.${table}\\s*\\(([^)]*)\\)`, "i"),
+    );
+    if (!match) throw new Error(`no fixture INSERT found for public.${table}`);
+    return match[1].split(",").map((c) => c.trim());
+  };
+
+  it("always rolls the fixture transaction back", () => {
+    expect(FIXTURE_CODE).toMatch(/^BEGIN;$/m);
+    expect(FIXTURE_CODE.trimEnd().endsWith("ROLLBACK;")).toBe(true);
+    expect(FIXTURE_CODE).not.toMatch(/^COMMIT;$/m);
+  });
+
+  it("supplies parent_student_relationships.created_by explicitly", () => {
+    const columns = insertColumns("parent_student_relationships");
+    for (const required of [
+      "organization_id",
+      "parent_id",
+      "student_id",
+      "role_subtype",
+      "permission_level",
+      "created_by",
+    ]) {
+      expect(columns).toContain(required);
+    }
+  });
+
+  it("supplies created_by on every relationship-bearing fixture insert", () => {
+    for (const table of ["students", "organization_memberships", "user_roles"]) {
+      expect(insertColumns(table)).toContain("created_by");
+    }
+  });
+
+  it("references only synthetic principals declared inside the transaction", () => {
+    const declared = [...FIXTURE_CODE.matchAll(/(v_\w+)\s+uuid\s*:=\s*gen_random_uuid\(\)/g)].map(
+      (m) => m[1],
+    );
+    expect(declared).toEqual(
+      expect.arrayContaining(["v_admin_a", "v_admin_b", "v_parent_a", "v_outsider"]),
+    );
+    // created_by values are always variables, never literal UUIDs.
+    const createdByValues = [...FIXTURE_CODE.matchAll(/created_by[^;]*?VALUES([\s\S]*?);/gi)]
+      .map((m) => m[1])
+      .join("\n");
+    expect(createdByValues).not.toMatch(/'[0-9a-f]{8}-[0-9a-f]{4}-/i);
+    for (const principal of ["v_admin_a", "v_admin_b"]) {
+      expect(FIXTURE_CODE).toContain(principal);
+    }
+    // Every principal is inserted into auth.users inside the rolled-back txn.
+    expect(FIXTURE_CODE).toMatch(/INSERT INTO auth\.users/);
+  });
+
+  it("keeps real role impersonation and cross-tenant allow/deny assertions", () => {
+    expect(FIXTURE_CODE).toMatch(/SET LOCAL ROLE authenticated/);
+    expect(FIXTURE_CODE).toMatch(/request\.jwt\.claims/);
+    expect(FIXTURE_CODE).toMatch(/DENY FAILED/);
+    expect(FIXTURE_CODE).toMatch(/ALLOW FAILED/);
+  });
+});
