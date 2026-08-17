@@ -14,6 +14,57 @@ export type Database = {
   }
   public: {
     Tables: {
+      academic_periods: {
+        Row: {
+          created_at: string
+          end_date: string
+          id: string
+          name: string
+          organization_id: string
+          parent_period_id: string | null
+          period_type: string
+          start_date: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          end_date: string
+          id?: string
+          name: string
+          organization_id: string
+          parent_period_id?: string | null
+          period_type: string
+          start_date: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string
+          id?: string
+          name?: string
+          organization_id?: string
+          parent_period_id?: string | null
+          period_type?: string
+          start_date?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "academic_periods_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "academic_periods_parent_period_id_fkey"
+            columns: ["parent_period_id"]
+            isOneToOne: false
+            referencedRelation: "academic_periods"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       assessment_competencies: {
         Row: {
           assessment_id: string
@@ -795,6 +846,97 @@ export type Database = {
             columns: ["provider_id"]
             isOneToOne: false
             referencedRelation: "curriculum_providers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      curriculum_enrollments: {
+        Row: {
+          academic_level_id: string
+          academic_period_id: string | null
+          created_at: string
+          curriculum_version_id: string
+          ended_at: string | null
+          enrolled_at: string | null
+          enrollment_category: string
+          id: string
+          status: string
+          student_id: string
+          track_id: string | null
+          transferred_from_enrollment_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          academic_level_id: string
+          academic_period_id?: string | null
+          created_at?: string
+          curriculum_version_id: string
+          ended_at?: string | null
+          enrolled_at?: string | null
+          enrollment_category: string
+          id?: string
+          status?: string
+          student_id: string
+          track_id?: string | null
+          transferred_from_enrollment_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          academic_level_id?: string
+          academic_period_id?: string | null
+          created_at?: string
+          curriculum_version_id?: string
+          ended_at?: string | null
+          enrolled_at?: string | null
+          enrollment_category?: string
+          id?: string
+          status?: string
+          student_id?: string
+          track_id?: string | null
+          transferred_from_enrollment_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "curriculum_enrollments_academic_level_id_fkey"
+            columns: ["academic_level_id"]
+            isOneToOne: false
+            referencedRelation: "grades"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "curriculum_enrollments_academic_period_id_fkey"
+            columns: ["academic_period_id"]
+            isOneToOne: false
+            referencedRelation: "academic_periods"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "curriculum_enrollments_curriculum_version_id_fkey"
+            columns: ["curriculum_version_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_versions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "curriculum_enrollments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "curriculum_enrollments_track_id_fkey"
+            columns: ["track_id"]
+            isOneToOne: false
+            referencedRelation: "pathways"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "curriculum_enrollments_transferred_from_enrollment_id_fkey"
+            columns: ["transferred_from_enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_enrollments"
             referencedColumns: ["id"]
           },
         ]
@@ -2584,6 +2726,7 @@ export type Database = {
         Row: {
           assigned_by: string | null
           created_at: string
+          curriculum_enrollment_id: string | null
           id: string
           notes: string | null
           organization_id: string
@@ -2595,6 +2738,7 @@ export type Database = {
         Insert: {
           assigned_by?: string | null
           created_at?: string
+          curriculum_enrollment_id?: string | null
           id?: string
           notes?: string | null
           organization_id: string
@@ -2606,6 +2750,7 @@ export type Database = {
         Update: {
           assigned_by?: string | null
           created_at?: string
+          curriculum_enrollment_id?: string | null
           id?: string
           notes?: string | null
           organization_id?: string
@@ -2620,6 +2765,13 @@ export type Database = {
             columns: ["assigned_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "student_curriculum_assignments_curriculum_enrollment_id_fkey"
+            columns: ["curriculum_enrollment_id"]
+            isOneToOne: false
+            referencedRelation: "curriculum_enrollments"
             referencedColumns: ["id"]
           },
           {
