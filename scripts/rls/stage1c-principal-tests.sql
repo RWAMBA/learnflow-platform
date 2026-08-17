@@ -50,26 +50,30 @@ BEGIN
   INSERT INTO public.organizations (id, name, tenant_type)
   VALUES (v_org_a, 'Disposable Org A', 'family'), (v_org_b, 'Disposable Org B', 'family');
 
-  INSERT INTO public.organization_memberships (organization_id, user_id, status) VALUES
-    (v_org_a, v_admin_a, 'active'),
-    (v_org_b, v_admin_b, 'active'),
-    (v_org_a, v_parent_a, 'active');
+  -- Audit ownership is explicit everywhere: created_by always references a
+  -- synthetic principal created inside this rolled-back transaction.
+  INSERT INTO public.organization_memberships (organization_id, user_id, status, created_by) VALUES
+    (v_org_a, v_admin_a, 'active', v_admin_a),
+    (v_org_b, v_admin_b, 'active', v_admin_b),
+    (v_org_a, v_parent_a, 'active', v_admin_a);
 
   SELECT id INTO v_role_admin FROM public.roles WHERE code = 'org_admin';
   IF v_role_admin IS NULL THEN
     RAISE EXCEPTION 'roles.org_admin missing in disposable database';
   END IF;
 
-  INSERT INTO public.user_roles (organization_id, user_id, role_id, status) VALUES
-    (v_org_a, v_admin_a, v_role_admin, 'active'),
-    (v_org_b, v_admin_b, v_role_admin, 'active');
+  INSERT INTO public.user_roles (organization_id, user_id, role_id, status, created_by) VALUES
+    (v_org_a, v_admin_a, v_role_admin, 'active', v_admin_a),
+    (v_org_b, v_admin_b, v_role_admin, 'active', v_admin_b);
 
   INSERT INTO public.students (organization_id, created_by, first_name, last_name)
   VALUES (v_org_a, v_admin_a, 'Test', 'Learner') RETURNING id INTO v_student_a;
 
+  -- public.parent_student_relationships.created_by is NOT NULL with no default
+  -- and references public.profiles(id): the creating tenant administrator.
   INSERT INTO public.parent_student_relationships
-    (organization_id, parent_id, student_id, role_subtype, permission_level, status)
-  VALUES (v_org_a, v_parent_a, v_student_a, 'legal_guardian', 'view_only', 'active');
+    (organization_id, parent_id, student_id, role_subtype, permission_level, status, created_by)
+  VALUES (v_org_a, v_parent_a, v_student_a, 'legal_guardian', 'view_only', 'active', v_admin_a);
 
   INSERT INTO public.curricula (id, code, name) VALUES (v_curriculum, 'DISP', 'Disposable');
   INSERT INTO public.curriculum_versions (id, curriculum_id, label)
