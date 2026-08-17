@@ -1,0 +1,110 @@
+name: RLS principal tests (disposable Supabase)
+
+# Live-principal RLS allow/deny proof for Phase 10 Stage 1C.
+#
+# Runs ONLY against a disposable local Supabase stack created by the Supabase
+# CLI inside this GitHub Actions job and destroyed with it. It provides the real
+# auth schema (auth.users, auth.uid()) and the real anon / authenticated /
+# service_role roles. No production URL, key, password, secret or project
+# connection is referenced anywhere in this workflow.
+#
+# Trigger is pull_request only; the privileged fork-secret trigger is never used.
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  rls-principal-tests:
+    runs-on: ubuntu-latest
+    env:
+      # Fixed Supabase CLI local defaults. Disposable, local-only, never hosted.
+      RLS_DISPOSABLE_DB: "1"
+      RLS_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+      SUPABASE_CLI_VERSION: 2.30.4
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+
+      - name: Static Stage 1C structural suite (always on)
+        run: bunx vitest run src/lib/stage1c-enrollment-lifecycle.test.ts
+
+      - name: Reject any hosted Supabase / pooler endpoint
+        run: |
+          set -euo pipefail
+          url="$RLS_TEST_DATABASE_URL"
+          case "$url" in
+            *supabase.co*|*supabase.com*|*pooler.*|*supabase.in*)
+              echo "Refusing: hosted Supabase endpoint detected."; exit 1;;
+          esac
+          case "$url" in
+            postgresql://postgres:postgres@127.0.0.1:54322/*) ;;
+            *) echo "Refusing: not the disposable local Supabase endpoint."; exit 1;;
+          esac
+          # No production project may be linked in this checkout.
+          if [ -f supabase/.temp/project-ref ]; then
+            echo "Refusing: a linked Supabase project ref is present."; exit 1
+          fi
+          echo "Endpoint guard OK (disposable local only)."
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: ${{ env.SUPABASE_CLI_VERSION }}
+
+      - name: Start the disposable local Supabase stack (no migrations yet)
+        run: |
+          set -euo pipefail
+          # The migration history is replayed explicitly in a later step so the
+          # out-of-band prelude can run against an empty database first.
+          mv supabase/migrations /tmp/learnflow-migrations
+          mkdir -p supabase/migrations
+          supabase start -x realtime,storage-api,imgproxy,studio,edge-runtime,logflare,vector,supavisor,mailpit
+
+      - name: Apply the out-of-band prelude (authoritative hosted definition)
+        run: psql "$RLS_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/rls/ci-prelude.sql
+
+      - name: Apply the complete migration history (Stage 1C included)
+        run: |
+          set -euo pipefail
+          rmdir supabase/migrations
+          mv /tmp/learnflow-migrations supabase/migrations
+          supabase migration up --db-url "$RLS_TEST_DATABASE_URL"
+
+      - name: Prove the prehistory object is authoritative (not a no-op)
+        run: psql "$RLS_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/rls/ci-prelude-verify.sql
+
+      - name: Verify Stage 1C objects exist in the disposable database
+        run: |
+          set -euo pipefail
+          # Explicit fail-closed assertions. A constant division-by-zero sentinel is unsafe:
+          # PostgreSQL may constant-fold the division during planning even when
+          # the failure branch is not selected.
+          psql "$RLS_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -Atq -c "
+            DO \$\$
+            BEGIN
+              IF to_regclass('public.curriculum_enrollments') IS NULL THEN
+                RAISE EXCEPTION 'Stage 1C object missing: public.curriculum_enrollments';
+              END IF;
+              IF to_regclass('public.academic_periods') IS NULL THEN
+                RAISE EXCEPTION 'Stage 1C object missing: public.academic_periods';
+              END IF;
+              IF to_regprocedure('app_private.can_administer_academic_period(uuid)') IS NULL THEN
+                RAISE EXCEPTION 'Stage 1C object missing: app_private.can_administer_academic_period(uuid)';
+              END IF;
+            END
+            \$\$;"
+
+      - name: Live-principal allow/deny proof (always rolled back)
+        run: node scripts/run-rls-principal-tests.mjs
+
+      - name: Prove zero residue after rollback
+        run: psql "$RLS_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/rls/stage1c-residue-check.sql
+
+      - name: Stop and delete the disposable Supabase environment
+        if: always()
+        run: supabase stop --no-backup
