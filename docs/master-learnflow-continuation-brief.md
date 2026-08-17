@@ -419,12 +419,18 @@ the pre-existing, previously-triaged Auth-dashboard warning
 "Leaked Password Protection Disabled" — not introduced by this block and not
 remediable from SQL.
 
-### 8b. Phase 10 Stage 1C — curriculum enrollment lifecycle (BUILT, NOT APPLIED)
+### 8b. Phase 10 Stage 1C — curriculum enrollment lifecycle (APPLIED)
 
-Branch `feature/phase10-stage1c-enrollment-lifecycle`. The migration
-`supabase/migrations/20260816175000_phase10_stage1c_enrollment_lifecycle.sql`
-is **hand-authored and deliberately NOT applied**: it awaits Claude
-pre-application review. Nothing in the live database changed in this block.
+Branch `feature/phase10-stage1c-enrollment-lifecycle`. The reviewed Stage 1C
+SQL was applied through the platform migration mechanism exactly once and is
+recorded as
+`supabase/migrations/20260817113059_d492f8e7-f567-441a-a6ce-4b642a990c02.sql`
+(SHA-256 `ca10c6c9eeea11a64180282115a49f87c36030d2406c0d13539bc2cbdc0cb675`).
+The generated artifact is byte-identical to the reviewed hand-authored file
+(SHA-256 `6307b14f4801f3605da757ed77a64718126ff7f30a2c12b57b0cb0c1ed9eb3f1`)
+apart from the absent terminal newline after the final `COMMIT;`; the
+superseded hand-authored file was removed only after that equivalence was
+proven. No production data was seeded, backfilled or modified.
 
 What it introduces:
 
@@ -461,8 +467,9 @@ Supporting work: `src/features/curriculum/effective-placement.ts` is a
 read-only compatibility path that prefers a Stage 1C enrollment and falls back
 to the legacy `students.grade_id`/`pathway_id` columns; no existing write path
 changed and no CRUD UI was added. `src/lib/stage1c-enrollment-lifecycle.test.ts`
-(32 tests) verifies the migration structurally, deriving the depth limit from
-the external Stage 1B artifact so the proof cannot be self-referential.
+(39 tests) verifies the applied migration artifact structurally, deriving the
+depth limit from the external Stage 1B artifact so the proof cannot be
+self-referential.
 
 **Item 22 (live-principal RLS gate) is now unblocked in CI, not in production.**
 `scripts/rls/stage1c-principal-tests.sql` proves allow/deny outcomes under real
@@ -473,22 +480,28 @@ hosted Supabase endpoint. `.github/workflows/rls-principal-tests.yml` runs it
 against a throwaway Postgres service container only. No production database is
 ever touched.
 
-Full gates: `tsgo` clean, ESLint clean, **360/360 tests pass** across 20 files.
-`MFA_ENFORCEMENT_ENABLED = false`; no `has_aal2()` policy exists.
-
+Full gates: `tsgo` clean, ESLint clean, production build clean,
+**376/376 tests pass** across 21 files. Live verification after application
+confirms RLS enabled on both tables, 8 Stage 1C policies, 5 Stage 1C triggers,
+the one-active-primary partial unique index, a nullable and unpopulated
+`curriculum_enrollment_id` bridge, zero `academic_periods` and zero
+`curriculum_enrollments` rows, `can_administer_academic_period` SECURITY
+DEFINER with an empty `search_path` and no `anon` execute grant, and trigger
+helpers unreachable by `authenticated`. `MFA_ENFORCEMENT_ENABLED = false`; no
+`has_aal2()` policy exists.
 
 ## 9. Continuation state
 
 Phase 1–9 functionality is implemented with the gaps listed in section 5.
 Phase 10 Stage 1A and Stage 1B are implemented and reconciled (section 8a).
-Stage 1C is fully built but UNAPPLIED and awaiting review (section 8b). Next scope after security: Stage 1 Universal
+Stage 1C is applied and reconciled on its feature branch (section 8b). Next scope after security: Stage 1 Universal
 Curriculum Engine → Stage 2 Programmes → Stage 3 Public Website → Stage 4
 Community → Stage 5 Career Pathways → Stage 6 Billing, each independently
 testable and deployable, followed by a full gap analysis against Phase 10A–10L
 and unfinished Phase 1–9 work. Private instructor-document controls and the
 `assignment-submissions` bucket belong to Stage 2.
 
-**Exact next action: Claude pre-application review of the Stage 1C migration
-`20260816175000_phase10_stage1c_enrollment_lifecycle.sql` before it is applied
-through the platform migration tool and before any merge to `main`. Stage-two
-SEC-006 application and MFA enforcement activation remain separately gated.**
+**Exact next action: Claude final live review of the applied Stage 1C migration
+`20260817113059_d492f8e7-f567-441a-a6ce-4b642a990c02.sql` before draft PR #5 is
+marked ready or merged to `main`. Stage-two SEC-006 application and MFA
+enforcement activation remain separately gated.**

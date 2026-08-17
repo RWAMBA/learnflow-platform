@@ -12,7 +12,7 @@ import { describe, expect, it } from "vitest";
 import { MFA_ENFORCEMENT_ENABLED } from "@/features/security/mfa";
 import { __testing } from "@/features/curriculum/effective-placement";
 
-const STAGE1C_FILE = "20260816175000_phase10_stage1c_enrollment_lifecycle.sql";
+const STAGE1C_FILE = "20260817113059_d492f8e7-f567-441a-a6ce-4b642a990c02.sql";
 const STAGE1B_REPAIR2_FILE = "20260816163607_a7813b14-5998-42b2-bcb1-491e1ffe49e5.sql";
 
 const SQL = readFileSync(`supabase/migrations/${STAGE1C_FILE}`, "utf8");

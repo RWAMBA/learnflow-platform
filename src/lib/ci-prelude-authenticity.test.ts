@@ -115,7 +115,7 @@ describe("Stage 1C CI object verification is fail-closed", () => {
   });
 
   it("keeps the surrounding disposable-CI guarantees unchanged", () => {
-    expect(workflow).toContain("RLS_DISPOSABLE_DB: \"1\"");
+    expect(workflow).toContain('RLS_DISPOSABLE_DB: "1"');
     expect(workflow).toContain("Refusing: hosted Supabase endpoint detected.");
     expect(workflow).toContain("scripts/rls/ci-prelude.sql");
     expect(workflow).toContain("scripts/rls/ci-prelude-verify.sql");
