@@ -419,12 +419,18 @@ the pre-existing, previously-triaged Auth-dashboard warning
 "Leaked Password Protection Disabled" — not introduced by this block and not
 remediable from SQL.
 
-### 8b. Phase 10 Stage 1C — curriculum enrollment lifecycle (BUILT, NOT APPLIED)
+### 8b. Phase 10 Stage 1C — curriculum enrollment lifecycle (APPLIED)
 
-Branch `feature/phase10-stage1c-enrollment-lifecycle`. The migration
-`supabase/migrations/20260816175000_phase10_stage1c_enrollment_lifecycle.sql`
-is **hand-authored and deliberately NOT applied**: it awaits Claude
-pre-application review. Nothing in the live database changed in this block.
+Branch `feature/phase10-stage1c-enrollment-lifecycle`. The reviewed Stage 1C
+SQL was applied through the platform migration mechanism exactly once and is
+recorded as
+`supabase/migrations/20260817113059_d492f8e7-f567-441a-a6ce-4b642a990c02.sql`
+(SHA-256 `ca10c6c9eeea11a64180282115a49f87c36030d2406c0d13539bc2cbdc0cb675`).
+The generated artifact is byte-identical to the reviewed hand-authored file
+(SHA-256 `6307b14f4801f3605da757ed77a64718126ff7f30a2c12b57b0cb0c1ed9eb3f1`)
+apart from the absent terminal newline after the final `COMMIT;`; the
+superseded hand-authored file was removed only after that equivalence was
+proven. No production data was seeded, backfilled or modified.
 
 What it introduces:
 
