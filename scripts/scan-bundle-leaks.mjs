@@ -9,7 +9,9 @@
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 
-const CLIENT_DIRS = [".output/public", "dist/client", "dist/public", "dist"].filter(existsSync);
+// Only the browser-facing output is scanned; dist/server legitimately
+// contains server-only modules.
+const CLIENT_DIRS = [".output/public", "dist/client", "dist/public"].filter(existsSync);
 if (CLIENT_DIRS.length === 0) {
   console.error(
     "[bundle-scan] FAILED — no client build output found; run the production build first.",
