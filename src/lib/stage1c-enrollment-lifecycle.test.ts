@@ -379,8 +379,8 @@ describe("Stage 1C — live-principal RLS infrastructure", () => {
   });
 });
 
-describe("Stage 1C — compatibility read path", () => {
-  it("prefers the Stage 1C enrollment when one exists", () => {
+describe("Stage 1C — authoritative enrollment read path", () => {
+  it("resolves placement from the Stage 1C enrollment", () => {
     const placement = __testing.fromEnrollment({
       id: "e1",
       curriculum_version_id: "v1",
@@ -402,25 +402,14 @@ describe("Stage 1C — compatibility read path", () => {
     });
   });
 
-  it("falls back to the legacy student columns without changing them", () => {
-    const placement = __testing.fromLegacy({
-      grade_id: "g2",
-      pathway_id: "t2",
-      grade: { id: "g2", name: "Grade 8" },
-      pathway: { id: "t2", name: "STEM" },
-    });
-    expect(placement.source).toBe("legacy");
-    expect(placement.academicLevelId).toBe("g2");
-    expect(placement.trackId).toBe("t2");
-    expect(placement.enrollmentId).toBeNull();
-    expect(placement.curriculumVersionId).toBeNull();
+  it("exposes no legacy fallback resolver at all", () => {
+    expect("fromLegacy" in __testing).toBe(false);
   });
 
-  it("reports no placement when neither source has one", () => {
-    expect(
-      __testing.fromLegacy({ grade_id: null, pathway_id: null, grade: null, pathway: null }),
-    ).toEqual(__testing.EMPTY);
+  it("reports no placement when there is no primary enrollment", () => {
     expect(__testing.EMPTY.source).toBe("none");
+    expect(__testing.EMPTY.enrollmentId).toBeNull();
+    expect(__testing.EMPTY.academicLevelId).toBeNull();
   });
 });
 
