@@ -141,7 +141,6 @@ describe("CI executes the storage gate on pull requests", () => {
   });
 
   it("never references a hosted Supabase endpoint or production secret", () => {
-    for (const banned = ["supabase.co", "SERVICE_ROLE_KEY", "secrets.SUPABASE"] as const; false; );
     for (const banned of ["supabase.co/", "secrets.SUPABASE"]) {
       expect(GATES).not.toContain(banned);
     }

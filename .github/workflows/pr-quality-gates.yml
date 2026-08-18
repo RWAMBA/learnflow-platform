@@ -1,0 +1,168 @@
+name: PR quality gates (Stage 1)
+
+# Mandatory gates for candidate -> main pull requests.
+#
+# Everything here is local/disposable: no hosted Supabase endpoint, no
+# production secret, no deployment credential is referenced. Every gate fails
+# closed — a skipped or unavailable gate fails the job rather than passing it.
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-quality-gates-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  static-gates:
+    name: Typecheck, lint, tests, build, scans
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+      - name: Install dependencies (lockfile enforced)
+        run: bun install --frozen-lockfile
+
+      - name: Typecheck
+        run: bun run typecheck
+
+      - name: ESLint (zero errors required)
+        run: bun run lint
+
+      - name: Unit and integration tests
+        run: bun run test
+
+      - name: Secret scan
+        run: bun run scan:secrets
+
+      - name: Migration order and duplicate-version check
+        run: bun run check:migrations
+
+      - name: Production build
+        run: bun run build
+
+      - name: Browser-bundle leakage scan
+        run: bun run scan:bundle
+
+      - name: Server/client boundary check
+        run: |
+          set -euo pipefail
+          # No client-reachable module may import the service-role client at
+          # module scope; it is only ever loaded inside a server handler.
+          if grep -rn "^import .*integrations/supabase/client\.server" src --include="*.ts" --include="*.tsx" \
+               | grep -v "\.server\.ts"; then
+            echo "Server-only Supabase admin client imported at module scope."; exit 1
+          fi
+          echo "Boundary check OK."
+
+      - name: End-to-end journeys (existing Playwright harness)
+        run: |
+          set -euo pipefail
+          bunx playwright install --with-deps chromium
+          bun run test:e2e
+
+      - name: Upload test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage1-static-gate-evidence
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  database-gates:
+    name: Disposable Supabase migration, RLS and Storage principals
+    runs-on: ubuntu-latest
+    env:
+      RLS_DISPOSABLE_DB: "1"
+      RLS_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
+      SUPABASE_CLI_VERSION: 2.30.4
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+      - run: bun install --frozen-lockfile
+
+      - name: Reject any hosted Supabase / pooler endpoint
+        run: |
+          set -euo pipefail
+          url="$RLS_TEST_DATABASE_URL"
+          case "$url" in
+            *supabase.co*|*supabase.com*|*pooler.*|*supabase.in*)
+              echo "Refusing: hosted Supabase endpoint detected."; exit 1;;
+          esac
+          case "$url" in
+            postgresql://postgres:postgres@127.0.0.1:54322/*) ;;
+            *) echo "Refusing: not the disposable local Supabase endpoint."; exit 1;;
+          esac
+          if [ -f supabase/.temp/project-ref ]; then
+            echo "Refusing: a linked Supabase project ref is present."; exit 1
+          fi
+          echo "Endpoint guard OK (disposable local only)."
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: ${{ env.SUPABASE_CLI_VERSION }}
+
+      - name: Start the disposable local Supabase stack (no migrations yet)
+        run: |
+          set -euo pipefail
+          mv supabase/migrations /tmp/learnflow-migrations
+          mkdir -p supabase/migrations
+          supabase start -x realtime,imgproxy,studio,edge-runtime,logflare,vector,supavisor,mailpit
+
+      - name: Apply the out-of-band prelude (authoritative hosted definition)
+        run: psql "$RLS_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/rls/ci-prelude.sql
+
+      - name: Apply the complete migration history
+        run: |
+          set -euo pipefail
+          rmdir supabase/migrations
+          mv /tmp/learnflow-migrations supabase/migrations
+          supabase migration up --db-url "$RLS_TEST_DATABASE_URL"
+
+      - name: Prove the prehistory object is authoritative (not a no-op)
+        run: psql "$RLS_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/rls/ci-prelude-verify.sql
+
+      - name: Reconciliation check (non-zero fixtures, zero unresolved)
+        run: |
+          set -euo pipefail
+          psql "$RLS_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -Atq -c "
+            DO \$\$
+            DECLARE v_open int; v_dupes int;
+            BEGIN
+              SELECT count(*) INTO v_open FROM app_private.unreconciled_legacy_placements();
+              IF v_open <> 0 THEN
+                RAISE EXCEPTION 'RECONCILIATION: % resolvable legacy placement(s) left open', v_open;
+              END IF;
+              SELECT count(*) INTO v_dupes FROM (
+                SELECT student_id FROM public.curriculum_enrollments
+                 WHERE enrollment_category = 'primary' AND status = 'active'
+                 GROUP BY student_id HAVING count(*) > 1) d;
+              IF v_dupes <> 0 THEN
+                RAISE EXCEPTION 'RECONCILIATION: % duplicate active primary enrollment(s)', v_dupes;
+              END IF;
+            END
+            \$\$;"
+
+      - name: Cross-tenant and RLS live-principal proof
+        run: node scripts/run-rls-principal-tests.mjs
+
+      - name: Prove zero RLS residue after rollback
+        run: psql "$RLS_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/rls/stage1c-residue-check.sql
+
+      - name: Storage live-principal proof
+        run: node scripts/run-storage-principal-tests.mjs
+
+      - name: Prove zero storage residue after rollback
+        run: psql "$RLS_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/rls/stage1-storage-residue-check.sql
+
+      - name: Stop and delete the disposable Supabase environment
+        if: always()
+        run: supabase stop --no-backup
