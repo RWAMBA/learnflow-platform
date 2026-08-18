@@ -38,6 +38,7 @@ import { Route as AuthenticatedCurriculumIndexRouteImport } from './routes/_auth
 import { Route as AuthenticatedCurriculumAnalyticsRouteImport } from './routes/_authenticated/curriculum.analytics'
 import { Route as AuthenticatedCurriculumPlanRouteImport } from './routes/_authenticated/curriculum.plan'
 import { Route as AuthenticatedCurriculumProgressRouteImport } from './routes/_authenticated/curriculum.progress'
+import { Route as AuthenticatedCurriculumRightsRouteImport } from './routes/_authenticated/curriculum.rights'
 import { Route as AuthenticatedCurriculumVersionsRouteImport } from './routes/_authenticated/curriculum.versions'
 import { Route as AuthenticatedMessagesIndexRouteImport } from './routes/_authenticated/messages.index'
 import { Route as AuthenticatedMessagesConversationIdRouteImport } from './routes/_authenticated/messages.$conversationId'
@@ -216,6 +217,12 @@ const AuthenticatedCurriculumProgressRoute =
     path: '/curriculum/progress',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedCurriculumRightsRoute =
+  AuthenticatedCurriculumRightsRouteImport.update({
+    id: '/curriculum/rights',
+    path: '/curriculum/rights',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCurriculumVersionsRoute =
   AuthenticatedCurriculumVersionsRouteImport.update({
     id: '/curriculum/versions',
@@ -327,6 +334,7 @@ export interface FileRoutesByFullPath {
   '/curriculum/analytics': typeof AuthenticatedCurriculumAnalyticsRoute
   '/curriculum/plan': typeof AuthenticatedCurriculumPlanRoute
   '/curriculum/progress': typeof AuthenticatedCurriculumProgressRoute
+  '/curriculum/rights': typeof AuthenticatedCurriculumRightsRoute
   '/curriculum/versions': typeof AuthenticatedCurriculumVersionsRoute
   '/messages/$conversationId': typeof AuthenticatedMessagesConversationIdRoute
   '/mfa/challenge': typeof AuthenticatedMfaChallengeRoute
@@ -371,6 +379,7 @@ export interface FileRoutesByTo {
   '/curriculum/analytics': typeof AuthenticatedCurriculumAnalyticsRoute
   '/curriculum/plan': typeof AuthenticatedCurriculumPlanRoute
   '/curriculum/progress': typeof AuthenticatedCurriculumProgressRoute
+  '/curriculum/rights': typeof AuthenticatedCurriculumRightsRoute
   '/curriculum/versions': typeof AuthenticatedCurriculumVersionsRoute
   '/messages/$conversationId': typeof AuthenticatedMessagesConversationIdRoute
   '/mfa/challenge': typeof AuthenticatedMfaChallengeRoute
@@ -417,6 +426,7 @@ export interface FileRoutesById {
   '/_authenticated/curriculum/analytics': typeof AuthenticatedCurriculumAnalyticsRoute
   '/_authenticated/curriculum/plan': typeof AuthenticatedCurriculumPlanRoute
   '/_authenticated/curriculum/progress': typeof AuthenticatedCurriculumProgressRoute
+  '/_authenticated/curriculum/rights': typeof AuthenticatedCurriculumRightsRoute
   '/_authenticated/curriculum/versions': typeof AuthenticatedCurriculumVersionsRoute
   '/_authenticated/messages/$conversationId': typeof AuthenticatedMessagesConversationIdRoute
   '/_authenticated/mfa/challenge': typeof AuthenticatedMfaChallengeRoute
@@ -463,6 +473,7 @@ export interface FileRouteTypes {
     | '/curriculum/analytics'
     | '/curriculum/plan'
     | '/curriculum/progress'
+    | '/curriculum/rights'
     | '/curriculum/versions'
     | '/messages/$conversationId'
     | '/mfa/challenge'
@@ -507,6 +518,7 @@ export interface FileRouteTypes {
     | '/curriculum/analytics'
     | '/curriculum/plan'
     | '/curriculum/progress'
+    | '/curriculum/rights'
     | '/curriculum/versions'
     | '/messages/$conversationId'
     | '/mfa/challenge'
@@ -552,6 +564,7 @@ export interface FileRouteTypes {
     | '/_authenticated/curriculum/analytics'
     | '/_authenticated/curriculum/plan'
     | '/_authenticated/curriculum/progress'
+    | '/_authenticated/curriculum/rights'
     | '/_authenticated/curriculum/versions'
     | '/_authenticated/messages/$conversationId'
     | '/_authenticated/mfa/challenge'
@@ -789,6 +802,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCurriculumProgressRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/curriculum/rights': {
+      id: '/_authenticated/curriculum/rights'
+      path: '/curriculum/rights'
+      fullPath: '/curriculum/rights'
+      preLoaderRoute: typeof AuthenticatedCurriculumRightsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/curriculum/versions': {
       id: '/_authenticated/curriculum/versions'
       path: '/curriculum/versions'
@@ -907,6 +927,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCurriculumAnalyticsRoute: typeof AuthenticatedCurriculumAnalyticsRoute
   AuthenticatedCurriculumPlanRoute: typeof AuthenticatedCurriculumPlanRoute
   AuthenticatedCurriculumProgressRoute: typeof AuthenticatedCurriculumProgressRoute
+  AuthenticatedCurriculumRightsRoute: typeof AuthenticatedCurriculumRightsRoute
   AuthenticatedCurriculumVersionsRoute: typeof AuthenticatedCurriculumVersionsRoute
   AuthenticatedMessagesConversationIdRoute: typeof AuthenticatedMessagesConversationIdRoute
   AuthenticatedMfaChallengeRoute: typeof AuthenticatedMfaChallengeRoute
@@ -947,6 +968,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCurriculumAnalyticsRoute: AuthenticatedCurriculumAnalyticsRoute,
   AuthenticatedCurriculumPlanRoute: AuthenticatedCurriculumPlanRoute,
   AuthenticatedCurriculumProgressRoute: AuthenticatedCurriculumProgressRoute,
+  AuthenticatedCurriculumRightsRoute: AuthenticatedCurriculumRightsRoute,
   AuthenticatedCurriculumVersionsRoute: AuthenticatedCurriculumVersionsRoute,
   AuthenticatedMessagesConversationIdRoute:
     AuthenticatedMessagesConversationIdRoute,
