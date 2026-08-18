@@ -395,3 +395,39 @@ export async function getCbcScopeReport(): Promise<CbcScopeReport> {
       outOfScope.length === 0,
   };
 }
+
+/* ------------------------------------------------------------- labels */
+
+const LABELS: Record<string, string> = {
+  official_document: "Official document",
+  publisher_material: "Publisher material",
+  open_licensed: "Openly licensed",
+  learnflow_original: "LearnFlow original",
+  other: "Other",
+  unknown: "Unknown",
+  official_download: "Official download",
+  licensed_supply: "Licensed supply",
+  direct_grant: "Direct grant",
+  public_domain: "Public domain",
+  learnflow_authored: "LearnFlow authored",
+  open_licence: "Open licence",
+  commercial_licence: "Commercial licence",
+  written_permission: "Written permission",
+  learnflow_owned: "LearnFlow owned",
+  none: "None — no content loaded",
+  partial: "Partial — incomplete content",
+  complete: "Complete",
+  review_required: "Review required",
+  authorized: "Authorized",
+  restricted: "Restricted",
+  expired: "Expired",
+  inactive: "Inactive — hidden from users",
+  internal_preview: "Internal preview — staff only",
+  active: "Active — offered to users",
+};
+
+/** Human-readable label for a rights, readiness or activation enum value. */
+export function humanLabel(value: string) {
+  return LABELS[value] ?? value.replace(/_/g, " ");
+}
+
