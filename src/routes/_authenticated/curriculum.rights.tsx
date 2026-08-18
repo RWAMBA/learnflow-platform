@@ -16,6 +16,7 @@ import {
   SourceArtifactDialog,
   VersionGovernanceDialog,
 } from "@/features/curriculum/components/rights-dialogs";
+import { EvidencePanel } from "@/features/curriculum/components/evidence-panel";
 import {
   getCbcScopeReport,
   humanLabel,
@@ -79,6 +80,13 @@ function CurriculumRightsPage() {
 
   const refresh = () => void queryClient.invalidateQueries({ queryKey: ["rights"] });
 
+  const evidenceGrants = (grants.data ?? []).map((grant) => ({
+    id: grant.id,
+    label: `${humanLabel(grant.grant_type)} · ${grant.grant_reference ?? "no reference"}`,
+    expiryDate: grant.expiry_date,
+    restrictions: grant.restrictions,
+  }));
+
   if (!mayGovern) {
     return (
       <div>
@@ -140,6 +148,7 @@ function CurriculumRightsPage() {
           <TabsTrigger value="availability">Availability</TabsTrigger>
           <TabsTrigger value="sources">Sources</TabsTrigger>
           <TabsTrigger value="grants">Grants</TabsTrigger>
+          <TabsTrigger value="evidence">Evidence</TabsTrigger>
           <TabsTrigger value="scope">CBC scope</TabsTrigger>
           <TabsTrigger value="audit">Audit</TabsTrigger>
         </TabsList>
@@ -333,6 +342,18 @@ function CurriculumRightsPage() {
                 ))}
               </ul>
             )}
+          </QueryState>
+        </TabsContent>
+
+        <TabsContent value="evidence">
+          <QueryState
+            isPending={grants.isPending}
+            error={grants.error}
+            data={grants.data}
+            onRetry={() => void grants.refetch()}
+            skeleton={<ListSkeleton rows={2} />}
+          >
+            {() => <EvidencePanel grants={evidenceGrants} />}
           </QueryState>
         </TabsContent>
 

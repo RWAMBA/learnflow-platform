@@ -16,6 +16,7 @@
     "test:e2e": "playwright test",
     "typecheck": "tsc --noEmit",
     "test:storage": "vitest run src/lib/stage1-storage-authorization.test.ts && node scripts/run-storage-principal-tests.mjs",
+    "test:storage:api": "node scripts/run-storage-api-tests.mjs",
     "scan:secrets": "node scripts/scan-secrets.mjs",
     "scan:bundle": "node scripts/scan-bundle-leaks.mjs",
     "check:migrations": "node scripts/check-migration-order.mjs"
