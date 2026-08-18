@@ -11,7 +11,9 @@ import { join } from "node:path";
 
 const CLIENT_DIRS = [".output/public", "dist/client", "dist/public", "dist"].filter(existsSync);
 if (CLIENT_DIRS.length === 0) {
-  console.error("[bundle-scan] FAILED — no client build output found; run the production build first.");
+  console.error(
+    "[bundle-scan] FAILED — no client build output found; run the production build first.",
+  );
   process.exit(1);
 }
 
@@ -49,4 +51,6 @@ if (findings.length) {
   for (const finding of findings) console.error("  " + finding);
   process.exit(1);
 }
-console.log(`[bundle-scan] PASS — ${scanned} client asset(s) scanned in ${CLIENT_DIRS.join(", ")}.`);
+console.log(
+  `[bundle-scan] PASS — ${scanned} client asset(s) scanned in ${CLIENT_DIRS.join(", ")}.`,
+);

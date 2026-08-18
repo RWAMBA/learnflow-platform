@@ -49,4 +49,6 @@ if (findings.length) {
   for (const finding of findings) console.error("  " + finding);
   process.exit(1);
 }
-console.log(`[secret-scan] PASS — ${files.length} tracked files scanned, no credential values found.`);
+console.log(
+  `[secret-scan] PASS — ${files.length} tracked files scanned, no credential values found.`,
+);

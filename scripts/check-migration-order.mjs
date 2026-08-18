@@ -19,11 +19,16 @@ for (const file of files) {
     continue;
   }
   const version = match[1];
-  if (versions.has(version)) errors.push(`${file}: duplicate version ${version} (also ${versions.get(version)})`);
+  if (versions.has(version))
+    errors.push(`${file}: duplicate version ${version} (also ${versions.get(version)})`);
   versions.set(version, file);
   const [y, mo, d, h, mi, s] = [
-    version.slice(0, 4), version.slice(4, 6), version.slice(6, 8),
-    version.slice(8, 10), version.slice(10, 12), version.slice(12, 14),
+    version.slice(0, 4),
+    version.slice(4, 6),
+    version.slice(6, 8),
+    version.slice(8, 10),
+    version.slice(10, 12),
+    version.slice(12, 14),
   ].map(Number);
   const stamp = Date.UTC(y, mo - 1, d, h, mi, s);
   if (Number.isNaN(stamp) || mo < 1 || mo > 12 || d < 1 || d > 31 || h > 23 || mi > 59 || s > 59) {

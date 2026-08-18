@@ -25,7 +25,9 @@ const isDisposable =
   /@(localhost|127\.0\.0\.1|db|postgres)(:|\/)/.test(connection) ||
   connection.includes("disposable");
 if (!isDisposable) {
-  console.error("[stage1-storage] Refusing to run: connection is not a recognised disposable target.");
+  console.error(
+    "[stage1-storage] Refusing to run: connection is not a recognised disposable target.",
+  );
   process.exit(1);
 }
 for (const forbidden of ["supabase.co", "supabase.com", "pooler."]) {

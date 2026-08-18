@@ -57,9 +57,15 @@ describe("Storage principal proof covers every mandated case", () => {
     ["anonymous write denied", /anonymous principal wrote a storage object/],
     ["student/parent denied private rights evidence", /can read platform-private licence evidence/],
     ["teacher/tutor denied authoring", /uploaded a learning resource without authoring authority/],
-    ["org admin denied platform licence evidence", /organization admin can read platform-private licence evidence/],
+    [
+      "org admin denied platform licence evidence",
+      /organization admin can read platform-private licence evidence/,
+    ],
     ["org admin allowed inside its tenant", /tenant admin cannot read its own learning resource/],
-    ["platform admin allowed on licence evidence", /platform admin cannot read the licence evidence record/],
+    [
+      "platform admin allowed on licence evidence",
+      /platform admin cannot read the licence evidence record/,
+    ],
     ["cross-tenant read denied", /tenant admin can read a cross-tenant object/],
     ["cross-tenant list denied", /tenant admin can list a cross-tenant prefix/],
     ["cross-tenant write denied", /tenant admin wrote into another tenant prefix/],
@@ -68,7 +74,10 @@ describe("Storage principal proof covers every mandated case", () => {
     ["path manipulation denied", /path manipulation with prefix "%" was accepted/],
     ["traversal cannot cross tenants", /traversal path resolved to a cross-tenant object/],
     ["expired evidence stays closed", /expired rights grant satisfied the availability gate/],
-    ["unavailable curriculum not browsable", /learner can browse nodes of an unavailable curriculum version/],
+    [
+      "unavailable curriculum not browsable",
+      /learner can browse nodes of an unavailable curriculum version/,
+    ],
     ["unpublished lessons not browsable", /learner can browse unpublished lessons/],
     ["cross-tenant resources not readable", /learner can read cross-tenant curriculum resources/],
   ];
