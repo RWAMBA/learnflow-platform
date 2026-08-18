@@ -137,6 +137,16 @@ function CurriculumDashboard() {
               </Link>
             </Button>
             <Button asChild variant="outline">
+              <Link to="/curriculum/enrollments">
+                <GraduationCap aria-hidden="true" className="size-4" /> Enrollments
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link to="/curriculum/rights">
+                <ShieldCheck aria-hidden="true" className="size-4" /> Rights
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
               <Link to="/curriculum/analytics">
                 <LineChart aria-hidden="true" className="size-4" /> Analytics
               </Link>
