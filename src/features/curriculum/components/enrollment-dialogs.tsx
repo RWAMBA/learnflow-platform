@@ -274,20 +274,22 @@ interface StudentOption {
   last_name: string;
 }
 
-function useEnrollmentOptions(curriculumId: string | null, academicLevelId: string | null) {
+function useEnrollmentOptions(versionId: string, levelId: string) {
   const available = useQuery({
     queryKey: rightsKeys.catalogue(),
     queryFn: listAvailableCurricula,
   });
+  const curriculumId =
+    (available.data ?? []).find((row) => row.id === versionId)?.curriculum_id ?? null;
   const levels = useQuery({
     queryKey: rightsKeys.levels(curriculumId),
     queryFn: () => listAcademicLevels(curriculumId),
     enabled: Boolean(curriculumId),
   });
   const tracks = useQuery({
-    queryKey: ["curriculum", "pathways", academicLevelId],
-    queryFn: () => listPathways(academicLevelId ?? ""),
-    enabled: Boolean(academicLevelId),
+    queryKey: ["curriculum", "pathways", levelId || null],
+    queryFn: () => listPathways(levelId),
+    enabled: Boolean(levelId),
   });
   return { available, levels, tracks };
 }
@@ -319,15 +321,7 @@ export function EnrollStudentDialog({
 
   const versionId = form.watch("curriculumVersionId");
   const levelId = form.watch("academicLevelId");
-  const { available, levels, tracks } = useEnrollmentOptions(
-    available_curriculumId(versionId),
-    levelId || null,
-  );
-
-  function available_curriculumId(id: string) {
-    const match = (available?.data ?? []).find((row) => row.id === id);
-    return match?.curriculum_id ?? null;
-  }
+  const { available, levels, tracks } = useEnrollmentOptions(versionId, levelId);
 
   const mutation = useMutation({
     mutationFn: (values: z.infer<typeof enrollForm>) =>
