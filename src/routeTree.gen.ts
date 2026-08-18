@@ -36,6 +36,7 @@ import { Route as AuthenticatedAssignmentsAssignmentIdRouteImport } from './rout
 import { Route as AuthenticatedAssignmentsNewRouteImport } from './routes/_authenticated/assignments.new'
 import { Route as AuthenticatedCurriculumIndexRouteImport } from './routes/_authenticated/curriculum.index'
 import { Route as AuthenticatedCurriculumAnalyticsRouteImport } from './routes/_authenticated/curriculum.analytics'
+import { Route as AuthenticatedCurriculumEnrollmentsRouteImport } from './routes/_authenticated/curriculum.enrollments'
 import { Route as AuthenticatedCurriculumPlanRouteImport } from './routes/_authenticated/curriculum.plan'
 import { Route as AuthenticatedCurriculumProgressRouteImport } from './routes/_authenticated/curriculum.progress'
 import { Route as AuthenticatedCurriculumRightsRouteImport } from './routes/_authenticated/curriculum.rights'
@@ -206,6 +207,12 @@ const AuthenticatedCurriculumAnalyticsRoute =
     path: '/curriculum/analytics',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedCurriculumEnrollmentsRoute =
+  AuthenticatedCurriculumEnrollmentsRouteImport.update({
+    id: '/curriculum/enrollments',
+    path: '/curriculum/enrollments',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCurriculumPlanRoute =
   AuthenticatedCurriculumPlanRouteImport.update({
     id: '/curriculum/plan',
@@ -339,6 +346,7 @@ export interface FileRoutesByFullPath {
   '/assignments/$assignmentId': typeof AuthenticatedAssignmentsAssignmentIdRoute
   '/assignments/new': typeof AuthenticatedAssignmentsNewRoute
   '/curriculum/analytics': typeof AuthenticatedCurriculumAnalyticsRoute
+  '/curriculum/enrollments': typeof AuthenticatedCurriculumEnrollmentsRoute
   '/curriculum/plan': typeof AuthenticatedCurriculumPlanRoute
   '/curriculum/progress': typeof AuthenticatedCurriculumProgressRoute
   '/curriculum/rights': typeof AuthenticatedCurriculumRightsRoute
@@ -385,6 +393,7 @@ export interface FileRoutesByTo {
   '/assignments/$assignmentId': typeof AuthenticatedAssignmentsAssignmentIdRoute
   '/assignments/new': typeof AuthenticatedAssignmentsNewRoute
   '/curriculum/analytics': typeof AuthenticatedCurriculumAnalyticsRoute
+  '/curriculum/enrollments': typeof AuthenticatedCurriculumEnrollmentsRoute
   '/curriculum/plan': typeof AuthenticatedCurriculumPlanRoute
   '/curriculum/progress': typeof AuthenticatedCurriculumProgressRoute
   '/curriculum/rights': typeof AuthenticatedCurriculumRightsRoute
@@ -433,6 +442,7 @@ export interface FileRoutesById {
   '/_authenticated/assignments/$assignmentId': typeof AuthenticatedAssignmentsAssignmentIdRoute
   '/_authenticated/assignments/new': typeof AuthenticatedAssignmentsNewRoute
   '/_authenticated/curriculum/analytics': typeof AuthenticatedCurriculumAnalyticsRoute
+  '/_authenticated/curriculum/enrollments': typeof AuthenticatedCurriculumEnrollmentsRoute
   '/_authenticated/curriculum/plan': typeof AuthenticatedCurriculumPlanRoute
   '/_authenticated/curriculum/progress': typeof AuthenticatedCurriculumProgressRoute
   '/_authenticated/curriculum/rights': typeof AuthenticatedCurriculumRightsRoute
@@ -481,6 +491,7 @@ export interface FileRouteTypes {
     | '/assignments/$assignmentId'
     | '/assignments/new'
     | '/curriculum/analytics'
+    | '/curriculum/enrollments'
     | '/curriculum/plan'
     | '/curriculum/progress'
     | '/curriculum/rights'
@@ -527,6 +538,7 @@ export interface FileRouteTypes {
     | '/assignments/$assignmentId'
     | '/assignments/new'
     | '/curriculum/analytics'
+    | '/curriculum/enrollments'
     | '/curriculum/plan'
     | '/curriculum/progress'
     | '/curriculum/rights'
@@ -574,6 +586,7 @@ export interface FileRouteTypes {
     | '/_authenticated/assignments/$assignmentId'
     | '/_authenticated/assignments/new'
     | '/_authenticated/curriculum/analytics'
+    | '/_authenticated/curriculum/enrollments'
     | '/_authenticated/curriculum/plan'
     | '/_authenticated/curriculum/progress'
     | '/_authenticated/curriculum/rights'
@@ -801,6 +814,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCurriculumAnalyticsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/curriculum/enrollments': {
+      id: '/_authenticated/curriculum/enrollments'
+      path: '/curriculum/enrollments'
+      fullPath: '/curriculum/enrollments'
+      preLoaderRoute: typeof AuthenticatedCurriculumEnrollmentsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/curriculum/plan': {
       id: '/_authenticated/curriculum/plan'
       path: '/curriculum/plan'
@@ -945,6 +965,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAssignmentsAssignmentIdRoute: typeof AuthenticatedAssignmentsAssignmentIdRoute
   AuthenticatedAssignmentsNewRoute: typeof AuthenticatedAssignmentsNewRoute
   AuthenticatedCurriculumAnalyticsRoute: typeof AuthenticatedCurriculumAnalyticsRoute
+  AuthenticatedCurriculumEnrollmentsRoute: typeof AuthenticatedCurriculumEnrollmentsRoute
   AuthenticatedCurriculumPlanRoute: typeof AuthenticatedCurriculumPlanRoute
   AuthenticatedCurriculumProgressRoute: typeof AuthenticatedCurriculumProgressRoute
   AuthenticatedCurriculumRightsRoute: typeof AuthenticatedCurriculumRightsRoute
@@ -987,6 +1008,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedAssignmentsAssignmentIdRoute,
   AuthenticatedAssignmentsNewRoute: AuthenticatedAssignmentsNewRoute,
   AuthenticatedCurriculumAnalyticsRoute: AuthenticatedCurriculumAnalyticsRoute,
+  AuthenticatedCurriculumEnrollmentsRoute:
+    AuthenticatedCurriculumEnrollmentsRoute,
   AuthenticatedCurriculumPlanRoute: AuthenticatedCurriculumPlanRoute,
   AuthenticatedCurriculumProgressRoute: AuthenticatedCurriculumProgressRoute,
   AuthenticatedCurriculumRightsRoute: AuthenticatedCurriculumRightsRoute,
