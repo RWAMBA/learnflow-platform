@@ -10,6 +10,7 @@ import {
   ListChecks,
   Search,
 } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
