@@ -46,6 +46,7 @@ import {
   GRANT_TYPES,
   RIGHTS_STATUSES,
   SOURCE_TYPES,
+  humanLabel,
   type CatalogueVersion,
 } from "@/features/curriculum/rights-api";
 
@@ -76,38 +77,6 @@ function Shell({
       </DialogContent>
     </Dialog>
   );
-}
-
-const LABELS: Record<string, string> = {
-  official_document: "Official document",
-  publisher_material: "Publisher material",
-  open_licensed: "Openly licensed",
-  learnflow_original: "LearnFlow original",
-  other: "Other",
-  unknown: "Unknown",
-  official_download: "Official download",
-  licensed_supply: "Licensed supply",
-  direct_grant: "Direct grant",
-  public_domain: "Public domain",
-  learnflow_authored: "LearnFlow authored",
-  open_licence: "Open licence",
-  commercial_licence: "Commercial licence",
-  written_permission: "Written permission",
-  learnflow_owned: "LearnFlow owned",
-  none: "None — no content loaded",
-  partial: "Partial — incomplete content",
-  complete: "Complete",
-  review_required: "Review required",
-  authorized: "Authorized",
-  restricted: "Restricted",
-  expired: "Expired",
-  inactive: "Inactive — hidden from users",
-  internal_preview: "Internal preview — staff only",
-  active: "Active — offered to users",
-};
-
-export function humanLabel(value: string) {
-  return LABELS[value] ?? value.replace(/_/g, " ");
 }
 
 function EnumField({
@@ -161,7 +130,10 @@ const artifactForm = z.object({
   sourceTitle: z.string().trim().min(2, "Title is required").max(300),
   sourceType: z.enum(SOURCE_TYPES),
   authoritativeUrl: z.string().trim().url("Enter a full URL").max(2000).or(z.literal("")),
-  documentDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD").or(z.literal("")),
+  documentDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD")
+    .or(z.literal("")),
   jurisdiction: z.string().trim().max(120),
   acquisitionMethod: z.enum(ACQUISITION_METHODS),
   edition: z.string().trim().max(120),
@@ -284,7 +256,12 @@ export function SourceArtifactDialog({
             )}
           />
           <div className="grid gap-4 sm:grid-cols-2">
-            <EnumField control={form.control} name="sourceType" label="Source type" values={SOURCE_TYPES} />
+            <EnumField
+              control={form.control}
+              name="sourceType"
+              label="Source type"
+              values={SOURCE_TYPES}
+            />
             <EnumField
               control={form.control}
               name="acquisitionMethod"
@@ -410,8 +387,14 @@ const grantForm = z.object({
   grantType: z.enum(GRANT_TYPES),
   grantReference: z.string().trim().max(200),
   evidenceStoragePath: z.string().trim().max(500),
-  effectiveDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD").or(z.literal("")),
-  expiryDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD").or(z.literal("")),
+  effectiveDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD")
+    .or(z.literal("")),
+  expiryDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD")
+    .or(z.literal("")),
   territory: z.string().trim().max(200),
   attributionText: z.string().trim().max(500),
   restrictions: z.string().trim().max(2000),
@@ -508,7 +491,12 @@ export function RightsGrantDialog({
           className="space-y-4"
           onSubmit={form.handleSubmit((values) => mutation.mutate(values))}
         >
-          <EnumField control={form.control} name="grantType" label="Grant type" values={GRANT_TYPES} />
+          <EnumField
+            control={form.control}
+            name="grantType"
+            label="Grant type"
+            values={GRANT_TYPES}
+          />
           <FormField
             control={form.control}
             name="grantReference"

@@ -36,14 +36,17 @@ import { Route as AuthenticatedAssignmentsAssignmentIdRouteImport } from './rout
 import { Route as AuthenticatedAssignmentsNewRouteImport } from './routes/_authenticated/assignments.new'
 import { Route as AuthenticatedCurriculumIndexRouteImport } from './routes/_authenticated/curriculum.index'
 import { Route as AuthenticatedCurriculumAnalyticsRouteImport } from './routes/_authenticated/curriculum.analytics'
+import { Route as AuthenticatedCurriculumEnrollmentsRouteImport } from './routes/_authenticated/curriculum.enrollments'
 import { Route as AuthenticatedCurriculumPlanRouteImport } from './routes/_authenticated/curriculum.plan'
 import { Route as AuthenticatedCurriculumProgressRouteImport } from './routes/_authenticated/curriculum.progress'
+import { Route as AuthenticatedCurriculumRightsRouteImport } from './routes/_authenticated/curriculum.rights'
 import { Route as AuthenticatedCurriculumVersionsRouteImport } from './routes/_authenticated/curriculum.versions'
 import { Route as AuthenticatedMessagesIndexRouteImport } from './routes/_authenticated/messages.index'
 import { Route as AuthenticatedMessagesConversationIdRouteImport } from './routes/_authenticated/messages.$conversationId'
 import { Route as AuthenticatedMfaChallengeRouteImport } from './routes/_authenticated/mfa.challenge'
 import { Route as AuthenticatedOrganizationIndexRouteImport } from './routes/_authenticated/organization.index'
 import { Route as AuthenticatedOrganizationBillingRouteImport } from './routes/_authenticated/organization.billing'
+import { Route as AuthenticatedOrganizationPeriodsRouteImport } from './routes/_authenticated/organization.periods'
 import { Route as AuthenticatedStudentsIndexRouteImport } from './routes/_authenticated/students.index'
 import { Route as AuthenticatedStudentsStudentIdRouteImport } from './routes/_authenticated/students.$studentId'
 import { Route as AuthenticatedStudentsNewRouteImport } from './routes/_authenticated/students.new'
@@ -204,6 +207,12 @@ const AuthenticatedCurriculumAnalyticsRoute =
     path: '/curriculum/analytics',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedCurriculumEnrollmentsRoute =
+  AuthenticatedCurriculumEnrollmentsRouteImport.update({
+    id: '/curriculum/enrollments',
+    path: '/curriculum/enrollments',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedCurriculumPlanRoute =
   AuthenticatedCurriculumPlanRouteImport.update({
     id: '/curriculum/plan',
@@ -214,6 +223,12 @@ const AuthenticatedCurriculumProgressRoute =
   AuthenticatedCurriculumProgressRouteImport.update({
     id: '/curriculum/progress',
     path: '/curriculum/progress',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedCurriculumRightsRoute =
+  AuthenticatedCurriculumRightsRouteImport.update({
+    id: '/curriculum/rights',
+    path: '/curriculum/rights',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedCurriculumVersionsRoute =
@@ -250,6 +265,12 @@ const AuthenticatedOrganizationBillingRoute =
   AuthenticatedOrganizationBillingRouteImport.update({
     id: '/organization/billing',
     path: '/organization/billing',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedOrganizationPeriodsRoute =
+  AuthenticatedOrganizationPeriodsRouteImport.update({
+    id: '/organization/periods',
+    path: '/organization/periods',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedStudentsIndexRoute =
@@ -325,12 +346,15 @@ export interface FileRoutesByFullPath {
   '/assignments/$assignmentId': typeof AuthenticatedAssignmentsAssignmentIdRoute
   '/assignments/new': typeof AuthenticatedAssignmentsNewRoute
   '/curriculum/analytics': typeof AuthenticatedCurriculumAnalyticsRoute
+  '/curriculum/enrollments': typeof AuthenticatedCurriculumEnrollmentsRoute
   '/curriculum/plan': typeof AuthenticatedCurriculumPlanRoute
   '/curriculum/progress': typeof AuthenticatedCurriculumProgressRoute
+  '/curriculum/rights': typeof AuthenticatedCurriculumRightsRoute
   '/curriculum/versions': typeof AuthenticatedCurriculumVersionsRoute
   '/messages/$conversationId': typeof AuthenticatedMessagesConversationIdRoute
   '/mfa/challenge': typeof AuthenticatedMfaChallengeRoute
   '/organization/billing': typeof AuthenticatedOrganizationBillingRoute
+  '/organization/periods': typeof AuthenticatedOrganizationPeriodsRoute
   '/students/$studentId': typeof AuthenticatedStudentsStudentIdRoute
   '/students/new': typeof AuthenticatedStudentsNewRoute
   '/assessments/': typeof AuthenticatedAssessmentsIndexRoute
@@ -369,12 +393,15 @@ export interface FileRoutesByTo {
   '/assignments/$assignmentId': typeof AuthenticatedAssignmentsAssignmentIdRoute
   '/assignments/new': typeof AuthenticatedAssignmentsNewRoute
   '/curriculum/analytics': typeof AuthenticatedCurriculumAnalyticsRoute
+  '/curriculum/enrollments': typeof AuthenticatedCurriculumEnrollmentsRoute
   '/curriculum/plan': typeof AuthenticatedCurriculumPlanRoute
   '/curriculum/progress': typeof AuthenticatedCurriculumProgressRoute
+  '/curriculum/rights': typeof AuthenticatedCurriculumRightsRoute
   '/curriculum/versions': typeof AuthenticatedCurriculumVersionsRoute
   '/messages/$conversationId': typeof AuthenticatedMessagesConversationIdRoute
   '/mfa/challenge': typeof AuthenticatedMfaChallengeRoute
   '/organization/billing': typeof AuthenticatedOrganizationBillingRoute
+  '/organization/periods': typeof AuthenticatedOrganizationPeriodsRoute
   '/students/$studentId': typeof AuthenticatedStudentsStudentIdRoute
   '/students/new': typeof AuthenticatedStudentsNewRoute
   '/assessments': typeof AuthenticatedAssessmentsIndexRoute
@@ -415,12 +442,15 @@ export interface FileRoutesById {
   '/_authenticated/assignments/$assignmentId': typeof AuthenticatedAssignmentsAssignmentIdRoute
   '/_authenticated/assignments/new': typeof AuthenticatedAssignmentsNewRoute
   '/_authenticated/curriculum/analytics': typeof AuthenticatedCurriculumAnalyticsRoute
+  '/_authenticated/curriculum/enrollments': typeof AuthenticatedCurriculumEnrollmentsRoute
   '/_authenticated/curriculum/plan': typeof AuthenticatedCurriculumPlanRoute
   '/_authenticated/curriculum/progress': typeof AuthenticatedCurriculumProgressRoute
+  '/_authenticated/curriculum/rights': typeof AuthenticatedCurriculumRightsRoute
   '/_authenticated/curriculum/versions': typeof AuthenticatedCurriculumVersionsRoute
   '/_authenticated/messages/$conversationId': typeof AuthenticatedMessagesConversationIdRoute
   '/_authenticated/mfa/challenge': typeof AuthenticatedMfaChallengeRoute
   '/_authenticated/organization/billing': typeof AuthenticatedOrganizationBillingRoute
+  '/_authenticated/organization/periods': typeof AuthenticatedOrganizationPeriodsRoute
   '/_authenticated/students/$studentId': typeof AuthenticatedStudentsStudentIdRoute
   '/_authenticated/students/new': typeof AuthenticatedStudentsNewRoute
   '/_authenticated/assessments/': typeof AuthenticatedAssessmentsIndexRoute
@@ -461,12 +491,15 @@ export interface FileRouteTypes {
     | '/assignments/$assignmentId'
     | '/assignments/new'
     | '/curriculum/analytics'
+    | '/curriculum/enrollments'
     | '/curriculum/plan'
     | '/curriculum/progress'
+    | '/curriculum/rights'
     | '/curriculum/versions'
     | '/messages/$conversationId'
     | '/mfa/challenge'
     | '/organization/billing'
+    | '/organization/periods'
     | '/students/$studentId'
     | '/students/new'
     | '/assessments/'
@@ -505,12 +538,15 @@ export interface FileRouteTypes {
     | '/assignments/$assignmentId'
     | '/assignments/new'
     | '/curriculum/analytics'
+    | '/curriculum/enrollments'
     | '/curriculum/plan'
     | '/curriculum/progress'
+    | '/curriculum/rights'
     | '/curriculum/versions'
     | '/messages/$conversationId'
     | '/mfa/challenge'
     | '/organization/billing'
+    | '/organization/periods'
     | '/students/$studentId'
     | '/students/new'
     | '/assessments'
@@ -550,12 +586,15 @@ export interface FileRouteTypes {
     | '/_authenticated/assignments/$assignmentId'
     | '/_authenticated/assignments/new'
     | '/_authenticated/curriculum/analytics'
+    | '/_authenticated/curriculum/enrollments'
     | '/_authenticated/curriculum/plan'
     | '/_authenticated/curriculum/progress'
+    | '/_authenticated/curriculum/rights'
     | '/_authenticated/curriculum/versions'
     | '/_authenticated/messages/$conversationId'
     | '/_authenticated/mfa/challenge'
     | '/_authenticated/organization/billing'
+    | '/_authenticated/organization/periods'
     | '/_authenticated/students/$studentId'
     | '/_authenticated/students/new'
     | '/_authenticated/assessments/'
@@ -775,6 +814,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCurriculumAnalyticsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/curriculum/enrollments': {
+      id: '/_authenticated/curriculum/enrollments'
+      path: '/curriculum/enrollments'
+      fullPath: '/curriculum/enrollments'
+      preLoaderRoute: typeof AuthenticatedCurriculumEnrollmentsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/curriculum/plan': {
       id: '/_authenticated/curriculum/plan'
       path: '/curriculum/plan'
@@ -787,6 +833,13 @@ declare module '@tanstack/react-router' {
       path: '/curriculum/progress'
       fullPath: '/curriculum/progress'
       preLoaderRoute: typeof AuthenticatedCurriculumProgressRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/curriculum/rights': {
+      id: '/_authenticated/curriculum/rights'
+      path: '/curriculum/rights'
+      fullPath: '/curriculum/rights'
+      preLoaderRoute: typeof AuthenticatedCurriculumRightsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/curriculum/versions': {
@@ -829,6 +882,13 @@ declare module '@tanstack/react-router' {
       path: '/organization/billing'
       fullPath: '/organization/billing'
       preLoaderRoute: typeof AuthenticatedOrganizationBillingRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/organization/periods': {
+      id: '/_authenticated/organization/periods'
+      path: '/organization/periods'
+      fullPath: '/organization/periods'
+      preLoaderRoute: typeof AuthenticatedOrganizationPeriodsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/students/': {
@@ -905,12 +965,15 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAssignmentsAssignmentIdRoute: typeof AuthenticatedAssignmentsAssignmentIdRoute
   AuthenticatedAssignmentsNewRoute: typeof AuthenticatedAssignmentsNewRoute
   AuthenticatedCurriculumAnalyticsRoute: typeof AuthenticatedCurriculumAnalyticsRoute
+  AuthenticatedCurriculumEnrollmentsRoute: typeof AuthenticatedCurriculumEnrollmentsRoute
   AuthenticatedCurriculumPlanRoute: typeof AuthenticatedCurriculumPlanRoute
   AuthenticatedCurriculumProgressRoute: typeof AuthenticatedCurriculumProgressRoute
+  AuthenticatedCurriculumRightsRoute: typeof AuthenticatedCurriculumRightsRoute
   AuthenticatedCurriculumVersionsRoute: typeof AuthenticatedCurriculumVersionsRoute
   AuthenticatedMessagesConversationIdRoute: typeof AuthenticatedMessagesConversationIdRoute
   AuthenticatedMfaChallengeRoute: typeof AuthenticatedMfaChallengeRoute
   AuthenticatedOrganizationBillingRoute: typeof AuthenticatedOrganizationBillingRoute
+  AuthenticatedOrganizationPeriodsRoute: typeof AuthenticatedOrganizationPeriodsRoute
   AuthenticatedStudentsStudentIdRoute: typeof AuthenticatedStudentsStudentIdRoute
   AuthenticatedStudentsNewRoute: typeof AuthenticatedStudentsNewRoute
   AuthenticatedAssessmentsIndexRoute: typeof AuthenticatedAssessmentsIndexRoute
@@ -945,13 +1008,17 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
     AuthenticatedAssignmentsAssignmentIdRoute,
   AuthenticatedAssignmentsNewRoute: AuthenticatedAssignmentsNewRoute,
   AuthenticatedCurriculumAnalyticsRoute: AuthenticatedCurriculumAnalyticsRoute,
+  AuthenticatedCurriculumEnrollmentsRoute:
+    AuthenticatedCurriculumEnrollmentsRoute,
   AuthenticatedCurriculumPlanRoute: AuthenticatedCurriculumPlanRoute,
   AuthenticatedCurriculumProgressRoute: AuthenticatedCurriculumProgressRoute,
+  AuthenticatedCurriculumRightsRoute: AuthenticatedCurriculumRightsRoute,
   AuthenticatedCurriculumVersionsRoute: AuthenticatedCurriculumVersionsRoute,
   AuthenticatedMessagesConversationIdRoute:
     AuthenticatedMessagesConversationIdRoute,
   AuthenticatedMfaChallengeRoute: AuthenticatedMfaChallengeRoute,
   AuthenticatedOrganizationBillingRoute: AuthenticatedOrganizationBillingRoute,
+  AuthenticatedOrganizationPeriodsRoute: AuthenticatedOrganizationPeriodsRoute,
   AuthenticatedStudentsStudentIdRoute: AuthenticatedStudentsStudentIdRoute,
   AuthenticatedStudentsNewRoute: AuthenticatedStudentsNewRoute,
   AuthenticatedAssessmentsIndexRoute: AuthenticatedAssessmentsIndexRoute,

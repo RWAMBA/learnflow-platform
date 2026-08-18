@@ -187,8 +187,8 @@ export async function getLearnerReconciliation(
     const primary = primaryByStudent.get(student.id);
     const mismatched = Boolean(
       primary &&
-        ((student.grade_id && primary.academic_level_id !== student.grade_id) ||
-          (student.pathway_id && primary.track_id !== student.pathway_id)),
+      ((student.grade_id && primary.academic_level_id !== student.grade_id) ||
+        (student.pathway_id && primary.track_id !== student.pathway_id)),
     );
     return {
       studentId: student.id,

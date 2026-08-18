@@ -10,6 +10,7 @@ import {
   ListChecks,
   Search,
 } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { PageHeader } from "@/components/shared/page-header";
 import { EmptyState } from "@/components/shared/empty-state";
@@ -134,6 +135,16 @@ function CurriculumDashboard() {
             <Button asChild variant="outline">
               <Link to="/curriculum/versions">
                 <GitBranch aria-hidden="true" className="size-4" /> Versions
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link to="/curriculum/enrollments">
+                <GraduationCap aria-hidden="true" className="size-4" /> Enrollments
+              </Link>
+            </Button>
+            <Button asChild variant="outline">
+              <Link to="/curriculum/rights">
+                <ShieldCheck aria-hidden="true" className="size-4" /> Rights
               </Link>
             </Button>
             <Button asChild variant="outline">
