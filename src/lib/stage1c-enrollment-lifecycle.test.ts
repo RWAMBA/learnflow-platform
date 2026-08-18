@@ -37,7 +37,10 @@ describe("Stage 1C — migration artifact and ordering", () => {
     expect(files).toContain(STAGE1C_FILE);
     expect(files).toContain(STAGE1B_REPAIR2_FILE);
     expect(files.indexOf(STAGE1C_FILE)).toBeGreaterThan(files.indexOf(STAGE1B_REPAIR2_FILE));
-    expect(files.at(-1)).toBe(STAGE1C_FILE);
+    // Later stages append their own migrations, so Stage 1C is no longer
+    // required to be last — only strictly after every Stage 1A/1B migration.
+    const earlier = files.filter((file) => file < STAGE1C_FILE);
+    expect(earlier).toContain(STAGE1B_REPAIR2_FILE);
   });
 
   it("is a single explicit transaction", () => {
