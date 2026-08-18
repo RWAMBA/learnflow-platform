@@ -9,9 +9,15 @@ BEGIN
   IF v_count <> 0 THEN
     RAISE EXCEPTION 'RESIDUE: % storage objects persisted', v_count;
   END IF;
-  SELECT count(*) INTO v_count FROM storage.buckets;
+  -- Only the schema-defined private evidence bucket, created by the migration
+  -- history, may exist. Anything the proof created must have rolled back.
+  SELECT count(*) INTO v_count FROM storage.buckets
+   WHERE id <> 'curriculum-rights-evidence';
   IF v_count <> 0 THEN
-    RAISE EXCEPTION 'RESIDUE: % storage buckets persisted', v_count;
+    RAISE EXCEPTION 'RESIDUE: % unexpected storage bucket(s) persisted', v_count;
+  END IF;
+  IF EXISTS (SELECT 1 FROM storage.buckets WHERE public) THEN
+    RAISE EXCEPTION 'RESIDUE: a public storage bucket exists';
   END IF;
   SELECT count(*) INTO v_count FROM public.rights_grants;
   IF v_count <> 0 THEN
