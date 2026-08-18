@@ -3981,10 +3981,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      curriculum_version_has_qualifying_grant: {
-        Args: { p_version_id: string }
-        Returns: boolean
-      }
       curriculum_version_is_available: {
         Args: { p_version_id: string }
         Returns: boolean
