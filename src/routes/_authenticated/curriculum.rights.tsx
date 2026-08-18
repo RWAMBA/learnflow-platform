@@ -345,6 +345,18 @@ function CurriculumRightsPage() {
           </QueryState>
         </TabsContent>
 
+        <TabsContent value="evidence">
+          <QueryState
+            isPending={grants.isPending}
+            error={grants.error}
+            data={grants.data}
+            onRetry={() => void grants.refetch()}
+            skeleton={<ListSkeleton rows={2} />}
+          >
+            {() => <EvidencePanel grants={evidenceGrants} />}
+          </QueryState>
+        </TabsContent>
+
         <TabsContent value="scope">
           <QueryState
             isPending={scope.isPending}
