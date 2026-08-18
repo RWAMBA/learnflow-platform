@@ -131,9 +131,9 @@ describe("CI executes the storage gate on pull requests", () => {
       "run lint",
       "run test",
       "run build",
-      "scan-secrets.mjs",
-      "scan-bundle-leaks.mjs",
-      "check-migration-order.mjs",
+      "scan:secrets",
+      "scan:bundle",
+      "check:migrations",
     ]) {
       expect(GATES).toContain(gate);
     }
