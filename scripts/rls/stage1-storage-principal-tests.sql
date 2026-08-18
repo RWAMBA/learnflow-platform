@@ -162,7 +162,12 @@ BEGIN
   SET LOCAL ROLE anon;
   PERFORM set_config('request.jwt.claims', json_build_object('role', 'anon')::text, true);
 
-  SELECT count(*) INTO v_visible FROM storage.objects;
+  BEGIN
+    SELECT count(*) INTO v_visible FROM storage.objects;
+  EXCEPTION WHEN insufficient_privilege THEN
+    -- No table privilege at all is a stricter denial than an empty result.
+    v_visible := 0;
+  END;
   IF v_visible <> 0 THEN
     RAISE EXCEPTION 'DENY FAILED: anonymous principal can list % storage object(s)', v_visible;
   END IF;
