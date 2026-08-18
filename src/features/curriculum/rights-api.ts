@@ -367,7 +367,9 @@ export async function getCbcScopeReport(): Promise<CbcScopeReport> {
   const seen = new Map<number, number>();
   for (const row of rows) seen.set(row.sequence_order, (seen.get(row.sequence_order) ?? 0) + 1);
 
-  const present = [...seen.keys()].filter((n) => n >= 1 && n <= CBC_GRADE_COUNT).sort((a, b) => a - b);
+  const present = [...seen.keys()]
+    .filter((n) => n >= 1 && n <= CBC_GRADE_COUNT)
+    .sort((a, b) => a - b);
   const missing = Array.from({ length: CBC_GRADE_COUNT }, (_, i) => i + 1).filter(
     (n) => !seen.has(n),
   );

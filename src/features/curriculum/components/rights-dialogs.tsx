@@ -161,7 +161,10 @@ const artifactForm = z.object({
   sourceTitle: z.string().trim().min(2, "Title is required").max(300),
   sourceType: z.enum(SOURCE_TYPES),
   authoritativeUrl: z.string().trim().url("Enter a full URL").max(2000).or(z.literal("")),
-  documentDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD").or(z.literal("")),
+  documentDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD")
+    .or(z.literal("")),
   jurisdiction: z.string().trim().max(120),
   acquisitionMethod: z.enum(ACQUISITION_METHODS),
   edition: z.string().trim().max(120),
@@ -284,7 +287,12 @@ export function SourceArtifactDialog({
             )}
           />
           <div className="grid gap-4 sm:grid-cols-2">
-            <EnumField control={form.control} name="sourceType" label="Source type" values={SOURCE_TYPES} />
+            <EnumField
+              control={form.control}
+              name="sourceType"
+              label="Source type"
+              values={SOURCE_TYPES}
+            />
             <EnumField
               control={form.control}
               name="acquisitionMethod"
@@ -410,8 +418,14 @@ const grantForm = z.object({
   grantType: z.enum(GRANT_TYPES),
   grantReference: z.string().trim().max(200),
   evidenceStoragePath: z.string().trim().max(500),
-  effectiveDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD").or(z.literal("")),
-  expiryDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD").or(z.literal("")),
+  effectiveDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD")
+    .or(z.literal("")),
+  expiryDate: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Use YYYY-MM-DD")
+    .or(z.literal("")),
   territory: z.string().trim().max(200),
   attributionText: z.string().trim().max(500),
   restrictions: z.string().trim().max(2000),
@@ -508,7 +522,12 @@ export function RightsGrantDialog({
           className="space-y-4"
           onSubmit={form.handleSubmit((values) => mutation.mutate(values))}
         >
-          <EnumField control={form.control} name="grantType" label="Grant type" values={GRANT_TYPES} />
+          <EnumField
+            control={form.control}
+            name="grantType"
+            label="Grant type"
+            values={GRANT_TYPES}
+          />
           <FormField
             control={form.control}
             name="grantReference"

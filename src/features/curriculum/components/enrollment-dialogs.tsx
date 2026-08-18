@@ -42,7 +42,11 @@ import {
   type AcademicPeriodRow,
   type EnrollmentRow,
 } from "@/features/curriculum/enrollment-api";
-import { listAvailableCurricula, listAcademicLevels, rightsKeys } from "@/features/curriculum/rights-api";
+import {
+  listAvailableCurricula,
+  listAcademicLevels,
+  rightsKeys,
+} from "@/features/curriculum/rights-api";
 import { listPathways } from "@/features/curriculum/api";
 
 const NONE = "__none__";

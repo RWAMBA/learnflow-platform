@@ -250,7 +250,10 @@ function EnrollmentsPage() {
                 </Card>
 
                 {report.rows.length === 0 ? (
-                  <EmptyState title="No learners yet" description="Add learners to see this report." />
+                  <EmptyState
+                    title="No learners yet"
+                    description="Add learners to see this report."
+                  />
                 ) : (
                   <ul className="divide-y rounded-md border">
                     {report.rows.map((row) => (

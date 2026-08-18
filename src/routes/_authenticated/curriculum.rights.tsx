@@ -152,7 +152,12 @@ function CurriculumRightsPage() {
             onRetry={() => void catalogue.refetch()}
             skeleton={<ListSkeleton rows={4} />}
             isEmpty={(rows) => rows.length === 0}
-            empty={<EmptyState title="No curricula configured" description="Add a curriculum framework first." />}
+            empty={
+              <EmptyState
+                title="No curricula configured"
+                description="Add a curriculum framework first."
+              />
+            }
           >
             {(rows) => (
               <div className="grid gap-3 md:grid-cols-2">
@@ -360,9 +365,7 @@ function CurriculumRightsPage() {
                     {report.present.length} of {report.expected} academic levels present.
                   </p>
                   {report.missing.length > 0 ? (
-                    <p className="text-destructive">
-                      Missing grades: {report.missing.join(", ")}
-                    </p>
+                    <p className="text-destructive">Missing grades: {report.missing.join(", ")}</p>
                   ) : null}
                   {report.duplicated.length > 0 ? (
                     <p className="text-destructive">
@@ -371,8 +374,7 @@ function CurriculumRightsPage() {
                   ) : null}
                   {report.outOfScope.length > 0 ? (
                     <p className="text-destructive">
-                      Out-of-scope levels:{" "}
-                      {report.outOfScope.map((row) => row.name).join(", ")}
+                      Out-of-scope levels: {report.outOfScope.map((row) => row.name).join(", ")}
                     </p>
                   ) : null}
                   {report.unavailableStages.length > 0 ? (
