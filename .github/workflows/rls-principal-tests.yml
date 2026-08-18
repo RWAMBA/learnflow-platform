@@ -31,8 +31,8 @@ jobs:
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
 
-      - name: Static Stage 1C structural suite (always on)
-        run: bunx vitest run src/lib/stage1c-enrollment-lifecycle.test.ts
+      - name: Static Stage 1C + Storage structural suites (always on)
+        run: bunx vitest run src/lib/stage1c-enrollment-lifecycle.test.ts src/lib/stage1-storage-authorization.test.ts
 
       - name: Reject any hosted Supabase / pooler endpoint
         run: |
@@ -63,7 +63,7 @@ jobs:
           # out-of-band prelude can run against an empty database first.
           mv supabase/migrations /tmp/learnflow-migrations
           mkdir -p supabase/migrations
-          supabase start -x realtime,storage-api,imgproxy,studio,edge-runtime,logflare,vector,supavisor,mailpit
+          supabase start -x realtime,imgproxy,studio,edge-runtime,logflare,vector,supavisor,mailpit
 
       - name: Apply the out-of-band prelude (authoritative hosted definition)
         run: psql "$RLS_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/rls/ci-prelude.sql
@@ -104,6 +104,12 @@ jobs:
 
       - name: Prove zero residue after rollback
         run: psql "$RLS_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/rls/stage1c-residue-check.sql
+
+      - name: Storage live-principal allow/deny proof (always rolled back)
+        run: node scripts/run-storage-principal-tests.mjs
+
+      - name: Prove zero storage residue after rollback
+        run: psql "$RLS_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/rls/stage1-storage-residue-check.sql
 
       - name: Stop and delete the disposable Supabase environment
         if: always()
