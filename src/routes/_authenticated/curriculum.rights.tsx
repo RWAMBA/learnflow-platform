@@ -15,10 +15,10 @@ import {
   RightsGrantDialog,
   SourceArtifactDialog,
   VersionGovernanceDialog,
-  humanLabel,
 } from "@/features/curriculum/components/rights-dialogs";
 import {
   getCbcScopeReport,
+  humanLabel,
   listCurriculumCatalogue,
   listRightsAudit,
   listRightsGrants,

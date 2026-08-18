@@ -430,4 +430,3 @@ const LABELS: Record<string, string> = {
 export function humanLabel(value: string) {
   return LABELS[value] ?? value.replace(/_/g, " ");
 }
-
