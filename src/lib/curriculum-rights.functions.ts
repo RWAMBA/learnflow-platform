@@ -17,7 +17,6 @@ import {
   setLevelAvailability,
   setStageAvailability,
   setVersionGovernance,
-  signRightsEvidence,
   upsertRightsGrant,
   upsertSourceArtifact,
 } from "./curriculum-rights.server";
@@ -61,8 +60,3 @@ export const startImportBatch = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => importBatchSchema.parse(data))
   .handler(({ data, context }) => createImportBatch(context, data));
-
-export const getRightsEvidenceUrl = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((data: unknown) => z.object({ storagePath: z.string().min(1) }).parse(data))
-  .handler(({ data, context }) => signRightsEvidence(context, data.storagePath));

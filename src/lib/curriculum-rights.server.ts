@@ -6,7 +6,9 @@
  * boundary. The explicit platform-admin assertion below is a fail-closed
  * pre-check, not a substitute for those policies.
  */
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { z } from "zod";
+import type { Database } from "@/integrations/supabase/types";
 import type {
   importBatchSchema,
   levelAvailabilitySchema,
@@ -17,7 +19,7 @@ import type {
   versionGovernanceSchema,
 } from "./curriculum-rights.schemas";
 
-type Ctx = { supabase: any; userId: string };
+type Ctx = { supabase: SupabaseClient<Database>; userId: string };
 
 /** Fail-closed pre-check mirroring the database policies. */
 export async function assertPlatformAdmin(context: Ctx) {
@@ -190,17 +192,4 @@ export async function createImportBatch(context: Ctx, input: z.infer<typeof impo
     .single();
   if (error) throw new Error(error.message);
   return { id: data.id as string };
-}
-
-/**
- * Short-lived signed URL for a private licence-evidence document. Only
- * Platform Administrators reach this path, and the bucket itself is private.
- */
-export async function signRightsEvidence(context: Ctx, storagePath: string) {
-  await assertPlatformAdmin(context);
-  const { data, error } = await context.supabase.storage
-    .from("rights-evidence")
-    .createSignedUrl(storagePath, 300);
-  if (error) throw new Error(error.message);
-  return { url: data.signedUrl as string };
 }
