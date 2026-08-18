@@ -1,0 +1,210 @@
+/**
+ * Phase 10 Stage 1 — rights-evidence storage hardening (structural, always-on).
+ *
+ * The executable proof runs against a disposable Supabase stack on the pull
+ * request (scripts/run-storage-api-tests.mjs). This suite guarantees the
+ * repository still declares the surface that proof asserts against, that the
+ * server path is fail-closed, and that CI cannot pass by skipping it.
+ */
+import { readFileSync, readdirSync } from "node:fs";
+import { describe, expect, it } from "vitest";
+
+const MIGRATION_FILE = readdirSync("supabase/migrations").find((file) =>
+  readFileSync(`supabase/migrations/${file}`, "utf8").includes("curriculum-rights-evidence"),
+);
+const MIGRATION = readFileSync(`supabase/migrations/${MIGRATION_FILE}`, "utf8");
+const SERVER = readFileSync("src/lib/rights-evidence.server.ts", "utf8");
+const FUNCTIONS = readFileSync("src/lib/rights-evidence.functions.ts", "utf8");
+const SCHEMAS = readFileSync("src/lib/rights-evidence.schemas.ts", "utf8");
+const RUNNER = readFileSync("scripts/run-storage-api-tests.mjs", "utf8");
+const RESIDUE = readFileSync("scripts/rls/stage1-storage-api-residue-check.sql", "utf8");
+const SQL_RESIDUE = readFileSync("scripts/rls/stage1-storage-residue-check.sql", "utf8");
+const PANEL = readFileSync("src/features/curriculum/components/evidence-panel.tsx", "utf8");
+const WORKFLOW = readFileSync(".github/workflows/rls-principal-tests.yml", "utf8");
+const GATES = readFileSync(".github/workflows/pr-quality-gates.yml", "utf8");
+
+describe("dedicated private evidence bucket", () => {
+  it("is additive and never weakens the tenant resource policies", () => {
+    expect(MIGRATION_FILE).toBeTruthy();
+    expect(MIGRATION).not.toMatch(/DROP POLICY[^\n]*curriculum_resources_/);
+    for (const policy of ["read", "insert", "update", "delete"]) {
+      expect(MIGRATION).toContain(`rights_evidence_${policy}`);
+    }
+  });
+
+  it("creates a private bucket with an explicit size and MIME allowlist", () => {
+    expect(MIGRATION).toContain("'curriculum-rights-evidence'");
+    expect(MIGRATION).toMatch(/public, file_size_limit, allowed_mime_types/);
+    expect(MIGRATION).toContain("26214400");
+    expect(MIGRATION).toContain("'application/pdf', 'image/png', 'image/jpeg', 'text/plain'");
+  });
+
+  it("restricts every evidence policy to an active platform administrator", () => {
+    const clauses = MIGRATION.match(/app_private\.is_platform_admin\(\)/g) ?? [];
+    expect(clauses.length).toBeGreaterThanOrEqual(4);
+    expect(MIGRATION).toContain("app_private.is_rights_evidence_path(name)");
+  });
+
+  it("only accepts server-generated, non-enumerable object keys", () => {
+    expect(MIGRATION).toContain("^rights-evidence/[0-9a-f]{8}");
+    expect(MIGRATION).toContain("position('..' IN p_name) = 0");
+    expect(MIGRATION).toContain("position('%2e' IN lower(p_name)) = 0");
+  });
+
+  it("validates size, MIME and extension and keeps the object path immutable", () => {
+    expect(MIGRATION).toContain("is not on the allowlist");
+    expect(MIGRATION).toContain("does not match MIME type");
+    expect(MIGRATION).toContain("the stored object path is immutable");
+  });
+
+  it("audits every insert, change and deletion of evidence", () => {
+    expect(MIGRATION).toContain("log_rights_evidence_change");
+    expect(MIGRATION).toContain("AFTER INSERT OR UPDATE OR DELETE ON public.rights_evidence_documents");
+    expect(MIGRATION).toContain("public.rights_audit_log");
+  });
+
+  it("grants no anonymous access to the evidence table", () => {
+    expect(MIGRATION).toContain("GRANT SELECT, INSERT, UPDATE, DELETE ON public.rights_evidence_documents TO authenticated");
+    expect(MIGRATION).not.toMatch(/rights_evidence_documents TO anon/);
+    expect(MIGRATION).toContain("ENABLE ROW LEVEL SECURITY");
+  });
+});
+
+describe("server-mediated evidence access is fail-closed", () => {
+  it("requires authentication on every entry point", () => {
+    const declarations = FUNCTIONS.match(/createServerFn/g) ?? [];
+    const guards = FUNCTIONS.match(/requireSupabaseAuth/g) ?? [];
+    expect(guards.length).toBeGreaterThanOrEqual(declarations.length);
+  });
+
+  it("re-verifies ACTIVE platform administrator status before privileged work", () => {
+    expect(SERVER).toContain('.eq("status", "active")');
+    expect(SERVER).toContain("Only active platform administrators may manage rights evidence");
+    const asserts = SERVER.match(/await assertActivePlatformAdmin\(context\)/g) ?? [];
+    expect(asserts.length).toBeGreaterThanOrEqual(5);
+  });
+
+  it("accepts an evidence identifier and resolves the path from the database", () => {
+    expect(SERVER).toContain("evidenceIdSchema");
+    expect(SERVER).toContain('.eq("id", input.evidenceId)');
+    expect(SERVER).toContain("String(row.storage_path)");
+  });
+
+  it("issues only short-lived signed URLs", () => {
+    expect(SCHEMAS).toContain("EVIDENCE_DOWNLOAD_URL_SECONDS = 120");
+    expect(SCHEMAS).toContain("EVIDENCE_UPLOAD_URL_SECONDS = 300");
+    expect(SERVER).toContain("createSignedUrl(String(row.storage_path), EVIDENCE_DOWNLOAD_URL_SECONDS)");
+  });
+
+  it("never leaks the object path or the service-role client to the browser", () => {
+    expect(SERVER).toContain('await import("@/integrations/supabase/client.server")');
+    expect(SERVER).toContain("Storage paths are platform-internal");
+    expect(FUNCTIONS).not.toContain("client.server");
+    expect(PANEL).not.toContain("storage_path");
+    expect(PANEL).not.toContain("SERVICE_ROLE");
+  });
+
+  it("records signed-URL issuance in the immutable audit trail", () => {
+    expect(SERVER).toContain("evidence_signed_url_issued");
+    expect(SERVER).toContain('from("rights_audit_log")');
+  });
+
+  it("keeps the documented upload allowlist in one place", () => {
+    for (const mime of ["application/pdf", "image/png", "image/jpeg", "text/plain"]) {
+      expect(SCHEMAS).toContain(mime);
+    }
+    expect(SCHEMAS).toContain("EVIDENCE_MAX_BYTES = 26_214_400");
+    expect(SCHEMAS).toContain("The filename must not contain a path");
+  });
+});
+
+describe("real Storage HTTP API proof", () => {
+  const mandated = [
+    "active platform admin completes the evidence upload path",
+    "active platform admin obtains a short-lived evidence signed URL",
+    "the signed URL retrieves exactly the intended fixture",
+    "a signed URL for one object cannot retrieve another object",
+    "an expired signed URL fails",
+    "organization admin uploads an allowed same-tenant resource",
+    "evidence list denied",
+    "evidence upload denied",
+    "evidence download denied",
+    "evidence signed-URL creation denied",
+    "evidence update denied",
+    "evidence delete denied",
+    "inactive platform administrator",
+    "cross-tenant resource download denied",
+    "cross-tenant resource list denied",
+    "cross-tenant resource upload denied",
+    "cross-tenant resource update denied",
+    "cross-tenant resource delete denied",
+    "arbitrary object-path signing denied for a tenant admin",
+    "traversal or non-allowlisted path denied",
+    "restricted/expired rights never satisfy curriculum availability",
+    "platform administrator cannot write a tenant learning resource",
+  ];
+  for (const label of mandated) {
+    it(`asserts: ${label}`, () => {
+      expect(RUNNER).toContain(label);
+    });
+  }
+
+  it("uses real auth sessions and the real Storage API, not simulated claims", () => {
+    expect(RUNNER).toContain("signInWithPassword");
+    expect(RUNNER).toContain("createSignedUrl");
+    expect(RUNNER).toContain("await fetch(");
+    expect(RUNNER).not.toContain("SET LOCAL ROLE");
+  });
+
+  it("refuses hosted, pooled or production environments", () => {
+    expect(RUNNER).toContain('RLS_DISPOSABLE_DB !== "1"');
+    for (const host of ["supabase.co", "supabase.com", "supabase.in", "pooler."]) {
+      expect(RUNNER).toContain(host);
+    }
+    expect(RUNNER).toContain("identifies a production environment");
+  });
+
+  it("fails rather than skips when CI requires it", () => {
+    expect(RUNNER).toContain('STORAGE_API_REQUIRED === "1"');
+    expect(RUNNER).toContain("but no disposable Storage environment is configured");
+    expect(RUNNER).toContain("Storage service unavailable");
+  });
+
+  it("never prints a key, token or signed URL", () => {
+    expect(RUNNER).not.toMatch(/console\.log\([^)]*(serviceKey|anonKey|signedUrl|token)/);
+    expect(RUNNER).not.toMatch(/process\.env\.SUPABASE_TEST_SERVICE_ROLE_KEY[^\n]*console/);
+  });
+
+  it("cleans up and proves zero residue while retaining the schema bucket", () => {
+    expect(RUNNER).toContain("cleanup complete");
+    expect(RUNNER).toContain("admin.auth.admin.deleteUser");
+    expect(RESIDUE).toContain("only the schema-defined evidence bucket may remain");
+    expect(RESIDUE).toContain("storage-api-%@example.test");
+    expect(SQL_RESIDUE).toContain("id <> 'curriculum-rights-evidence'");
+  });
+
+  it("uses synthetic fixtures only", () => {
+    expect(RUNNER).toContain("@example.test");
+    expect(RUNNER).toContain("synthetic disposable evidence fixture");
+  });
+});
+
+describe("CI executes the Storage API gate on pull requests", () => {
+  for (const [name, workflow] of [
+    ["principal workflow", WORKFLOW],
+    ["quality gates", GATES],
+  ] as const) {
+    it(`${name} runs the API proof, signed-URL tests and residue proof`, () => {
+      expect(workflow).toContain("scripts/run-storage-api-tests.mjs");
+      expect(workflow).toContain("scripts/rls/stage1-storage-api-residue-check.sql");
+      expect(workflow).toContain('STORAGE_API_REQUIRED: "1"');
+      expect(workflow).toContain("storage/v1/version");
+      expect(workflow).toMatch(/on:\s*\n\s*pull_request:/);
+    });
+
+    it(`${name} replays the full migration history first`, () => {
+      expect(workflow).toContain("supabase migration up --db-url");
+      expect(workflow).toContain("hosted Supabase endpoint detected");
+    });
+  }
+});
