@@ -18,12 +18,14 @@ const CODE = SQL.replace(/^\s*--.*$/gm, "");
 const STAGE1C = readFileSync(`supabase/migrations/${STAGE1C_FILE}`, "utf8");
 
 describe("Stage 1 legacy cutover — migration is additive and idempotent", () => {
-  it("is present and is the newest migration", () => {
+  it("is present and stays ordered after the Stage 1C migration", () => {
     const files = readdirSync("supabase/migrations")
       .filter((f) => f.endsWith(".sql"))
       .sort();
     expect(files).toContain(CUTOVER_FILE);
-    expect(files[files.length - 1]).toBe(CUTOVER_FILE);
+    // Later Stage 1 work is additive and appends new migrations after this
+    // one; the cutover itself is never edited or reordered.
+    expect(files.indexOf(CUTOVER_FILE)).toBeGreaterThan(files.indexOf(STAGE1C_FILE));
   });
 
   it("does not modify or re-execute the previously applied Stage 1C migration", () => {
