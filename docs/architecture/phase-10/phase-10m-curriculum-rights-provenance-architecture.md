@@ -141,3 +141,75 @@ historical versions, and never rewrite the provenance of content already served 
 CBC covers Grades 1–12 only: Primary 1–6, Junior Secondary 7–9, Senior Secondary 10–12. PP1, PP2 and
 Pre-Primary are out of scope and must be absent from ordinary product journeys. Historical dependencies are
 preserved; out-of-scope records are made unavailable, never destructively deleted.
+
+---
+
+## 12. Addendum — dedicated private rights-evidence storage (Stage 1)
+
+**Status:** Additive to Sections 1–11. Nothing above is superseded. Phase 10M as a whole remains
+**AWAITING CLAUDE ARCHITECTURE APPROVAL**.
+
+### 12.1 Dedicated bucket
+
+Licence agreements, written permissions, contracts and retained source artifacts live in a dedicated
+private bucket, `curriculum-rights-evidence`, and never in tenant learning-resource paths. The bucket is
+private, carries an explicit 25 MB size limit and an explicit MIME allowlist
+(`application/pdf`, `image/png`, `image/jpeg`, `text/plain`), and is provisioned by the schema so a
+disposable CI database has the identical surface.
+
+`curriculum-resources` remains the tenant learning-resource bucket. Its four `curriculum_resources_*`
+policies are untouched. Tenant-resource privileges never confer evidence access; platform evidence
+privileges never confer tenant-resource authority.
+
+### 12.2 Platform-only ownership
+
+Evidence objects are platform-owned reference material. Four additive `rights_evidence_*` policies on
+`storage.objects` admit only an active Platform Administrator (`app_private.is_platform_admin()`), only
+inside the evidence bucket, and only on a valid evidence key. No policy is granted to `anon`, so anonymous
+access is denied by absence as well as by predicate. Students, parents, teachers, tutors, Organization
+Administrators and inactive Platform Administrators are denied list, read, upload, update, delete and
+signing — directly at the Storage layer, independently of any server code.
+
+### 12.3 Object path and reference rules
+
+Object keys are server-generated and non-enumerable:
+
+```text
+rights-evidence/<random uuid>/<32 hex characters>.<pdf|png|jpg|jpeg|txt>
+```
+
+A caller never supplies, sees or influences a path. `app_private.is_rights_evidence_path()` rejects
+traversal, encoded traversal, backslashes and any other namespace, and is applied in both the Storage
+policies and the row validation trigger. `public.rights_evidence_documents` holds the reference (grant or
+source artifact, filename, MIME type, size, checksum, status, uploader) with the stored path immutable:
+a replacement is a new row that supersedes the old one, never an in-place overwrite.
+
+### 12.4 Approved authorization path
+
+Upload and download are server-mediated through `createServerFn` handlers that:
+
+1. run behind `requireSupabaseAuth`;
+2. re-verify **active** Platform Administrator status before any privileged work;
+3. validate file size, extension and MIME against the documented allowlist;
+4. accept only a validated evidence-record identifier, never an object path;
+5. resolve the stored path from trusted database data;
+6. mint short-lived signed URLs (upload 300 s, download 120 s) with a service-role client loaded inside
+   the handler and never exposed to the browser;
+7. fail closed, returning no URL and no metadata to an unauthorized caller.
+
+Storage RLS independently denies direct unauthorized access, so the server path is a supplement, never
+the boundary.
+
+### 12.5 Audit
+
+Every insert, change, supersession and deletion of an evidence record is written by trigger to the
+immutable `rights_audit_log`, as is every signed-URL issuance. Ordinary users never receive evidence
+paths, object metadata, signed URLs or licence correspondence.
+
+### 12.6 Verification
+
+Authorization is proven twice: through SQL principals against `storage.objects` policies, and through the
+real Supabase Storage HTTP API with real authenticated sessions, real uploads, real signed URLs and real
+downloads — including expired-signature, swapped-object and traversal cases. Both proofs run only against
+a disposable local stack, use synthetic fixtures, clean up completely and end in a residue check that
+retains the schema-defined evidence bucket and nothing else.
