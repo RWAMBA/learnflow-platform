@@ -59,12 +59,16 @@ describe("dedicated private evidence bucket", () => {
 
   it("audits every insert, change and deletion of evidence", () => {
     expect(MIGRATION).toContain("log_rights_evidence_change");
-    expect(MIGRATION).toContain("AFTER INSERT OR UPDATE OR DELETE ON public.rights_evidence_documents");
+    expect(MIGRATION).toContain(
+      "AFTER INSERT OR UPDATE OR DELETE ON public.rights_evidence_documents",
+    );
     expect(MIGRATION).toContain("public.rights_audit_log");
   });
 
   it("grants no anonymous access to the evidence table", () => {
-    expect(MIGRATION).toContain("GRANT SELECT, INSERT, UPDATE, DELETE ON public.rights_evidence_documents TO authenticated");
+    expect(MIGRATION).toContain(
+      "GRANT SELECT, INSERT, UPDATE, DELETE ON public.rights_evidence_documents TO authenticated",
+    );
     expect(MIGRATION).not.toMatch(/rights_evidence_documents TO anon/);
     expect(MIGRATION).toContain("ENABLE ROW LEVEL SECURITY");
   });
@@ -93,7 +97,9 @@ describe("server-mediated evidence access is fail-closed", () => {
   it("issues only short-lived signed URLs", () => {
     expect(SCHEMAS).toContain("EVIDENCE_DOWNLOAD_URL_SECONDS = 120");
     expect(SCHEMAS).toContain("EVIDENCE_UPLOAD_URL_SECONDS = 300");
-    expect(SERVER).toContain("createSignedUrl(String(row.storage_path), EVIDENCE_DOWNLOAD_URL_SECONDS)");
+    expect(SERVER).toContain(
+      "createSignedUrl(String(row.storage_path), EVIDENCE_DOWNLOAD_URL_SECONDS)",
+    );
   });
 
   it("never leaks the object path or the service-role client to the browser", () => {

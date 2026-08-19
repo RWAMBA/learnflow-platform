@@ -229,13 +229,16 @@ async function main() {
   });
 
   let signedEvidenceUrl = "";
-  await expectAllowed("active platform admin obtains a short-lived evidence signed URL", async () => {
-    const out = await sessions.platformActive.storage
-      .from(EVIDENCE_BUCKET)
-      .createSignedUrl(evidencePath, 60);
-    signedEvidenceUrl = out.data?.signedUrl ? new URL(out.data.signedUrl, url).toString() : "";
-    return out;
-  });
+  await expectAllowed(
+    "active platform admin obtains a short-lived evidence signed URL",
+    async () => {
+      const out = await sessions.platformActive.storage
+        .from(EVIDENCE_BUCKET)
+        .createSignedUrl(evidencePath, 60);
+      signedEvidenceUrl = out.data?.signedUrl ? new URL(out.data.signedUrl, url).toString() : "";
+      return out;
+    },
+  );
 
   if (signedEvidenceUrl) {
     const response = await fetch(signedEvidenceUrl);
