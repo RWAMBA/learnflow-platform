@@ -618,8 +618,14 @@ async function cleanup() {
     DELETE FROM public.user_roles;
     DELETE FROM public.organization_memberships;
     DELETE FROM public.organizations WHERE name LIKE 'API Disposable Org%';
-    DELETE FROM public.profiles WHERE id NOT IN (SELECT id FROM auth.users);
   `);
+
+  // Every registered auth fixture is now free of dependants: delete each one
+  // sequentially, inspect every response, and prove absence by UUID.
+  await deleteAuthFixtures();
+
+  psql(`DELETE FROM public.profiles WHERE id NOT IN (SELECT id FROM auth.users);`);
+
 
   // rights_audit_log is append-only. The manifest is finalized only AFTER all
   // mutable fixtures are removed, so cleanup-generated audit events (the grant
