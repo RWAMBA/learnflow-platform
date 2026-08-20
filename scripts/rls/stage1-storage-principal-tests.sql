@@ -149,7 +149,7 @@ BEGIN
   INSERT INTO public.rights_grants
     (source_artifact_id, grant_type, evidence_storage_path, effective_date, expiry_date,
      reviewer_id, reviewed_at, permits_commercial_use, permits_storage, permits_authenticated_display)
-  VALUES (v_artifact, 'licence', v_platform_ns::text || '/licence/cbc-mou.pdf',
+  VALUES (v_artifact, 'commercial_licence', v_platform_ns::text || '/licence/cbc-mou.pdf',
           current_date - 800, current_date - 1, v_platform, now(), true, true, true)
   RETURNING id INTO v_grant;
 
