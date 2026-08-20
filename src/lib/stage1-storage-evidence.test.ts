@@ -221,9 +221,9 @@ describe("real Storage HTTP API proof", () => {
     expect(RUNNER).toContain("auditBaselineIds");
     expect(RUNNER).toContain("auditDelta");
     expect(RUNNER).toContain("AUDIT_MANIFEST_PATH");
-    expect(SQL_RESIDUE).toContain("expected_audit_events");
-    expect(SQL_RESIDUE).toContain("unexpected (unmanifested) rights audit row(s)");
-    expect(SQL_RESIDUE).toContain("append-only violated");
+    expect(RESIDUE).toContain("expected_audit_events");
+    expect(RESIDUE).toContain("unexpected (unmanifested) rights audit row(s)");
+    expect(RESIDUE).toContain("append-only violated");
   });
   it("uses synthetic fixtures only", () => {
     expect(RUNNER).toContain("@example.test");
