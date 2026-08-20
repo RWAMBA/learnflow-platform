@@ -63,7 +63,9 @@ describe("atomic creation function", () => {
     expect(CODE).toMatch(/CREATE OR REPLACE FUNCTION public\.create_student_with_placement/);
     expect(CODE).toContain("SECURITY DEFINER");
     expect(CODE).toContain("SET search_path = public");
-    expect(CODE).toMatch(/REVOKE ALL ON FUNCTION public\.create_student_with_placement[^\n]*PUBLIC/);
+    expect(CODE).toMatch(
+      /REVOKE ALL ON FUNCTION public\.create_student_with_placement[^\n]*PUBLIC/,
+    );
     expect(CODE).toMatch(/REVOKE ALL ON FUNCTION public\.create_student_with_placement[^\n]*anon/);
     expect(CODE).toMatch(
       /GRANT EXECUTE ON FUNCTION public\.create_student_with_placement[^\n]*TO authenticated/,
@@ -185,7 +187,8 @@ describe("legacy placement fields have no active application behaviour", () => {
         // explicitly excluded by the approved cutover decision.
         if (file.endsWith("src/features/curriculum/enrollment-api.ts")) continue;
         const text = readFileSync(file, "utf8");
-        if (/\bgrade_id:\s*data\.gradeId|\bpathway_id:\s*data\.pathwayId/.test(text)) {
+        if (!text.includes('from("students")')) continue;
+        if (/students[\s\S]{0,400}?\b(grade_id|pathway_id)\b/.test(text)) {
           offenders.push(file);
         }
       }

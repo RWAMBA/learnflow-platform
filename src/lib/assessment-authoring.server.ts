@@ -262,7 +262,6 @@ export async function notifyAssessmentAudience(
   }
   const { data: students } = await studentQuery;
 
-
   const recipients = new Set<string>();
   (students ?? []).forEach((student: { user_role_id: string | null }) => {
     if (student.user_role_id) recipients.add(student.user_role_id);

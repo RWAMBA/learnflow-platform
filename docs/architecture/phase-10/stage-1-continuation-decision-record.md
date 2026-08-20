@@ -39,11 +39,11 @@ or the whole operation fails.
 `app_private.resolve_current_curriculum_version(uuid)` mirrors the proven legacy
 resolver:
 
-| Current versions for the grade's curriculum | Result |
-| --- | --- |
-| exactly one | that version is used |
-| zero | operation rejected with a user-safe error |
-| more than one | operation rejected as ambiguous |
+| Current versions for the grade's curriculum | Result                                    |
+| ------------------------------------------- | ----------------------------------------- |
+| exactly one                                 | that version is used                      |
+| zero                                        | operation rejected with a user-safe error |
+| more than one                               | operation rejected as ambiguous           |
 
 No newest-wins fallback, no implicit selection, no unrelated curriculum.
 
