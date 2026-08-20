@@ -666,7 +666,6 @@ async function cleanup() {
 
   psql(`DELETE FROM public.profiles WHERE id NOT IN (SELECT id FROM auth.users);`);
 
-
   // rights_audit_log is append-only. The manifest is finalized only AFTER all
   // mutable fixtures are removed, so cleanup-generated audit events (the grant
   // and evidence deletes above) are included and semantically validated.
