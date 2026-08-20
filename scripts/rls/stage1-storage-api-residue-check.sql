@@ -13,15 +13,22 @@
 \else
 \set audit_ids ''
 \endif
+
+-- psql does not interpolate variables inside dollar-quoted bodies, so the
+-- manifest is materialized into a session-local temp table first (it vanishes
+-- with the session and is therefore not residue).
+CREATE TEMP TABLE expected_audit_events(id uuid PRIMARY KEY);
+INSERT INTO expected_audit_events(id)
+SELECT x::uuid FROM unnest(string_to_array(nullif(:'audit_ids', ''), ',')) AS x
+WHERE nullif(trim(x), '') IS NOT NULL;
+
 DO $$
 DECLARE
   v_count bigint;
   v_buckets text;
-  v_expected uuid[] := (
-    SELECT coalesce(array_agg(x::uuid), '{}'::uuid[])
-    FROM unnest(string_to_array(nullif(:'audit_ids', ''), ',')) AS x
-  );
+  v_expected uuid[];
 BEGIN
+  SELECT coalesce(array_agg(id), '{}'::uuid[]) INTO v_expected FROM expected_audit_events;
   SELECT count(*) INTO v_count FROM storage.objects;
   IF v_count <> 0 THEN
     RAISE EXCEPTION 'RESIDUE: % storage object(s) persisted after the API run', v_count;
