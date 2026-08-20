@@ -146,6 +146,10 @@ const admin = createClient(url, serviceKey, { auth: { persistSession: false } })
 const anonymous = createClient(url, anonKey, { auth: { persistSession: false } });
 
 const results = [];
+// Authoritative auth fixture registry. EVERY successfully created auth.users
+// fixture is registered here immediately after creation — including the
+// revoked Platform Administrator and the authenticated user with no
+// platform_admins row — so cleanup can delete and then verify each one by UUID.
 const created = { users: [], objects: [] };
 let failures = 0;
 
@@ -191,7 +195,8 @@ async function makeUser(tag) {
   });
   if (error) fail(`could not create the ${tag} fixture user: ${error.message}`);
   if (!uuidRe.test(data.user.id)) fail("unexpected fixture user id");
-  created.users.push(data.user.id);
+  // Register immediately after successful creation — no fixture role is exempt.
+  created.users.push({ label: tag, id: data.user.id, createdAt: data.user.created_at });
   return { id: data.user.id, email };
 }
 
@@ -561,6 +566,46 @@ async function main() {
   console.log(`[storage-api] ${results.length} assertions executed, ${failures} failure(s).`);
 }
 
+// Deletes every registered auth fixture sequentially. Each response is
+// inspected; a failed deletion is a test failure (never silently ignored).
+// Afterwards auth.users is queried and every registered UUID must be absent.
+// Only safe metadata (fixture label, UUID, status) is logged — never an email
+// address, password, session or token.
+async function deleteAuthFixtures() {
+  for (const fixture of created.users) {
+    const { error } = await admin.auth.admin.deleteUser(fixture.id, false);
+    if (error) {
+      failures += 1;
+      console.error(
+        `[storage-api] AUTH FIXTURE DELETE FAILED — label=${fixture.label} id=${fixture.id} status=error: ${error.message}`,
+      );
+    } else {
+      console.log(`[storage-api] auth fixture deleted — label=${fixture.label} id=${fixture.id}`);
+    }
+  }
+  const ids = created.users.map((f) => f.id);
+  if (ids.length > 0) {
+    const list = ids.map((id) => `'${id}'`).join(",");
+    const remaining = psql(`SELECT id FROM auth.users WHERE id IN (${list});`)
+      .trim()
+      .split("\n")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    for (const id of remaining) {
+      const fixture = created.users.find((f) => f.id === id);
+      failures += 1;
+      console.error(
+        `[storage-api] AUTH FIXTURE RESIDUE — label=${fixture?.label ?? "unknown"} id=${id} status=still present after deletion`,
+      );
+    }
+    if (remaining.length === 0) {
+      console.log(
+        `[storage-api] auth fixture absence verified by UUID — ${ids.length} registered fixture(s) removed.`,
+      );
+    }
+  }
+}
+
 async function cleanup() {
   for (const [bucket, path] of created.objects) {
     await admin.storage.from(bucket).remove([path]);
@@ -578,9 +623,10 @@ async function cleanup() {
     await admin.storage.emptyBucket(RESOURCE_BUCKET);
     await admin.storage.deleteBucket(RESOURCE_BUCKET);
   }
-  for (const id of created.users) {
-    await admin.auth.admin.deleteUser(id, false);
-  }
+  // Auth fixtures are deleted AFTER the dependent public rows below, because
+  // membership/role/admin rows reference the fixture ids and an early delete
+  // fails silently. See deleteAuthFixtures() at the end of cleanup.
+
   // Any evidence document about to be removed is a fixture of this run; its
   // cleanup-generated audit event is therefore attributable.
   for (const id of psql(`SELECT id FROM public.rights_evidence_documents;`)
@@ -612,8 +658,13 @@ async function cleanup() {
     DELETE FROM public.user_roles;
     DELETE FROM public.organization_memberships;
     DELETE FROM public.organizations WHERE name LIKE 'API Disposable Org%';
-    DELETE FROM public.profiles WHERE id NOT IN (SELECT id FROM auth.users);
   `);
+
+  // Every registered auth fixture is now free of dependants: delete each one
+  // sequentially, inspect every response, and prove absence by UUID.
+  await deleteAuthFixtures();
+
+  psql(`DELETE FROM public.profiles WHERE id NOT IN (SELECT id FROM auth.users);`);
 
   // rights_audit_log is append-only. The manifest is finalized only AFTER all
   // mutable fixtures are removed, so cleanup-generated audit events (the grant

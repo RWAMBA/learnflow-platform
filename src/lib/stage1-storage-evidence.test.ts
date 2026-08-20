@@ -192,6 +192,53 @@ describe("real Storage HTTP API proof", () => {
     expect(SQL_RESIDUE).toContain("id <> 'curriculum-rights-evidence'");
   });
 
+  it("registers every created auth fixture in one authoritative registry", () => {
+    const creations = RUNNER.match(/await makeUser\(/g) ?? [];
+    expect(creations.length).toBeGreaterThanOrEqual(9);
+    // makeUser is the single creation path and registers immediately.
+    const adminCreate = RUNNER.match(/admin\.auth\.admin\.createUser\(/g) ?? [];
+    expect(adminCreate).toHaveLength(1);
+    expect(RUNNER).toContain(
+      "created.users.push({ label: tag, id: data.user.id, createdAt: data.user.created_at })",
+    );
+  });
+
+  it("registers the revoked platform admin and the no-admin-row fixture", () => {
+    expect(RUNNER).toContain('makeUser("platform-revoked")');
+    expect(RUNNER).toContain('makeUser("non-platform")');
+  });
+
+  it("deletes auth fixtures after dependent rows, awaited and inspected", () => {
+    const cleanup = RUNNER.slice(RUNNER.indexOf("async function cleanup()"));
+    const rowsAt = cleanup.indexOf("DELETE FROM public.organization_memberships");
+    const usersAt = cleanup.indexOf("await deleteAuthFixtures()");
+    expect(rowsAt).toBeGreaterThan(-1);
+    expect(usersAt).toBeGreaterThan(rowsAt);
+    expect(RUNNER).toContain("const { error } = await admin.auth.admin.deleteUser(fixture.id");
+  });
+
+  it("treats a failed deletion as a test failure that cannot be ignored", () => {
+    const fn = RUNNER.slice(RUNNER.indexOf("async function deleteAuthFixtures()"));
+    expect(fn).toContain("AUTH FIXTURE DELETE FAILED");
+    expect(fn).toContain("failures += 1");
+    expect(fn).not.toContain("catch {}");
+  });
+
+  it("verifies fixture absence by UUID before completion", () => {
+    const fn = RUNNER.slice(RUNNER.indexOf("async function deleteAuthFixtures()"));
+    expect(fn).toContain("SELECT id FROM auth.users WHERE id IN (");
+    expect(fn).toContain("AUTH FIXTURE RESIDUE");
+    expect(fn).toContain("auth fixture absence verified by UUID");
+    // Safe metadata only.
+    expect(fn).not.toMatch(/fixture\.email|password|access_token/);
+  });
+
+  it("keeps the independent residue assertion on fixture auth users", () => {
+    expect(RESIDUE).toContain("fixture auth user(s)");
+    expect(RESIDUE).toContain("FROM auth.users WHERE email LIKE 'storage-api-%@example.test'");
+  });
+
+
   it("uses only schema-approved platform administrator statuses", () => {
     expect(RUNNER).not.toContain("'suspended'");
     expect(RUNNER).toContain("'revoked'");
