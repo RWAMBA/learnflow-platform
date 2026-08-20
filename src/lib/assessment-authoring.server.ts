@@ -247,7 +247,19 @@ export async function notifyAssessmentAudience(
     .from("students")
     .select("id, user_role_id")
     .eq("organization_id", params.organizationId);
-  if (params.gradeId) studentQuery = studentQuery.eq("grade_id", params.gradeId);
+  if (params.gradeId) {
+    // Placement is read from curriculum_enrollments; students.grade_id is
+    // deprecated compatibility data and never drives behaviour.
+    const { data: placed } = await supabase
+      .from("curriculum_enrollments")
+      .select("student_id")
+      .eq("academic_level_id", params.gradeId)
+      .eq("enrollment_category", "primary")
+      .in("status", ["pending", "active"]);
+    const placedIds = (placed ?? []).map((row: { student_id: string }) => row.student_id);
+    if (placedIds.length === 0) return;
+    studentQuery = studentQuery.in("id", placedIds);
+  }
   const { data: students } = await studentQuery;
 
   const recipients = new Set<string>();
