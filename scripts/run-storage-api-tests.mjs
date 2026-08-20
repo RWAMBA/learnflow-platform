@@ -146,6 +146,10 @@ const admin = createClient(url, serviceKey, { auth: { persistSession: false } })
 const anonymous = createClient(url, anonKey, { auth: { persistSession: false } });
 
 const results = [];
+// Authoritative auth fixture registry. EVERY successfully created auth.users
+// fixture is registered here immediately after creation — including the
+// revoked Platform Administrator and the authenticated user with no
+// platform_admins row — so cleanup can delete and then verify each one by UUID.
 const created = { users: [], objects: [] };
 let failures = 0;
 
