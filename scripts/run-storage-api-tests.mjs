@@ -73,7 +73,12 @@ let auditBaselineIds = new Set();
 
 function auditIds() {
   const out = psql(`SELECT id FROM public.rights_audit_log ORDER BY created_at;`).trim();
-  return out ? out.split("\n").map((s) => s.trim()).filter(Boolean) : [];
+  return out
+    ? out
+        .split("\n")
+        .map((s) => s.trim())
+        .filter(Boolean)
+    : [];
 }
 
 function auditDelta() {
@@ -236,6 +241,29 @@ async function main() {
 
   // The rights-grant insert must have appended exactly one audit event.
   const afterGrant = auditDelta();
+
+  // The negative principals must fail the exact production condition, i.e.
+  // app_private.is_platform_admin() — "a platform_admins row with status
+  // 'active'". 'revoked' is the only approved non-active status.
+  const platformAuthority = (userId) =>
+    psql(
+      `SELECT EXISTS (SELECT 1 FROM public.platform_admins WHERE user_id = '${userId}' AND status = 'active');`,
+    ).trim() === "t";
+  record(
+    "active platform administrator satisfies the production authority condition",
+    platformAuthority(users.platformActive.id),
+    "active admin lacked authority",
+  );
+  record(
+    "revoked platform administrator fails the production authority condition",
+    !platformAuthority(users.platformRevoked.id),
+    "revoked admin retained authority",
+  );
+  record(
+    "authenticated non-platform user fails the production authority condition",
+    !platformAuthority(users.nonPlatform.id),
+    "non-platform user held authority",
+  );
   record(
     "the rights-grant fixture appended exactly one immutable audit event",
     afterGrant.length === 1,
