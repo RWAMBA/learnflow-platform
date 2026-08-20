@@ -228,6 +228,42 @@ describe("real Storage HTTP API proof", () => {
     expect(RESIDUE).toContain("unexpected (unmanifested) rights audit row(s)");
     expect(RESIDUE).toContain("append-only violated");
   });
+
+  it("finalizes the manifest only after mutable fixture cleanup", () => {
+    const cleanup = RUNNER.slice(RUNNER.indexOf("async function cleanup()"));
+    const deleteAt = cleanup.indexOf("DELETE FROM public.rights_grants");
+    const manifestAt = cleanup.indexOf("writeFileSync(AUDIT_MANIFEST_PATH");
+    expect(deleteAt).toBeGreaterThan(-1);
+    expect(manifestAt).toBeGreaterThan(deleteAt);
+    expect(RUNNER).toContain("audit manifest finalized after cleanup");
+  });
+
+  it("semantically attributes every new audit row and fails closed otherwise", () => {
+    expect(RUNNER).toContain("function attributeAuditRow");
+    expect(RUNNER).toContain("expectedAuditEntities");
+    expect(RUNNER).toContain("expectedAuditActors");
+    expect(RUNNER).toContain("EXPECTED_AUDIT_ACTIONS");
+    expect(RUNNER).toContain("UNATTRIBUTABLE AUDIT EVENT");
+    // An unattributable row increments failures and is never manifested.
+    expect(RUNNER).toContain("entity is not a fixture created by this run");
+    expect(RUNNER).toContain("actor is not a fixture identity of this run");
+  });
+
+  it("validates cleanup-generated audit events for evidence and grant deletes", () => {
+    const cleanup = RUNNER.slice(RUNNER.indexOf("async function cleanup()"));
+    expect(cleanup).toContain("SELECT id FROM public.rights_evidence_documents;");
+    expect(cleanup).toContain("SELECT id FROM public.rights_grants;");
+    expect(cleanup).toContain("expectedAuditEntities.add(id)");
+  });
+
+  it("retains pre-existing migration-generated audit rows explicitly, not by exception", () => {
+    expect(RUNNER).toContain("pre-existing (migration-generated) audit event");
+    expect(RUNNER).toContain("audit baseline captured before fixtures");
+    expect(RUNNER).toContain("const manifest = [...baseline, ...validated]");
+    // Diagnostics stay to safe metadata: state payloads are never read.
+    expect(RUNNER).not.toMatch(/SELECT[^;]*previous_state/i);
+    expect(RUNNER).not.toMatch(/SELECT[^;]*new_state/i);
+  });
   it("uses synthetic fixtures only", () => {
     expect(RUNNER).toContain("@example.test");
     expect(RUNNER).toContain("synthetic disposable evidence fixture");

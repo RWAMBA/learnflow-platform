@@ -70,6 +70,23 @@ const psql = (sql) =>
 // updates or truncates it. It captures a baseline instead and proves that the
 // only rows added are the ones this run is expected to append.
 let auditBaselineIds = new Set();
+// Every entity this run legitimately touches, and every actor it can act as.
+// A post-cleanup audit row that cannot be attributed to one of these fails
+// closed rather than being absorbed into the manifest.
+const expectedAuditEntities = new Set();
+const expectedAuditActors = new Set();
+const EXPECTED_AUDIT_ACTIONS = new Set([
+  "insert",
+  "update",
+  "delete",
+  "rights_state_change",
+  "evidence_signed_url_issued",
+]);
+const EXPECTED_AUDIT_ENTITY_TYPES = new Set([
+  "rights_grant",
+  "rights_evidence_document",
+  "curriculum_version",
+]);
 
 function auditIds() {
   const out = psql(`SELECT id FROM public.rights_audit_log ORDER BY created_at;`).trim();
@@ -83,6 +100,46 @@ function auditIds() {
 
 function auditDelta() {
   return auditIds().filter((id) => !auditBaselineIds.has(id));
+}
+
+// Safe metadata only: id, entity type/id, action, actor id, timestamp.
+// previous_state/new_state (which can carry storage paths) are never read.
+function auditRows(ids) {
+  if (ids.length === 0) return [];
+  const list = ids.map((id) => `'${id}'`).join(",");
+  const out = psql(
+    `SELECT id || '|' || entity_type || '|' || entity_id || '|' || action || '|' ||
+            coalesce(actor_id::text, 'null') || '|' || created_at
+       FROM public.rights_audit_log WHERE id IN (${list}) ORDER BY created_at;`,
+  ).trim();
+  return out
+    ? out
+        .split("\n")
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .map((line) => {
+          const [id, entityType, entityId, action, actorId, createdAt] = line.split("|");
+          return { id, entityType, entityId, action, actorId, createdAt };
+        })
+    : [];
+}
+
+function describeAuditRow(row) {
+  return `id=${row.id} entity=${row.entityType}:${row.entityId} action=${row.action} actor=${row.actorId} at=${row.createdAt}`;
+}
+
+// Semantic attribution: an audit row belongs to this run only when its entity
+// is one this run created, its action is an expected one, and its actor is a
+// fixture identity (or NULL, for trigger-time inserts with no JWT).
+function attributeAuditRow(row) {
+  if (!EXPECTED_AUDIT_ENTITY_TYPES.has(row.entityType)) return "unexpected entity type";
+  if (!expectedAuditEntities.has(row.entityId))
+    return "entity is not a fixture created by this run";
+  if (!EXPECTED_AUDIT_ACTIONS.has(row.action)) return "unexpected action";
+  if (row.actorId !== "null" && !expectedAuditActors.has(row.actorId)) {
+    return "actor is not a fixture identity of this run";
+  }
+  return null;
 }
 
 const admin = createClient(url, serviceKey, { auth: { persistSession: false } });
@@ -229,6 +286,8 @@ async function main() {
   const artifactId = psql(
     `SELECT id FROM public.source_artifacts WHERE source_title = 'API Disposable Source' LIMIT 1;`,
   ).trim();
+  for (const user of Object.values(users)) expectedAuditActors.add(user.id);
+  expectedAuditEntities.add(versionId);
   psql(`
     INSERT INTO public.rights_grants
       (source_artifact_id, grant_type, effective_date, expiry_date, reviewer_id, reviewed_at,
@@ -241,6 +300,10 @@ async function main() {
 
   // The rights-grant insert must have appended exactly one audit event.
   const afterGrant = auditDelta();
+  const grantId = psql(
+    `SELECT id FROM public.rights_grants WHERE source_artifact_id = '${artifactId}' LIMIT 1;`,
+  ).trim();
+  if (grantId) expectedAuditEntities.add(grantId);
 
   // The negative principals must fail the exact production condition, i.e.
   // app_private.is_platform_admin() — "a platform_admins row with status
@@ -518,6 +581,22 @@ async function cleanup() {
   for (const id of created.users) {
     await admin.auth.admin.deleteUser(id, false);
   }
+  // Any evidence document about to be removed is a fixture of this run; its
+  // cleanup-generated audit event is therefore attributable.
+  for (const id of psql(`SELECT id FROM public.rights_evidence_documents;`)
+    .trim()
+    .split("\n")
+    .map((s) => s.trim())
+    .filter(Boolean)) {
+    expectedAuditEntities.add(id);
+  }
+  for (const id of psql(`SELECT id FROM public.rights_grants;`)
+    .trim()
+    .split("\n")
+    .map((s) => s.trim())
+    .filter(Boolean)) {
+    expectedAuditEntities.add(id);
+  }
   psql(`
     DELETE FROM public.curriculum_enrollments ce USING public.students s
       WHERE ce.student_id = s.id AND s.first_name = 'API' AND s.last_name = 'Disposable';
@@ -536,19 +615,50 @@ async function cleanup() {
     DELETE FROM public.profiles WHERE id NOT IN (SELECT id FROM auth.users);
   `);
 
-  // rights_audit_log is append-only: the rows this run appended (grant insert
-  // and the grant delete performed above) are published to the residue proof
-  // as the exact allowed remainder until the disposable environment is
-  // destroyed. They are never deleted, updated or truncated here.
-  const remaining = auditDelta();
-  writeFileSync(AUDIT_MANIFEST_PATH, remaining.join(","), "utf8");
+  // rights_audit_log is append-only. The manifest is finalized only AFTER all
+  // mutable fixtures are removed, so cleanup-generated audit events (the grant
+  // and evidence deletes above) are included and semantically validated.
+  //
+  // Two disjoint classes are retained until the disposable environment is
+  // destroyed:
+  //   1. baseline rows — appended by the migration history itself, before this
+  //      run captured its baseline. They are pre-existing schema evidence, not
+  //      fixture residue, and cannot be deleted (append-only).
+  //   2. delta rows — appended by this run and individually attributed to a
+  //      known fixture entity, an expected action and a fixture actor.
+  // Anything else fails closed and is never manifested.
+  const baseline = [...auditBaselineIds];
+  const deltaRows = auditRows(auditDelta());
+  const validated = [];
+  for (const row of deltaRows) {
+    const problem = attributeAuditRow(row);
+    if (problem) {
+      failures += 1;
+      console.error(
+        `[storage-api] UNATTRIBUTABLE AUDIT EVENT (${problem}): ${describeAuditRow(row)}`,
+      );
+      continue;
+    }
+    console.log(`[storage-api] attributed audit event: ${describeAuditRow(row)}`);
+    validated.push(row.id);
+  }
+  const manifest = [...baseline, ...validated];
+  writeFileSync(AUDIT_MANIFEST_PATH, manifest.join(","), "utf8");
   console.log(
-    `[storage-api] ${remaining.length} immutable audit event(s) retained (manifest written).`,
+    `[storage-api] audit manifest finalized after cleanup — ${baseline.length} pre-existing + ${validated.length} attributed event(s) retained.`,
   );
 }
 
 try {
   auditBaselineIds = new Set(auditIds());
+  for (const row of auditRows([...auditBaselineIds])) {
+    console.log(
+      `[storage-api] pre-existing (migration-generated) audit event: ${describeAuditRow(row)}`,
+    );
+  }
+  console.log(
+    `[storage-api] audit baseline captured before fixtures: ${auditBaselineIds.size} row(s).`,
+  );
   await main();
 } catch (error) {
   failures += 1;

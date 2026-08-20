@@ -6,8 +6,13 @@
 --
 -- rights_audit_log is append-only. The runner therefore cannot (and must not)
 -- delete the audit events its fixtures appended. It publishes their exact ids
--- in a manifest; only those precisely identified immutable rows may remain,
--- and they live only until the disposable environment is destroyed.
+-- in a manifest, finalized AFTER mutable cleanup so cleanup-generated events
+-- are included and individually attributed. The manifest contains exactly two
+-- disjoint classes: pre-existing rows appended by the migration history, and
+-- rows this run appended that were semantically attributed to its own fixture
+-- entities, actions and actors. Unattributable rows are never manifested and
+-- fail the run. Only these precisely identified immutable rows may remain, and
+-- they live only until the disposable environment is destroyed.
 -- Invoke with: psql -v audit_ids="$(cat /tmp/stage1-storage-api-audit-manifest.txt)"
 \if :{?audit_ids}
 \else
