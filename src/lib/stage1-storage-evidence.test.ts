@@ -138,7 +138,10 @@ describe("real Storage HTTP API proof", () => {
     "evidence signed-URL creation denied",
     "evidence update denied",
     "evidence delete denied",
-    "inactive platform administrator",
+    "revoked platform administrator",
+    "authenticated non-platform user",
+    "rights_audit_log UPDATE is rejected (append-only)",
+    "rights_audit_log DELETE is rejected (append-only)",
     "cross-tenant resource download denied",
     "cross-tenant resource list denied",
     "cross-tenant resource upload denied",
@@ -189,6 +192,39 @@ describe("real Storage HTTP API proof", () => {
     expect(SQL_RESIDUE).toContain("id <> 'curriculum-rights-evidence'");
   });
 
+
+  it("uses only schema-approved platform administrator statuses", () => {
+    expect(RUNNER).not.toContain("'suspended'");
+    expect(RUNNER).toContain("'revoked'");
+    for (const status of ["pending", "inactive", "disabled"]) {
+      expect(RUNNER).not.toContain(`platform_admins (user_id, status) VALUES ('${status}'`);
+    }
+  });
+
+  it("negatives fail the same helper production authorization uses", () => {
+    // 'revoked' is not 'active', so app_private.is_platform_admin() is false,
+    // and the second negative has no platform_admins row at all.
+    expect(RUNNER).toContain("app_private.is_platform_admin()");
+    expect(RUNNER).toContain("platform-revoked");
+    expect(RUNNER).toContain("non-platform");
+  });
+
+  it("never mutates the append-only rights audit log during cleanup", () => {
+    expect(RUNNER).not.toMatch(/(DELETE\s+FROM|UPDATE|TRUNCATE)[^\n;]*rights_audit_log(?!\s+WHERE id = '\$\{auditRowId\}')/i);
+    const cleanup = RUNNER.slice(RUNNER.indexOf("async function cleanup()"));
+    expect(cleanup).not.toMatch(/rights_audit_log/i);
+    expect(RUNNER).not.toMatch(/DROP TRIGGER[^\n]*rights_audit/i);
+    expect(RUNNER).not.toMatch(/ALTER TABLE[^\n]*DISABLE TRIGGER/i);
+  });
+
+  it("captures an audit baseline and publishes an exact retained-event manifest", () => {
+    expect(RUNNER).toContain("auditBaselineIds");
+    expect(RUNNER).toContain("auditDelta");
+    expect(RUNNER).toContain("AUDIT_MANIFEST_PATH");
+    expect(SQL_RESIDUE).toContain("expected_audit_events");
+    expect(SQL_RESIDUE).toContain("unexpected (unmanifested) rights audit row(s)");
+    expect(SQL_RESIDUE).toContain("append-only violated");
+  });
   it("uses synthetic fixtures only", () => {
     expect(RUNNER).toContain("@example.test");
     expect(RUNNER).toContain("synthetic disposable evidence fixture");
@@ -211,6 +247,12 @@ describe("CI executes the Storage API gate on pull requests", () => {
     it(`${name} replays the full migration history first`, () => {
       expect(workflow).toContain("supabase migration up --db-url");
       expect(workflow).toContain("hosted Supabase endpoint detected");
+    });
+
+    it(`${name} tears down the disposable environment unconditionally`, () => {
+      expect(workflow).toContain("supabase stop --no-backup");
+      expect(workflow).toContain("unconditional teardown");
+      expect(workflow).toContain('-v audit_ids="$(cat "$manifest")"');
     });
   }
 });
