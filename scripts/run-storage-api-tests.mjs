@@ -20,6 +20,7 @@
  * unavailable Storage service is a FAILURE, never a skip.
  */
 import { execFileSync } from "node:child_process";
+import { writeFileSync } from "node:fs";
 import { createClient } from "@supabase/supabase-js";
 
 const REQUIRED = process.env.STORAGE_API_REQUIRED === "1";
@@ -30,6 +31,8 @@ const dbUrl = process.env.RLS_TEST_DATABASE_URL || "";
 const EVIDENCE_BUCKET = "curriculum-rights-evidence";
 const RESOURCE_BUCKET = "curriculum-resources";
 const PASSWORD = "Disposable-Fixture-Passw0rd!";
+const AUDIT_MANIFEST_PATH =
+  process.env.STORAGE_API_AUDIT_MANIFEST || "/tmp/stage1-storage-api-audit-manifest.txt";
 
 function fail(message) {
   console.error(`[storage-api] ${message}`);
@@ -62,6 +65,20 @@ for (const marker of ["NODE_ENV", "VERCEL_ENV", "ENVIRONMENT"]) {
 
 const psql = (sql) =>
   execFileSync("psql", [dbUrl, "-v", "ON_ERROR_STOP=1", "-Atq", "-c", sql], { encoding: "utf8" });
+
+// rights_audit_log is append-only by design: the harness never deletes,
+// updates or truncates it. It captures a baseline instead and proves that the
+// only rows added are the ones this run is expected to append.
+let auditBaselineIds = new Set();
+
+function auditIds() {
+  const out = psql(`SELECT id FROM public.rights_audit_log ORDER BY created_at;`).trim();
+  return out ? out.split("\n").map((s) => s.trim()).filter(Boolean) : [];
+}
+
+function auditDelta() {
+  return auditIds().filter((id) => !auditBaselineIds.has(id));
+}
 
 const admin = createClient(url, serviceKey, { auth: { persistSession: false } });
 const anonymous = createClient(url, anonKey, { auth: { persistSession: false } });
@@ -158,7 +175,12 @@ async function main() {
     student: await makeUser("student"),
     parent: await makeUser("parent"),
     platformActive: await makeUser("platform-active"),
-    platformInactive: await makeUser("platform-inactive"),
+    // The schema allows exactly 'active' and 'revoked'; the negative platform
+    // principal uses the approved revoked status, so it fails the very helper
+    // production authorization uses (app_private.is_platform_admin()).
+    platformRevoked: await makeUser("platform-revoked"),
+    // A second negative: an authenticated user with no platform_admins row.
+    nonPlatform: await makeUser("non-platform"),
   };
 
   psql(`
@@ -186,7 +208,7 @@ async function main() {
     SELECT '${orgA}', '${users.parent.id}', id, 'active', '${users.adminA.id}' FROM public.roles WHERE code = 'parent_guardian';
     INSERT INTO public.platform_admins (user_id, status) VALUES
       ('${users.platformActive.id}', 'active'),
-      ('${users.platformInactive.id}', 'suspended');
+      ('${users.platformRevoked.id}', 'revoked');
   `);
 
   // A curriculum version whose rights are expired/restricted: it must never
@@ -211,6 +233,37 @@ async function main() {
     INSERT INTO public.source_artifact_links (source_artifact_id, entity_type, entity_id)
     VALUES ('${artifactId}', 'curriculum_version', '${versionId}');
   `);
+
+  // The rights-grant insert must have appended exactly one audit event.
+  const afterGrant = auditDelta();
+  record(
+    "the rights-grant fixture appended exactly one immutable audit event",
+    afterGrant.length === 1,
+    `${afterGrant.length} audit row(s) appended`,
+  );
+
+  // Append-only enforcement, proven rather than bypassed.
+  const auditRowId = afterGrant[0];
+  if (auditRowId) {
+    let updateRejected = false;
+    try {
+      psql(`UPDATE public.rights_audit_log SET action = 'tampered' WHERE id = '${auditRowId}';`);
+    } catch {
+      updateRejected = true;
+    }
+    record("rights_audit_log UPDATE is rejected (append-only)", updateRejected, "update succeeded");
+
+    let deleteRejected = false;
+    try {
+      psql(`DELETE FROM public.rights_audit_log WHERE id = '${auditRowId}';`);
+    } catch {
+      deleteRejected = true;
+    }
+    record("rights_audit_log DELETE is rejected (append-only)", deleteRejected, "delete succeeded");
+  } else {
+    record("rights_audit_log UPDATE is rejected (append-only)", false, "no audit row to test");
+    record("rights_audit_log DELETE is rejected (append-only)", false, "no audit row to test");
+  }
 
   const sessions = {};
   for (const [key, user] of Object.entries(users)) sessions[key] = await session(user);
@@ -297,7 +350,8 @@ async function main() {
     ["teacher", sessions.teacher],
     ["tutor", sessions.tutor],
     ["organization administrator", sessions.adminA],
-    ["inactive platform administrator", sessions.platformInactive],
+    ["revoked platform administrator", sessions.platformRevoked],
+    ["authenticated non-platform user", sessions.nonPlatform],
   ];
 
   for (const [label, client] of deniedPrincipals) {
@@ -444,7 +498,6 @@ async function cleanup() {
     DELETE FROM public.source_artifact_links;
     DELETE FROM public.rights_grants;
     DELETE FROM public.source_artifacts;
-    DELETE FROM public.rights_audit_log;
     DELETE FROM public.curriculum_versions WHERE label = 'v1'
       AND curriculum_id IN (SELECT id FROM public.curricula WHERE code = 'APIDISP');
     DELETE FROM public.curricula WHERE code = 'APIDISP';
@@ -454,9 +507,20 @@ async function cleanup() {
     DELETE FROM public.organizations WHERE name LIKE 'API Disposable Org%';
     DELETE FROM public.profiles WHERE id NOT IN (SELECT id FROM auth.users);
   `);
+
+  // rights_audit_log is append-only: the rows this run appended (grant insert
+  // and the grant delete performed above) are published to the residue proof
+  // as the exact allowed remainder until the disposable environment is
+  // destroyed. They are never deleted, updated or truncated here.
+  const remaining = auditDelta();
+  writeFileSync(AUDIT_MANIFEST_PATH, remaining.join(","), "utf8");
+  console.log(
+    `[storage-api] ${remaining.length} immutable audit event(s) retained (manifest written).`,
+  );
 }
 
 try {
+  auditBaselineIds = new Set(auditIds());
   await main();
 } catch (error) {
   failures += 1;
