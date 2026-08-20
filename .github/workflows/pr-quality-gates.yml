@@ -180,8 +180,18 @@ jobs:
           node scripts/run-storage-api-tests.mjs
 
       - name: Prove zero residue after the Storage API run
-        run: psql "$RLS_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/rls/stage1-storage-api-residue-check.sql
+        if: always()
+        run: |
+          set -euo pipefail
+          # Mutable fixture residue must be zero; the append-only audit events
+          # the run appended are identified by the manifest and retained until
+          # the disposable environment is destroyed.
+          manifest=/tmp/stage1-storage-api-audit-manifest.txt
+          [ -f "$manifest" ] || : > "$manifest"
+          psql "$RLS_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 \
+            -v audit_ids="$(cat "$manifest")" \
+            -f scripts/rls/stage1-storage-api-residue-check.sql
 
-      - name: Stop and delete the disposable Supabase environment
+      - name: Destroy the disposable Supabase environment (unconditional teardown)
         if: always()
         run: supabase stop --no-backup
