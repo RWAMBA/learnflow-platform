@@ -195,7 +195,8 @@ async function makeUser(tag) {
   });
   if (error) fail(`could not create the ${tag} fixture user: ${error.message}`);
   if (!uuidRe.test(data.user.id)) fail("unexpected fixture user id");
-  created.users.push(data.user.id);
+  // Register immediately after successful creation — no fixture role is exempt.
+  created.users.push({ label: tag, id: data.user.id, createdAt: data.user.created_at });
   return { id: data.user.id, email };
 }
 
