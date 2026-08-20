@@ -583,9 +583,10 @@ async function cleanup() {
     await admin.storage.emptyBucket(RESOURCE_BUCKET);
     await admin.storage.deleteBucket(RESOURCE_BUCKET);
   }
-  for (const id of created.users) {
-    await admin.auth.admin.deleteUser(id, false);
-  }
+  // Auth fixtures are deleted AFTER the dependent public rows below, because
+  // membership/role/admin rows reference the fixture ids and an early delete
+  // fails silently. See deleteAuthFixtures() at the end of cleanup.
+
   // Any evidence document about to be removed is a fixture of this run; its
   // cleanup-generated audit event is therefore attributable.
   for (const id of psql(`SELECT id FROM public.rights_evidence_documents;`)
