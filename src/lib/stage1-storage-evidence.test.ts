@@ -210,7 +210,11 @@ describe("real Storage HTTP API proof", () => {
   });
 
   it("never mutates the append-only rights audit log during cleanup", () => {
-    expect(RUNNER).not.toMatch(/(DELETE\s+FROM|UPDATE|TRUNCATE)[^\n;]*rights_audit_log(?!\s+WHERE id = '\$\{auditRowId\}')/i);
+    // The only mutation statements are the two deliberate rejection proofs.
+    const mutations =
+      RUNNER.match(/(DELETE\s+FROM|UPDATE|TRUNCATE)[^\n;]*rights_audit_log/gi) ?? [];
+    expect(mutations).toHaveLength(2);
+    expect(RUNNER).not.toMatch(/TRUNCATE[^\n;]*rights_audit_log/i);
     const cleanup = RUNNER.slice(RUNNER.indexOf("async function cleanup()"));
     expect(cleanup).not.toMatch(/rights_audit_log/i);
     expect(RUNNER).not.toMatch(/DROP TRIGGER[^\n]*rights_audit/i);
