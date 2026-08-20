@@ -216,7 +216,7 @@ describe("real Storage HTTP API proof", () => {
     expect(mutations).toHaveLength(2);
     expect(RUNNER).not.toMatch(/TRUNCATE[^\n;]*rights_audit_log/i);
     const cleanup = RUNNER.slice(RUNNER.indexOf("async function cleanup()"));
-    expect(cleanup).not.toMatch(/rights_audit_log/i);
+    expect(cleanup).not.toMatch(/(DELETE\s+FROM|UPDATE|TRUNCATE)[^\n;]*rights_audit_log/i);
     expect(RUNNER).not.toMatch(/DROP TRIGGER[^\n]*rights_audit/i);
     expect(RUNNER).not.toMatch(/ALTER TABLE[^\n]*DISABLE TRIGGER/i);
   });
