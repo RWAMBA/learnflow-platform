@@ -187,10 +187,13 @@ describe("legacy placement fields have no active application behaviour", () => {
         // explicitly excluded by the approved cutover decision.
         if (file.endsWith("src/features/curriculum/enrollment-api.ts")) continue;
         const text = readFileSync(file, "utf8");
-        if (!text.includes('from("students")')) continue;
-        if (/students[\s\S]{0,400}?\b(grade_id|pathway_id)\b/.test(text)) {
-          offenders.push(file);
+        // Inspect only the query chain that follows a students-table access.
+        const segments = text.split('.from("students")').slice(1);
+        for (const segment of segments) {
+          const chain = segment.split(".from(")[0];
+          if (/\b(grade_id|pathway_id)\b/.test(chain)) offenders.push(file);
         }
+
       }
     }
     expect(offenders).toEqual([]);
