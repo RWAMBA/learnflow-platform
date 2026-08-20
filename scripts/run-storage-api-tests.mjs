@@ -73,7 +73,12 @@ let auditBaselineIds = new Set();
 
 function auditIds() {
   const out = psql(`SELECT id FROM public.rights_audit_log ORDER BY created_at;`).trim();
-  return out ? out.split("\n").map((s) => s.trim()).filter(Boolean) : [];
+  return out
+    ? out
+        .split("\n")
+        .map((s) => s.trim())
+        .filter(Boolean)
+    : [];
 }
 
 function auditDelta() {

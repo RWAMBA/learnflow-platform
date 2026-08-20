@@ -192,7 +192,6 @@ describe("real Storage HTTP API proof", () => {
     expect(SQL_RESIDUE).toContain("id <> 'curriculum-rights-evidence'");
   });
 
-
   it("uses only schema-approved platform administrator statuses", () => {
     expect(RUNNER).not.toContain("'suspended'");
     expect(RUNNER).toContain("'revoked'");
