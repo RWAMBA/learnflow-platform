@@ -238,7 +238,6 @@ describe("real Storage HTTP API proof", () => {
     expect(RESIDUE).toContain("FROM auth.users WHERE email LIKE 'storage-api-%@example.test'");
   });
 
-
   it("uses only schema-approved platform administrator statuses", () => {
     expect(RUNNER).not.toContain("'suspended'");
     expect(RUNNER).toContain("'revoked'");
