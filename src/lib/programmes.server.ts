@@ -49,7 +49,12 @@ export async function upsertProgramme(context: Ctx, input: z.infer<typeof progra
 
   if (input.id) {
     // Ownership columns are immutable; never resend them on an update.
-    const { organization_id: _org, author_type: _type, authoring_organization_id: _auth, ...patch } = row;
+    const {
+      organization_id: _org,
+      author_type: _type,
+      authoring_organization_id: _auth,
+      ...patch
+    } = row;
     const { data, error } = await context.supabase
       .from("programmes")
       .update(patch)

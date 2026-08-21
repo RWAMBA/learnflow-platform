@@ -87,10 +87,7 @@ export const OCCUPYING_ENROLLMENT_STATUSES: ProgrammeEnrollmentStatus[] = ["enro
 export const PROGRAMME_INSTRUCTOR_STATUSES = ["active", "ended"] as const;
 export type ProgrammeInstructorStatus = (typeof PROGRAMME_INSTRUCTOR_STATUSES)[number];
 
-export function programmePlacesRemaining(
-  capacity: number | null,
-  occupied: number,
-): number | null {
+export function programmePlacesRemaining(capacity: number | null, occupied: number): number | null {
   if (capacity === null) return null;
   return Math.max(capacity - occupied, 0);
 }

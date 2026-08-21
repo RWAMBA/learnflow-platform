@@ -67,7 +67,6 @@ export const canEnrollInProgrammes = (role: RoleCode | undefined) =>
 /** Who may move a programme enrollment through its lifecycle. */
 export const canManageProgrammeEnrollments = (role: RoleCode | undefined) => role === "org_admin";
 
-
 /** Who may see organization-wide assessment analytics. */
 export const canViewAssessmentAnalytics = (role: RoleCode | undefined) =>
   role === "teacher" || role === "tutor" || role === "org_admin";

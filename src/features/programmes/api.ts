@@ -6,21 +6,15 @@
  * the UI has to render.
  */
 import { supabase } from "@/integrations/supabase/client";
-import type {
-  ProgrammeCategory,
-  ProgrammeEnrollmentStatus,
-  ProgrammeStatus,
-} from "./constants";
+import type { ProgrammeCategory, ProgrammeEnrollmentStatus, ProgrammeStatus } from "./constants";
 import { OCCUPYING_ENROLLMENT_STATUSES } from "./constants";
 
 export const programmeKeys = {
   all: ["programmes"] as const,
   list: (organizationId: string | null) => ["programmes", "list", organizationId] as const,
   detail: (programmeId: string | null) => ["programmes", "detail", programmeId] as const,
-  instructors: (programmeId: string | null) =>
-    ["programmes", "instructors", programmeId] as const,
-  enrollments: (programmeId: string | null) =>
-    ["programmes", "enrollments", programmeId] as const,
+  instructors: (programmeId: string | null) => ["programmes", "instructors", programmeId] as const,
+  enrollments: (programmeId: string | null) => ["programmes", "enrollments", programmeId] as const,
   myLearnerEnrollments: (organizationId: string | null) =>
     ["programmes", "learner-enrollments", organizationId] as const,
   assignableInstructors: (organizationId: string | null) =>
@@ -255,10 +249,7 @@ async function decorateEnrollments(
   const programmes = await supabase
     .from("programmes")
     .select("id, name")
-    .in(
-      "id",
-      [...new Set(rows.map((row) => row.programme_id))],
-    );
+    .in("id", [...new Set(rows.map((row) => row.programme_id))]);
   if (programmes.error) throw new Error(programmes.error.message);
   const programmeById = new Map((programmes.data ?? []).map((row) => [row.id, row.name]));
 

@@ -134,7 +134,9 @@ describe("Stage 2 — removed scope stays removed", () => {
 describe("Stage 2 — enrollment lifecycle", () => {
   it("only allows the approved transitions in the database trigger", () => {
     expect(CODE).toContain("(OLD.status = 'enrolled'  AND NEW.status IN ('active','withdrawn'))");
-    expect(CODE).toContain("(OLD.status = 'active'    AND NEW.status IN ('completed','withdrawn'))");
+    expect(CODE).toContain(
+      "(OLD.status = 'active'    AND NEW.status IN ('completed','withdrawn'))",
+    );
     expect(CODE).toContain("(OLD.status = 'completed' AND NEW.status = 'archived')");
     expect(CODE).toContain("(OLD.status = 'withdrawn' AND NEW.status = 'archived')");
     expect(CODE).toContain("Invalid programme enrollment transition");
@@ -203,8 +205,9 @@ describe("Stage 2 — capacity is enforced atomically", () => {
 
 describe("Stage 2 — authorization", () => {
   it("requires an authenticated caller in both privileged RPCs", () => {
-    expect(CODE.match(/IF auth\.uid\(\) IS NULL THEN RAISE EXCEPTION 'Authentication required'/g))
-      .toHaveLength(2);
+    expect(
+      CODE.match(/IF auth\.uid\(\) IS NULL THEN RAISE EXCEPTION 'Authentication required'/g),
+    ).toHaveLength(2);
   });
 
   it("re-runs the RLS authorization test inside the privileged enrollment RPC", () => {
@@ -362,10 +365,12 @@ describe("Stage 2 — input validation", () => {
 
   it("never accepts 'enrolled' as a transition target", () => {
     const enrollmentId = "22222222-2222-4222-8222-222222222222";
-    expect(programmeEnrollmentStatusSchema.safeParse({ enrollmentId, status: "enrolled" }).success)
-      .toBe(false);
-    expect(programmeEnrollmentStatusSchema.safeParse({ enrollmentId, status: "completed" }).success)
-      .toBe(true);
+    expect(
+      programmeEnrollmentStatusSchema.safeParse({ enrollmentId, status: "enrolled" }).success,
+    ).toBe(false);
+    expect(
+      programmeEnrollmentStatusSchema.safeParse({ enrollmentId, status: "completed" }).success,
+    ).toBe(true);
   });
 
   it("requires real identifiers on an enrollment request", () => {
