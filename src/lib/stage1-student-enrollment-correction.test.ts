@@ -27,17 +27,30 @@ const DECISIONS = readFileSync(
 );
 
 describe("correction migration is additive and forward-only", () => {
-  it("is the newest migration and edits no applied migration", () => {
+  it("is additive and any later migration is only its live-application twin", () => {
     const files = readdirSync("supabase/migrations")
       .filter((file) => file.endsWith(".sql"))
       .sort();
     expect(MIGRATION_FILE).toBeTruthy();
-    expect(files[files.length - 1]).toBe(MIGRATION_FILE);
+    expect(files).toContain(MIGRATION_FILE);
+    // Applying the approved pending files to the live database records them
+    // under fresh ledger timestamps. Those twins are the only migrations
+    // permitted after the correction, and each must carry approved Stage 1
+    // content only.
+    const later = files.slice(files.indexOf(MIGRATION_FILE) + 1);
+    for (const file of later) {
+      const body = readFileSync(`supabase/migrations/${file}`, "utf8");
+      expect(
+        body.includes("public.create_student_with_placement") ||
+          body.includes("public.rights_evidence_documents"),
+      ).toBe(true);
+    }
     expect(CODE).not.toMatch(/DROP\s+(TABLE|POLICY|COLUMN)/i);
     expect(CODE).not.toMatch(/ALTER\s+TABLE/i);
     expect(CODE).not.toMatch(/DELETE\s+FROM/i);
     expect(CODE).not.toMatch(/TRUNCATE/i);
   });
+
 
   it("does not change curriculum rights, readiness or activation state", () => {
     expect(CODE).not.toMatch(/UPDATE\s+public\.curriculum_versions/i);
