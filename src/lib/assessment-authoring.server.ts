@@ -248,8 +248,8 @@ export async function notifyAssessmentAudience(
     .select("id, user_role_id")
     .eq("organization_id", params.organizationId);
   if (params.gradeId) {
-    // Placement is read from curriculum_enrollments; students.grade_id is
-    // deprecated compatibility data and never drives behaviour.
+    // Placement is read from the authoritative curriculum enrollment; the
+    // deprecated learner placement columns never drive behaviour.
     const { data: placed } = await supabase
       .from("curriculum_enrollments")
       .select("student_id")

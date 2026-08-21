@@ -410,7 +410,6 @@ export const assignPathwayToStudents = createServerFn({ method: "POST" })
     return { assigned: data.studentIds.length };
   });
 
-
 /* -------------------------------------------------------------- progress */
 
 /**
