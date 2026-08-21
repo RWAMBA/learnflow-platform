@@ -129,6 +129,9 @@ jobs:
       - name: Stage 2 Programmes live-principal proof (always rolled back)
         run: node scripts/run-stage2-rls-tests.mjs
 
+      - name: Prove zero Stage 2 residue after rollback
+        run: psql "$RLS_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/rls/stage2-residue-check.sql
+
       - name: Storage live-principal allow/deny proof (always rolled back)
         run: node scripts/run-storage-principal-tests.mjs
 

@@ -36,7 +36,16 @@ describe("atomic transfer — migration artifact", () => {
   });
 
   it("is ordered after every earlier migration", () => {
-    expect(MIGRATIONS.indexOf(FILE)).toBe(MIGRATIONS.length - 1);
+    const index = MIGRATIONS.indexOf(FILE);
+    expect(index).toBeGreaterThan(-1);
+    // Every migration before it is strictly older; later additive migrations
+    // (e.g. the Stage 2 helper privilege correction) are allowed after it.
+    for (const other of MIGRATIONS.slice(0, index)) {
+      expect(other < FILE).toBe(true);
+    }
+    for (const other of MIGRATIONS.slice(index + 1)) {
+      expect(other > FILE).toBe(true);
+    }
   });
 
   it("never touches Supabase-reserved schemas", () => {

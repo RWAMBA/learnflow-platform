@@ -157,6 +157,12 @@ jobs:
       - name: Prove zero RLS residue after rollback
         run: psql "$RLS_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/rls/stage1c-residue-check.sql
 
+      - name: Stage 2 programmes live-principal proof
+        run: node scripts/run-stage2-rls-tests.mjs
+
+      - name: Prove zero Stage 2 residue after rollback
+        run: psql "$RLS_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/rls/stage2-residue-check.sql
+
       - name: Storage live-principal proof
         run: node scripts/run-storage-principal-tests.mjs
 
