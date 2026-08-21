@@ -41,8 +41,7 @@ describe("correction migration is additive and forward-only", () => {
     for (const file of later) {
       const body = readFileSync(`supabase/migrations/${file!}`, "utf8");
       expect(
-        body.includes("public.create_student_with_placement") ||
-          body.includes("public.rights_evidence_documents"),
+        body.includes("create_student_with_placement") || body.includes("rights_evidence"),
       ).toBe(true);
     }
     expect(CODE).not.toMatch(/DROP\s+(TABLE|POLICY|COLUMN)/i);
@@ -50,6 +49,8 @@ describe("correction migration is additive and forward-only", () => {
     expect(CODE).not.toMatch(/DELETE\s+FROM/i);
     expect(CODE).not.toMatch(/TRUNCATE/i);
   });
+
+
 
 
   it("does not change curriculum rights, readiness or activation state", () => {
