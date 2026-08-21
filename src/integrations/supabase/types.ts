@@ -2593,6 +2593,82 @@ export type Database = {
         }
         Relationships: []
       }
+      rights_evidence_documents: {
+        Row: {
+          byte_size: number
+          checksum: string | null
+          created_at: string
+          id: string
+          mime_type: string
+          original_filename: string
+          rights_grant_id: string | null
+          source_artifact_id: string | null
+          status: string
+          storage_bucket: string
+          storage_path: string
+          supersedes_id: string | null
+          updated_at: string
+          uploaded_by: string
+          withdrawal_reason: string | null
+        }
+        Insert: {
+          byte_size: number
+          checksum?: string | null
+          created_at?: string
+          id?: string
+          mime_type: string
+          original_filename: string
+          rights_grant_id?: string | null
+          source_artifact_id?: string | null
+          status?: string
+          storage_bucket?: string
+          storage_path: string
+          supersedes_id?: string | null
+          updated_at?: string
+          uploaded_by: string
+          withdrawal_reason?: string | null
+        }
+        Update: {
+          byte_size?: number
+          checksum?: string | null
+          created_at?: string
+          id?: string
+          mime_type?: string
+          original_filename?: string
+          rights_grant_id?: string | null
+          source_artifact_id?: string | null
+          status?: string
+          storage_bucket?: string
+          storage_path?: string
+          supersedes_id?: string | null
+          updated_at?: string
+          uploaded_by?: string
+          withdrawal_reason?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rights_evidence_documents_rights_grant_id_fkey"
+            columns: ["rights_grant_id"]
+            isOneToOne: false
+            referencedRelation: "rights_grants"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rights_evidence_documents_source_artifact_id_fkey"
+            columns: ["source_artifact_id"]
+            isOneToOne: false
+            referencedRelation: "source_artifacts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "rights_evidence_documents_supersedes_id_fkey"
+            columns: ["supersedes_id"]
+            isOneToOne: false
+            referencedRelation: "rights_evidence_documents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rights_grants: {
         Row: {
           attribution_text: string | null
