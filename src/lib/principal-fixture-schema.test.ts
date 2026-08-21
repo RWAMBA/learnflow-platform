@@ -69,7 +69,8 @@ export function schemaFromMigrations(sql: string): Map<string, Set<string>> {
     }
     schema.set(m[1], cols);
   }
-  const add = /ALTER TABLE (?:IF EXISTS )?public\.([a-z_]+)[\s\S]{0,200}?ADD COLUMN (?:IF NOT EXISTS )?([a-z_]+)/gi;
+  const add =
+    /ALTER TABLE (?:IF EXISTS )?public\.([a-z_]+)[\s\S]{0,200}?ADD COLUMN (?:IF NOT EXISTS )?([a-z_]+)/gi;
   while ((m = add.exec(sql))) {
     const cols = schema.get(m[1]) ?? new Set<string>();
     cols.add(m[2].toLowerCase());
