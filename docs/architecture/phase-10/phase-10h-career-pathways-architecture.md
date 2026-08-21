@@ -1,5 +1,17 @@
 # LearnFlow — Phase 10H: Career Pathways Architecture
 
+> **SUPERSEDED — SCOPE ARCHITECTURALLY REMOVED (Stage 2, approved).**
+>
+> LearnFlow supports **school-level education only**. University, TVET, degree,
+> diploma, certificate, credential, admissions, higher-education exploration,
+> progression, career aspiration and career-pathway functionality are
+> **architecturally removed, not deferred**. No table, relationship, route, API,
+> permission, dashboard, badge, achievement record or UI in this document may be
+> implemented. This file is retained for historical traceability only.
+>
+> Restoring any concept below requires a new, separately approved requirement.
+
+
 **Scope:** University, TVET, Degree, Diploma, Certificate progression, academic completion, and future institutional exploration.
 **Status:** Approved, with refinements applied in this revision (issuer-identity model, Career Aspiration permissions, certificate integrity rules). See below.
 **Builds on:** Phases 1–9 and Phase 10A–10G — approved.
