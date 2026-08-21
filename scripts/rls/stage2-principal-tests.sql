@@ -193,6 +193,9 @@ BEGIN
   END;
 
   -- --------------------------------- DENY: an instructor assigning themselves
+  -- A teacher has no instructor-management authority at all, and the
+  -- validation trigger additionally forbids self-attribution. Either fail-closed
+  -- outcome is an acceptable denial; a successful insert is not.
   PERFORM set_config('request.jwt.claims',
     json_build_object('sub', v_teacher_linked, 'role', 'authenticated')::text, true);
   BEGIN
@@ -200,8 +203,13 @@ BEGIN
       (organization_id, programme_id, user_role_id, created_by)
     VALUES (v_org_a, v_prog, v_ur_teacher_linked, v_teacher_linked);
     RAISE EXCEPTION 'DENY FAILED: a teacher assigned themselves as instructor';
-  EXCEPTION WHEN insufficient_privilege THEN NULL;
+  EXCEPTION
+    WHEN insufficient_privilege THEN NULL;
+    WHEN raise_exception THEN
+      IF sqlerrm LIKE 'DENY FAILED%' THEN RAISE; END IF;
+      IF sqlerrm NOT LIKE '%cannot assign themselves%' THEN RAISE; END IF;
   END;
+
 
   -- ---------------------------- ALLOW: published programme visible to members
   PERFORM set_config('request.jwt.claims',
