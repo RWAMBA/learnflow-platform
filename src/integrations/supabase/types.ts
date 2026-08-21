@@ -4057,6 +4057,18 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_student_with_placement: {
+        Args: {
+          p_academic_level_id: string
+          p_date_of_birth: string
+          p_first_name: string
+          p_last_name: string
+          p_organization_id: string
+          p_role_subtype: string
+          p_track_id: string
+        }
+        Returns: Json
+      }
       curriculum_version_is_available: {
         Args: { p_version_id: string }
         Returns: boolean
