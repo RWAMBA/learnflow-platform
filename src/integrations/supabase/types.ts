@@ -4317,6 +4317,16 @@ export type Database = {
         Args: { p_enrollment_id: string; p_status: string }
         Returns: undefined
       }
+      transfer_curriculum_enrollment: {
+        Args: {
+          p_academic_level_id: string
+          p_academic_period_id?: string
+          p_curriculum_version_id: string
+          p_enrollment_id: string
+          p_track_id?: string
+        }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never
