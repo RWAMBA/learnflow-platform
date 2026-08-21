@@ -1,7 +1,7 @@
 # LearnFlow — Phase 10F: Programme Architecture
 
 **Scope:** Full-Time Homeschooling, Part-Time Tuition, Extracurricular Activities, Programme lifecycle, Programme enrollment, Programme completion.
-**Status:** Approved, with refinements applied in this revision (instructor-assignment relationship, expanded enrollment authorization, category vocabulary, certificate configurability). See Section 0.
+**Status:** Approved and **implemented in Stage 2**, with the certificate concept removed (see Section 0.1). See Section 0.
 **Builds on:** Phases 1–9 and Phase 10A–10E — approved.
 
 ---
@@ -13,7 +13,23 @@
 | 1 | Programme instructor assignment is now an explicit relationship (`programme_instructors`), not embedded on `programmes` | Enables the authorization refinement below without new role types, and supports future multiple-instructor/scheduling needs. |
 | 2 | Extracurricular Programme Enrollment authorization extended to an assigned Teacher/Tutor, scoped to students they're already authorized for | Section 3. |
 | 3 | `programme_type` formalized into a named Programme Category vocabulary | Section 2. |
-| 4 | `programmes` gains an `issues_certificate` flag | Section 4. |
+| 4 | ~~`programmes` gains an `issues_certificate` flag~~ — **withdrawn**, see Section 0.1 | Certificates are architecturally removed. |
+
+## 0.1 Scope Removal Applied at Stage 2 (approved)
+
+Certificates, credentials, badges, achievement records and every
+higher-learning concept (university, TVET, degree, diploma, admissions,
+career aspiration, career pathway) are **architecturally removed, not
+deferred**. Concretely, for this phase:
+
+- `programmes.issues_certificate` is **not** implemented and must not be added.
+- Programme completion is **only** the enrollment status `completed`. It
+  confers nothing, unlocks nothing and is never rendered as an award.
+- No certificate eligibility rule, issuance trigger, verification endpoint or
+  credential entity exists anywhere in the Programmes module.
+
+Phase 10H is superseded in full. Restoring any of the above requires a new,
+separately approved requirement.
 
 ## 1. Full-Time Homeschooling & Part-Time Tuition — Confirmed, Unchanged
 
