@@ -252,7 +252,7 @@ describe("Stage 2 — authorization", () => {
 
   it("restricts every policy to the authenticated role", () => {
     const policies = CODE.match(/CREATE POLICY [\s\S]*?;\n/g) ?? [];
-    expect(policies.length).toBe(8);
+    expect(policies.length).toBe(9);
     for (const policy of policies) {
       expect(policy).toContain("TO authenticated");
     }
