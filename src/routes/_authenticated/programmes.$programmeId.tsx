@@ -355,22 +355,54 @@ function ProgrammeDetailPage() {
                           {PROGRAMME_ENROLLMENT_STATUS_LABELS[enrollment.status]}
                         </Badge>
                         {mayChangeEnrollment
-                          ? next.map((status) => (
-                              <Button
-                                key={status}
-                                size="sm"
-                                variant="outline"
-                                disabled={changeStatusMutation.isPending}
-                                onClick={() =>
-                                  changeStatusMutation.mutate({
-                                    enrollmentId: enrollment.id,
-                                    status,
-                                  })
-                                }
-                              >
-                                {PROGRAMME_ENROLLMENT_STATUS_LABELS[status]}
-                              </Button>
-                            ))
+                          ? next.map((status) => {
+                              const label = PROGRAMME_ENROLLMENT_STATUS_LABELS[status];
+                              const button = (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  disabled={changeStatusMutation.isPending}
+                                  onClick={
+                                    status === "withdrawn" || status === "archived"
+                                      ? undefined
+                                      : () =>
+                                          changeStatusMutation.mutate({
+                                            enrollmentId: enrollment.id,
+                                            status,
+                                          })
+                                  }
+                                >
+                                  {label}
+                                </Button>
+                              );
+                              if (status !== "withdrawn" && status !== "archived") {
+                                return <span key={status}>{button}</span>;
+                              }
+                              return (
+                                <ConfirmAction
+                                  key={status}
+                                  title={
+                                    status === "withdrawn"
+                                      ? "Withdraw this learner?"
+                                      : "Archive this enrollment?"
+                                  }
+                                  description={
+                                    status === "withdrawn"
+                                      ? `${enrollment.studentName} will be withdrawn from this programme and their place released.`
+                                      : `This enrollment for ${enrollment.studentName} will be archived. Archiving is final.`
+                                  }
+                                  confirmLabel={label}
+                                  pending={changeStatusMutation.isPending}
+                                  onConfirm={() =>
+                                    changeStatusMutation.mutate({
+                                      enrollmentId: enrollment.id,
+                                      status,
+                                    })
+                                  }
+                                  trigger={button}
+                                />
+                              );
+                            })
                           : null}
                       </div>
                     </li>
