@@ -193,7 +193,6 @@ describe("legacy placement fields have no active application behaviour", () => {
           const chain = segment.split(".from(")[0];
           if (/\b(grade_id|pathway_id)\b/.test(chain)) offenders.push(file);
         }
-
       }
     }
     expect(offenders).toEqual([]);
