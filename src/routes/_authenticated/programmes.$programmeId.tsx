@@ -22,13 +22,16 @@ import {
   EnrollLearnerDialog,
   ProgrammeDialog,
 } from "@/features/programmes/components/programme-dialogs";
+import { ConfirmAction } from "@/features/programmes/components/confirm-action";
 import {
   ALLOWED_PROGRAMME_ENROLLMENT_TRANSITIONS,
+  ALLOWED_PROGRAMME_TRANSITIONS,
   PROGRAMME_CATEGORY_LABELS,
   PROGRAMME_ENROLLMENT_STATUS_LABELS,
   PROGRAMME_STATUS_LABELS,
   programmeIsFull,
   type ProgrammeEnrollmentStatus,
+  type ProgrammeStatus,
 } from "@/features/programmes/constants";
 import {
   canEnrollInProgrammes,
@@ -38,6 +41,7 @@ import {
 import { useRoleContext } from "@/features/roles/role-context";
 import {
   changeProgrammeEnrollmentStatus,
+  changeProgrammeStatus,
   removeProgrammeInstructor,
 } from "@/lib/programmes.functions";
 import { formatDate } from "@/lib/format";
