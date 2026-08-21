@@ -7,6 +7,7 @@
  * existing curriculum_enrollments rows rather than a duplicate model.
  */
 import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   ACADEMIC_PROGRAMME_LABELS,
@@ -171,5 +172,53 @@ describe("Stage 2 — removed scope", () => {
         expect(occurrences - (term === "certificate" ? disclaimers : 0)).toBe(0);
       }
     }
+  });
+});
+
+// ---------------------------------------------------------------- fixture attribution
+describe("stage 2 programme_instructors principal fixtures", () => {
+  const FIXTURE = readFileSync(
+    resolve(process.cwd(), "scripts/rls/stage2-principal-tests.sql"),
+    "utf8",
+  );
+
+  const inserts = [
+    ...FIXTURE.matchAll(
+      /INSERT INTO public\.programme_instructors\s*\(([^)]*)\)\s*VALUES\s*\(([^)]*)\)/g,
+    ),
+  ].map((m) => ({
+    columns: m[1].split(",").map((c) => c.trim()),
+    values: m[2].split(",").map((v) => v.trim()),
+  }));
+
+  it("finds the instructor-assignment fixtures", () => {
+    expect(inserts.length).toBeGreaterThanOrEqual(3);
+  });
+
+  it("never attributes an assignment to the assigned instructor, except in the explicit self-assignment denial", () => {
+    const collisions = inserts.filter((i) => {
+      const role = i.values[i.columns.indexOf("user_role_id")];
+      const actor = i.values[i.columns.indexOf("created_by")];
+      return role === "v_ur_teacher_linked" && actor === "v_teacher_linked";
+    });
+    // exactly one: the negative self-assignment proof
+    expect(collisions).toHaveLength(1);
+    expect(FIXTURE).toContain("DENY FAILED: a teacher assigned themselves as instructor");
+  });
+
+  it("attributes every positive assignment to the organization administrator fixture", () => {
+    const positives = inserts.filter(
+      (i) => i.values[i.columns.indexOf("created_by")] === "v_admin_a",
+    );
+    expect(positives.length).toBeGreaterThanOrEqual(2);
+    expect(positives.map((p) => p.values[p.columns.indexOf("user_role_id")])).toContain(
+      "v_ur_teacher_linked",
+    );
+  });
+
+  it("accepts either fail-closed denial mode for teacher self-assignment", () => {
+    expect(FIXTURE).toContain(
+      "IF sqlerrm NOT LIKE '%cannot assign themselves%' THEN RAISE; END IF;",
+    );
   });
 });
