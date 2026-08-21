@@ -287,14 +287,22 @@ function ProgrammeDetailPage() {
                         {instructor.status === "active" ? "Active" : "Ended"}
                       </Badge>
                       {mayManage && instructor.status === "active" ? (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          disabled={endInstructorMutation.isPending}
-                          onClick={() => endInstructorMutation.mutate(instructor.id)}
-                        >
-                          End assignment
-                        </Button>
+                        <ConfirmAction
+                          title="End this instructor assignment?"
+                          description={`${instructor.fullName} will stop being an active instructor for this programme. The assignment stays on record.`}
+                          confirmLabel="End assignment"
+                          pending={endInstructorMutation.isPending}
+                          onConfirm={() => endInstructorMutation.mutate(instructor.id)}
+                          trigger={
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              disabled={endInstructorMutation.isPending}
+                            >
+                              End assignment
+                            </Button>
+                          }
+                        />
                       ) : null}
                     </div>
                   </li>
