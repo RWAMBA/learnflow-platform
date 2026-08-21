@@ -25,7 +25,7 @@ Stage 1 is subdivided — it's substantially larger and higher-risk than every o
 - **Stage 2 — Programme Architecture.**
 - **Stage 3 — Public Website** (may ship without Community Events enabled — the public Events surface stays feature-gated until Stage 4 installs the complete Events/Event Registrations model).
 - **Stage 4 — Community.**
-- **Stage 5 — Career Pathways / Certificates.**
+- **Stage 5 — REMOVED.** Career Pathways / Certificates are architecturally removed, not deferred (see Phase 10H, superseded). The numbering is preserved for historical traceability; there is no replacement stage and nothing is implemented here.
 - **Stage 6 — Billing.**
 - **Final Architecture Validation → Cursor Handoff.**
 
@@ -82,10 +82,8 @@ graph TD
         ORG --> AN["Announcements<br/>independent of Events"]
         EV --> ER[Event Registrations]
     end
-    subgraph S5["Stage 5 — Career Pathways"]
-        STU --> CA["Career Aspirations<br/>NOT dependent on Curriculum Enrollments"]
-        N --> CE[Certificates]
-        R --> CE
+    subgraph S5["Stage 5 — REMOVED (no replacement)"]
+        X5["Career Pathways and Certificates<br/>architecturally removed"]
     end
     subgraph S6["Stage 6 — Billing"]
         B -.applicability.-> FD["Fee Definitions<br/>depend on definitional entities,<br/>not enrollment records"]

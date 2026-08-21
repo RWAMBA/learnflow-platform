@@ -109,7 +109,8 @@ Two-layer Internal API:
 | Live payment processing (M-Pesa/Pesapal/Flutterwave/Stripe) | V1 |
 | Native Android/iOS apps, PWA offline mode | V2 |
 | Discussion forums, group messaging | V2 |
-| Examinations engine, digital certificates | V2 |
+| Examinations engine | V2 |
+| ~~Digital certificates / credentials / career pathways~~ | **Removed from the architecture**, not deferred — a new separately approved requirement is needed to restore any of it |
 | AI Tutor, AI Quiz Generator, AI Lesson Planner, adaptive learning | V3 |
 | Content marketplace, Public API | V3 |
 | White-label deployments, full additional-language/currency support | V4 |
