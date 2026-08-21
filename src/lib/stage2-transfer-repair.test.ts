@@ -76,7 +76,9 @@ describe("atomic transfer — RPC guarantees", () => {
 
   it("locks the learner's placements before mutating them", () => {
     expect(RPC.indexOf("FOR UPDATE")).toBeGreaterThan(-1);
-    expect(RPC.indexOf("FOR UPDATE")).toBeLessThan(RPC.indexOf("UPDATE public.curriculum_enrollments\n     SET status = 'transferred'"));
+    expect(RPC.indexOf("FOR UPDATE")).toBeLessThan(
+      RPC.indexOf("UPDATE public.curriculum_enrollments\n     SET status = 'transferred'"),
+    );
   });
 
   it("closes the source and creates the replacement in one transaction", () => {
@@ -90,7 +92,9 @@ describe("atomic transfer — RPC guarantees", () => {
 
   it("respects the lifecycle guard by creating the placement pending, then activating", () => {
     expect(RPC).toContain("'primary', 'pending', p_enrollment_id");
-    expect(RPC).toContain("UPDATE public.curriculum_enrollments SET status = 'active' WHERE id = v_new;");
+    expect(RPC).toContain(
+      "UPDATE public.curriculum_enrollments SET status = 'active' WHERE id = v_new;",
+    );
   });
 
   it("only transfers an active primary placement", () => {
@@ -170,7 +174,9 @@ describe("forward-only learner recovery", () => {
 
   it("edits or deletes no history", () => {
     expect(RECOVERY).not.toMatch(/DELETE FROM public\.curriculum_enrollments/);
-    expect(RECOVERY).not.toMatch(/UPDATE public\.curriculum_enrollments\s+SET status = 'active'\s+WHERE id = v_source/);
+    expect(RECOVERY).not.toMatch(
+      /UPDATE public\.curriculum_enrollments\s+SET status = 'active'\s+WHERE id = v_source/,
+    );
   });
 
   it("verifies the whole census before committing", () => {

@@ -124,4 +124,3 @@ export async function transferEnrollment(
   if (!result?.enrollment_id) throw new Error("The transfer did not return a new placement");
   return { id: result.enrollment_id };
 }
-
