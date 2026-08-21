@@ -182,12 +182,14 @@ describe("stage 2 programme_instructors principal fixtures", () => {
     "utf8",
   );
 
-  const inserts = [...FIXTURE.matchAll(/INSERT INTO public\.programme_instructors\s*\(([^)]*)\)\s*VALUES\s*\(([^)]*)\)/g)].map(
-    (m) => ({
-      columns: m[1].split(",").map((c) => c.trim()),
-      values: m[2].split(",").map((v) => v.trim()),
-    }),
-  );
+  const inserts = [
+    ...FIXTURE.matchAll(
+      /INSERT INTO public\.programme_instructors\s*\(([^)]*)\)\s*VALUES\s*\(([^)]*)\)/g,
+    ),
+  ].map((m) => ({
+    columns: m[1].split(",").map((c) => c.trim()),
+    values: m[2].split(",").map((v) => v.trim()),
+  }));
 
   it("finds the instructor-assignment fixtures", () => {
     expect(inserts.length).toBeGreaterThanOrEqual(3);
@@ -215,6 +217,8 @@ describe("stage 2 programme_instructors principal fixtures", () => {
   });
 
   it("accepts either fail-closed denial mode for teacher self-assignment", () => {
-    expect(FIXTURE).toContain("IF sqlerrm NOT LIKE '%cannot assign themselves%' THEN RAISE; END IF;");
+    expect(FIXTURE).toContain(
+      "IF sqlerrm NOT LIKE '%cannot assign themselves%' THEN RAISE; END IF;",
+    );
   });
 });
