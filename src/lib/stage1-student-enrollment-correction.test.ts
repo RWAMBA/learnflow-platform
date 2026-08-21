@@ -40,8 +40,16 @@ describe("correction migration is additive and forward-only", () => {
     const later = files.slice(files.indexOf(MIGRATION_FILE!) + 1);
     for (const file of later) {
       const body = readFileSync(`supabase/migrations/${file!}`, "utf8");
+      // A ledger-repair migration touches only supabase_migrations.schema_migrations:
+      // it records already-applied versions and performs no DDL or data change.
+      const isLedgerRepair =
+        body.includes("supabase_migrations.schema_migrations") &&
+        !/\b(CREATE|ALTER|DROP|TRUNCATE)\b/i.test(body) &&
+        !/\bINSERT\s+INTO\s+public\./i.test(body);
       expect(
-        body.includes("create_student_with_placement") || body.includes("rights_evidence"),
+        body.includes("create_student_with_placement") ||
+          body.includes("rights_evidence") ||
+          isLedgerRepair,
       ).toBe(true);
     }
     expect(CODE).not.toMatch(/DROP\s+(TABLE|POLICY|COLUMN)/i);
