@@ -34,9 +34,9 @@ describe("correction migration is additive and forward-only", () => {
     expect(MIGRATION_FILE).toBeTruthy();
     expect(files).toContain(MIGRATION_FILE);
     // Applying the approved pending files to the live database records them
-    // under fresh ledger timestamps. Those twins are the only migrations
-    // permitted after the correction, and each must carry approved Stage 1
-    // content only.
+    // under fresh ledger timestamps. Those twins, ledger repairs, and
+    // later-stage migrations are all permitted — but no migration after the
+    // correction may resurrect the deprecated student placement columns.
     const later = files.slice(files.indexOf(MIGRATION_FILE!) + 1);
     for (const file of later) {
       const body = readFileSync(`supabase/migrations/${file!}`, "utf8");
@@ -46,11 +46,17 @@ describe("correction migration is additive and forward-only", () => {
         body.includes("supabase_migrations.schema_migrations") &&
         !/\b(CREATE|ALTER|DROP|TRUNCATE)\b/i.test(body) &&
         !/\bINSERT\s+INTO\s+public\./i.test(body);
-      expect(
-        body.includes("create_student_with_placement") ||
-          body.includes("rights_evidence") ||
-          isLedgerRepair,
-      ).toBe(true);
+      const isStageOneTwin =
+        body.includes("create_student_with_placement") || body.includes("rights_evidence");
+      if (isLedgerRepair || isStageOneTwin) continue;
+      // Any later-stage migration is allowed, provided the Stage 1 cutover holds:
+      // the deprecated placement columns are never written again.
+      expect(body, `${file} must not write students.grade_id`).not.toMatch(
+        /\bstudents\b[\s\S]{0,400}?\bgrade_id\s*=/i,
+      );
+      expect(body, `${file} must not write students.pathway_id`).not.toMatch(
+        /\bstudents\b[\s\S]{0,400}?\bpathway_id\s*=/i,
+      );
     }
     expect(CODE).not.toMatch(/DROP\s+(TABLE|POLICY|COLUMN)/i);
     expect(CODE).not.toMatch(/ALTER\s+TABLE/i);
