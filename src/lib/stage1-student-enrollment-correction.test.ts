@@ -39,7 +39,7 @@ describe("correction migration is additive and forward-only", () => {
     // content only.
     const later = files.slice(files.indexOf(MIGRATION_FILE) + 1);
     for (const file of later) {
-      const body = readFileSync(`supabase/migrations/${file}`, "utf8");
+      const body = readFileSync(`supabase/migrations/${file!}`, "utf8");
       expect(
         body.includes("public.create_student_with_placement") ||
           body.includes("public.rights_evidence_documents"),
