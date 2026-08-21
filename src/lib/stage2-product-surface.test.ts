@@ -7,6 +7,7 @@
  * existing curriculum_enrollments rows rather than a duplicate model.
  */
 import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   ACADEMIC_PROGRAMME_LABELS,
