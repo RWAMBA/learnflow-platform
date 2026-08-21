@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   MessagesSquare,
   Shield,
+  Sparkles,
   Users,
 } from "lucide-react";
 import { useRoleContext } from "@/features/roles/role-context";
@@ -34,6 +35,7 @@ export function MainNav({
     { to: "/curriculum", label: "Curriculum", icon: BookOpen, visible: true },
     { to: "/assignments", label: "Assignments", icon: ClipboardList, visible: true },
     { to: "/assessments", label: "Assessments", icon: ClipboardCheck, visible: true },
+    { to: "/programmes", label: "Programmes", icon: Sparkles, visible: true },
     { to: "/messages", label: "Messages", icon: MessagesSquare, visible: true },
     { to: "/admin/tenants", label: "Platform", icon: Shield, visible: viewer.isPlatformAdmin },
   ] as const;
