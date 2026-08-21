@@ -111,7 +111,12 @@ function ProgrammeDetailPage() {
 
   if (programme.isPending) return <ListSkeleton rows={4} />;
   if (programme.error) {
-    return <ErrorState error={programme.error} onRetry={() => void programme.refetch()} />;
+    return (
+      <ErrorState
+        description={programme.error.message}
+        onRetry={() => void programme.refetch()}
+      />
+    );
   }
   if (!programme.data) {
     return (
