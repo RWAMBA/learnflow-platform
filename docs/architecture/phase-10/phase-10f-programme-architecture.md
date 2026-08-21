@@ -47,7 +47,7 @@ These remain product-level readings of the existing `curriculum_enrollments` cat
 | `organization_id`, `author_type`, `authoring_organization_id` | Unchanged ownership pattern from the prior revision. |
 | `capacity` | Nullable — preserved exactly as designed, supporting both capacity-limited and unlimited programmes without a future schema change. |
 | `schedule_description` | Unchanged — free text, not calendar-integrated. |
-| `issues_certificate` | New — boolean, defaulting to false. Certificate issuance is configurable per programme, not mandatory for every one (per approval). |
+| ~~`issues_certificate`~~ | **Withdrawn — not implemented.** Certificates are architecturally removed (Section 0.1). |
 | `status` | Unchanged draft/published/archived lifecycle. |
 
 **New: `programme_instructors`** — the dedicated relationship the approval asked for, rather than an instructor field embedded on `programmes`:
@@ -72,7 +72,16 @@ This is a straightforward AND of two already-established checks (instructor assi
 
 ## 4. Programme Completion
 
-Unchanged in mechanism (`programme_enrollments.status = 'completed'`, no separate entity), with one clarification: whether completing *this specific* programme triggers a future Certificate depends on `programmes.issues_certificate` (Section 2) — certificate issuance is configurable per programme, not automatic or mandatory for every one, once Certificates is actually designed.
+Unchanged in mechanism: completion is `programme_enrollments.status = 'completed'`
+and nothing else — no separate entity, no certificate, no credential, no badge,
+no achievement record. It is an internal enrollment status used for reporting
+and for closing a place against capacity, and it is rendered to users as a
+status only.
+
+As implemented in Stage 2, the database enforces the lifecycle
+`enrolled → active → completed | withdrawn → archived`; every other transition
+is rejected by `app_private.enforce_programme_enrollment_lifecycle`, and only an
+Organization Administrator may move an enrollment through it.
 
 ## 5. Ownership & RLS
 
