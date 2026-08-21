@@ -113,6 +113,19 @@ function ProgrammeDetailPage() {
     onError: (error: Error) => toast.error(error.message),
   });
 
+  const changeProgramme = useServerFn(changeProgrammeStatus);
+  const programmeStatusMutation = useMutation({
+    mutationFn: (status: ProgrammeStatus) =>
+      changeProgramme({ data: { programmeId, status } }),
+    onSuccess: () => {
+      toast.success("Programme status updated");
+      refresh();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+
+
   if (programme.isPending) return <ListSkeleton rows={4} />;
   if (programme.error) {
     return (
