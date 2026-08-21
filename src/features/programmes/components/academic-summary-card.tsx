@@ -1,10 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ListSkeleton, QueryState } from "@/components/shared/query-state";
-import {
-  enrollmentKeys,
-  listCurriculumEnrollments,
-} from "@/features/curriculum/enrollment-api";
+import { enrollmentKeys, listCurriculumEnrollments } from "@/features/curriculum/enrollment-api";
 import { summarizeAcademicProgrammes } from "../academic-summary";
 
 /**
