@@ -3,7 +3,7 @@
 **Scope:** An incremental, production-safe, dependency-accurate strategy for implementing the approved Phase 10A–10K architecture. Not SQL, migration files, application code, or Lovable prompts. The final phase of Phase 10 planning.
 **Status:** Approved and finalized. This revision corrects real dependency errors and materially strengthens migration safety, testing, and rollback rigor — see Section 0.
 **Builds on:** Phases 1–9 and Phase 10A–10K — approved, all finalized.
-**No new product scope is introduced in this revision** — every change here is about *how* the already-approved architecture gets built safely, not *what* gets built.
+**No new product scope is introduced in this revision** — every change here is about _how_ the already-approved architecture gets built safely, not _what_ gets built.
 
 ---
 
@@ -98,14 +98,14 @@ graph TD
     end
 ```
 
-This graph now represents actual referenced-table relationships, not preferred sequencing — dashed edges are optional/nullable references (a table that *may* point at another, not one that requires it to exist first in the same sense a `not null` foreign key does).
+This graph now represents actual referenced-table relationships, not preferred sequencing — dashed edges are optional/nullable references (a table that _may_ point at another, not one that requires it to exist first in the same sense a `not null` foreign key does).
 
 ## 3. Expanded Pre-Implementation Audit Checklist
 
-Before Stage 1A's first migration is written, establish an authoritative baseline covering — and explicitly *not* assuming migration files and the currently deployed schema are identical, since they can drift:
+Before Stage 1A's first migration is written, establish an authoritative baseline covering — and explicitly _not_ assuming migration files and the currently deployed schema are identical, since they can drift:
 
 - Complete `supabase/migrations/` history.
-- The current *actual* deployed Supabase schema (tables, columns, foreign keys, indexes, CHECK/unique constraints, RLS enablement and policies, helper functions, triggers) — verified directly, not inferred from migration files alone.
+- The current _actual_ deployed Supabase schema (tables, columns, foreign keys, indexes, CHECK/unique constraints, RLS enablement and policies, helper functions, triggers) — verified directly, not inferred from migration files alone.
 - Storage buckets and Storage policies as actually configured.
 - Current `system_settings` contents.
 - Existing seed/reference curriculum data.
@@ -164,7 +164,7 @@ Not a one-time mention — a checklist every stage is checked against before bei
 - RLS ships before the corresponding UI is exposed.
 - Tenant-authored published content never leaks across Organizations.
 - Fee Definitions remain administratively restricted.
-- Anonymous-write surfaces receive abuse protection *before* being exposed (Section 9's prerequisite check applies directly here).
+- Anonymous-write surfaces receive abuse protection _before_ being exposed (Section 9's prerequisite check applies directly here).
 - Instructor Application documents remain private and server-mediated.
 - Certificate verification remains a narrow server-side projection.
 - `curriculum_nodes` and `academic_periods` receive cycle prevention before nested authoring is exposed.
@@ -177,7 +177,7 @@ No stage is complete merely because its UI renders. Each stage must pass, as app
 
 ## 12. Scope Clarification
 
-These six stages describe the Phase 10 expansion's implementation specifically — they are not a declaration that every other LearnFlow feature outside Phase 10 is complete or production-hardened. Final Architecture Validation after Stage 6 explicitly includes checking for any outstanding work from the *original* Phase 1–9 scope (including the post-Lovable architectural review that was requested earlier in this conversation and never completed, due to repository access being blocked at the time) — not just confirming Phase 10 itself.
+These six stages describe the Phase 10 expansion's implementation specifically — they are not a declaration that every other LearnFlow feature outside Phase 10 is complete or production-hardened. Final Architecture Validation after Stage 6 explicitly includes checking for any outstanding work from the _original_ Phase 1–9 scope (including the post-Lovable architectural review that was requested earlier in this conversation and never completed, due to repository access being blocked at the time) — not just confirming Phase 10 itself.
 
 ---
 

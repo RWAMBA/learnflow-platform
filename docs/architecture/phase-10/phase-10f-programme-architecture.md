@@ -8,12 +8,12 @@
 
 ## 0. Refinements Applied This Revision
 
-| # | Refinement | Reasoning |
-|---|---|---|
-| 1 | Programme instructor assignment is now an explicit relationship (`programme_instructors`), not embedded on `programmes` | Enables the authorization refinement below without new role types, and supports future multiple-instructor/scheduling needs. |
-| 2 | Extracurricular Programme Enrollment authorization extended to an assigned Teacher/Tutor, scoped to students they're already authorized for | Section 3. |
-| 3 | `programme_type` formalized into a named Programme Category vocabulary | Section 2. |
-| 4 | ~~`programmes` gains an `issues_certificate` flag~~ — **withdrawn**, see Section 0.1 | Certificates are architecturally removed. |
+| #   | Refinement                                                                                                                                  | Reasoning                                                                                                                    |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
+| 1   | Programme instructor assignment is now an explicit relationship (`programme_instructors`), not embedded on `programmes`                     | Enables the authorization refinement below without new role types, and supports future multiple-instructor/scheduling needs. |
+| 2   | Extracurricular Programme Enrollment authorization extended to an assigned Teacher/Tutor, scoped to students they're already authorized for | Section 3.                                                                                                                   |
+| 3   | `programme_type` formalized into a named Programme Category vocabulary                                                                      | Section 2.                                                                                                                   |
+| 4   | ~~`programmes` gains an `issues_certificate` flag~~ — **withdrawn**, see Section 0.1                                                        | Certificates are architecturally removed.                                                                                    |
 
 ## 0.1 Scope Removal Applied at Stage 2 (approved)
 
@@ -39,34 +39,34 @@ These remain product-level readings of the existing `curriculum_enrollments` cat
 
 `programmes`, with one addition to the prior revision — a formal Programme Category:
 
-| Field (conceptual) | Purpose |
-|---|---|
-| `name`, `description` | What it is. |
-| `category` | `academic` / `language` / `arts` / `music` / `stem` / `sport` / `technology` / `life_skills` / `enrichment` — TEXT+CHECK, not a lookup table. This mirrors `tenant_type`'s precedent (a comparably-sized, foundational taxonomy) rather than `roles`'/`curriculum_providers`' (vocabularies genuinely expected to grow at runtime). If the category list turns out to need frequent extension in practice, converting it to a lookup table later is a small, non-disruptive change — not a reason to over-build now. |
-| `subject_id` | Nullable — optional link to a formal Subject, unchanged. |
-| `organization_id`, `author_type`, `authoring_organization_id` | Unchanged ownership pattern from the prior revision. |
-| `capacity` | Nullable — preserved exactly as designed, supporting both capacity-limited and unlimited programmes without a future schema change. |
-| `schedule_description` | Unchanged — free text, not calendar-integrated. |
-| ~~`issues_certificate`~~ | **Withdrawn — not implemented.** Certificates are architecturally removed (Section 0.1). |
-| `status` | Unchanged draft/published/archived lifecycle. |
+| Field (conceptual)                                            | Purpose                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| ------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`, `description`                                         | What it is.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| `category`                                                    | `academic` / `language` / `arts` / `music` / `stem` / `sport` / `technology` / `life_skills` / `enrichment` — TEXT+CHECK, not a lookup table. This mirrors `tenant_type`'s precedent (a comparably-sized, foundational taxonomy) rather than `roles`'/`curriculum_providers`' (vocabularies genuinely expected to grow at runtime). If the category list turns out to need frequent extension in practice, converting it to a lookup table later is a small, non-disruptive change — not a reason to over-build now. |
+| `subject_id`                                                  | Nullable — optional link to a formal Subject, unchanged.                                                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `organization_id`, `author_type`, `authoring_organization_id` | Unchanged ownership pattern from the prior revision.                                                                                                                                                                                                                                                                                                                                                                                                                                                                 |
+| `capacity`                                                    | Nullable — preserved exactly as designed, supporting both capacity-limited and unlimited programmes without a future schema change.                                                                                                                                                                                                                                                                                                                                                                                  |
+| `schedule_description`                                        | Unchanged — free text, not calendar-integrated.                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
+| ~~`issues_certificate`~~                                      | **Withdrawn — not implemented.** Certificates are architecturally removed (Section 0.1).                                                                                                                                                                                                                                                                                                                                                                                                                             |
+| `status`                                                      | Unchanged draft/published/archived lifecycle.                                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 
 **New: `programme_instructors`** — the dedicated relationship the approval asked for, rather than an instructor field embedded on `programmes`:
 
-| Field | Purpose |
-|---|---|
-| `programme_id` | The programme. |
-| `user_role_id` | The assigned Teacher or Tutor's User Role — reuses the existing `user_roles` table, not a new identity concept. |
-| `status` | `active` / `ended` — an instructor assignment has its own lifecycle, independent of the programme's or any enrollment's. |
-| `assigned_at`, `ended_at` | Lifecycle timestamps. |
+| Field                     | Purpose                                                                                                                  |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
+| `programme_id`            | The programme.                                                                                                           |
+| `user_role_id`            | The assigned Teacher or Tutor's User Role — reuses the existing `user_roles` table, not a new identity concept.          |
+| `status`                  | `active` / `ended` — an instructor assignment has its own lifecycle, independent of the programme's or any enrollment's. |
+| `assigned_at`, `ended_at` | Lifecycle timestamps.                                                                                                    |
 
 Supports multiple instructors per programme, and multiple programmes per instructor, from day one — no redesign needed if a programme later needs co-instructors or a scheduling handoff.
 
 ## 3. Programme Enrollment — Authorization, Refined
 
-The lifecycle (Enrolled → Active → Completed → Withdrawn → Archived, confirmed sufficient for MVP) is unchanged. Authorization to *create* a Programme Enrollment now has two paths, both reusing existing mechanisms — no new role type, no bypass of existing permissions:
+The lifecycle (Enrolled → Active → Completed → Withdrawn → Archived, confirmed sufficient for MVP) is unchanged. Authorization to _create_ a Programme Enrollment now has two paths, both reusing existing mechanisms — no new role type, no bypass of existing permissions:
 
 1. **Organization Administrator** (tenant-wide) or a **full-management Parent/Guardian** (their own linked child) — unchanged from the prior revision.
-2. **New:** a **Teacher or Tutor who is an active instructor for that specific programme** (via `programme_instructors`) — but *only* for a Student they are **already** authorized to manage under the existing relationship model (an active `teacher_student_relationships` or `tutor_student_relationships` row). A Teacher assigned to Chess Club cannot enroll a Student they have no existing relationship with, even if that Student wants to join — both conditions must hold simultaneously.
+2. **New:** a **Teacher or Tutor who is an active instructor for that specific programme** (via `programme_instructors`) — but _only_ for a Student they are **already** authorized to manage under the existing relationship model (an active `teacher_student_relationships` or `tutor_student_relationships` row). A Teacher assigned to Chess Club cannot enroll a Student they have no existing relationship with, even if that Student wants to join — both conditions must hold simultaneously.
 
 This is a straightforward AND of two already-established checks (instructor assignment + existing relationship), not a new authorization concept.
 
@@ -90,6 +90,7 @@ Unchanged for `programmes`/`programme_enrollments` from the prior revision. `pro
 ---
 
 ## Architectural Decisions Made
+
 1. "Academic programmes" (Full-Time/Part-Time) confirmed as existing `curriculum_enrollments` categories under a product-facing name — no new entity, unchanged from the original Phase 10F finding.
 2. `programme_instructors` introduced as a dedicated relationship, enabling both the enrollment-authorization refinement and future multi-instructor/scheduling support without redesign.
 3. Extracurricular Programme Enrollment authorization extended to instructor Teachers/Tutors, strictly bounded by their existing relationship with the target Student — reuses, rather than duplicates or bypasses, the established authorization framework.
@@ -121,5 +122,6 @@ Delivered against this phase:
   move enrollments through their lifecycle.
 
 ## Questions Requiring Approval
+
 1. None outstanding. The nine-value Programme Category vocabulary is confirmed
    and implemented; certificate scope is removed.

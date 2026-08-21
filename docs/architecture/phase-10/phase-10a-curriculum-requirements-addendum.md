@@ -14,22 +14,22 @@ Four curricula (Kenya CBC/CBE — already built; Cambridge International; Pearso
 
 ## 2. Supported Curricula
 
-| Curriculum | Status | Note |
-|---|---|---|
-| Kenya CBC/CBE | Already built | Treating "CBE" (Competency-Based Education, the pedagogical philosophy) as synonymous with "CBC" (Kenya's specific curriculum) for architecture purposes — flagged as an assumption, not a verified equivalence. |
-| Cambridge International | New, in scope | A real, standardized system (Cambridge Primary through AS & A Level). General structure is known; exact current stage/subject definitions should be verified against Cambridge's published framework in Phase 10B, not assumed from memory. |
-| Pearson Edexcel | New, in scope | Similarly standardized (International GCSE, International A Level, BTEC). Same verification note as Cambridge. |
-| American Curriculum | New, in scope — **needs clarification** | Unlike the other three, "American Curriculum" is not a single standardized system or awarding body. U.S. homeschooling typically follows a mix of state standards, specific publisher curricula, or accredited umbrella/correspondence schools. Before Phase 10B can model this, clarify what's actually meant: a specific named program/accreditor, or a generic U.S.-style K-12 structure (grade levels, credit hours, GPA) the platform should support generically. |
+| Curriculum              | Status                                  | Note                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| ----------------------- | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Kenya CBC/CBE           | Already built                           | Treating "CBE" (Competency-Based Education, the pedagogical philosophy) as synonymous with "CBC" (Kenya's specific curriculum) for architecture purposes — flagged as an assumption, not a verified equivalence.                                                                                                                                                                                                                                                       |
+| Cambridge International | New, in scope                           | A real, standardized system (Cambridge Primary through AS & A Level). General structure is known; exact current stage/subject definitions should be verified against Cambridge's published framework in Phase 10B, not assumed from memory.                                                                                                                                                                                                                            |
+| Pearson Edexcel         | New, in scope                           | Similarly standardized (International GCSE, International A Level, BTEC). Same verification note as Cambridge.                                                                                                                                                                                                                                                                                                                                                         |
+| American Curriculum     | New, in scope — **needs clarification** | Unlike the other three, "American Curriculum" is not a single standardized system or awarding body. U.S. homeschooling typically follows a mix of state standards, specific publisher curricula, or accredited umbrella/correspondence schools. Before Phase 10B can model this, clarify what's actually meant: a specific named program/accreditor, or a generic U.S.-style K-12 structure (grade levels, credit hours, GPA) the platform should support generically. |
 
 ## 3. Product Scope — The Five Domains
 
-| Domain | Relationship to existing architecture |
-|---|---|
-| Learning Management System | Builds directly on what exists — curriculum, lessons, assignments, assessments, and progress tracking are already substantially implemented for CBC. |
-| School Management System | Partial overlap — organizations, memberships, and subscriptions already have a foundation; Enrollment, Scheduling, and Reporting/Administration beyond what exists are largely new. |
-| Public Website | Genuinely new territory — unauthenticated, content/SEO-driven, a different access and likely rendering model from the authenticated app. |
-| Community | Genuinely new — events, announcements, and participation tracking don't yet exist. |
-| Learner Progression / Career Pathways | Genuinely new, and the source document itself flags this as needing "future institutional exploration" — the least product-defined of the five. |
+| Domain                                | Relationship to existing architecture                                                                                                                                               |
+| ------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Learning Management System            | Builds directly on what exists — curriculum, lessons, assignments, assessments, and progress tracking are already substantially implemented for CBC.                                |
+| School Management System              | Partial overlap — organizations, memberships, and subscriptions already have a foundation; Enrollment, Scheduling, and Reporting/Administration beyond what exists are largely new. |
+| Public Website                        | Genuinely new territory — unauthenticated, content/SEO-driven, a different access and likely rendering model from the authenticated app.                                            |
+| Community                             | Genuinely new — events, announcements, and participation tracking don't yet exist.                                                                                                  |
+| Learner Progression / Career Pathways | Genuinely new, and the source document itself flags this as needing "future institutional exploration" — the least product-defined of the five.                                     |
 
 ## 4. Educational Programmes
 
@@ -64,12 +64,14 @@ University, TVET, Degree/Diploma/Certificate progression. The source document it
 ## 9. Recommended MVP vs. Future Scope for Phase 10
 
 **Phase 10 MVP (recommended):**
+
 - The curriculum-agnostic engine itself (CBC + Cambridge + Edexcel + a clarified American Curriculum) — the highest-value, most directly architecture-relevant piece, and already next in sequence (Phase 10B).
 - Parent-managed learners — unchanged.
 - Independent learners — basic support via the recommended self-organization pattern (Section 5).
 - A lightweight Programme concept for Part-Time Tuition / Extracurricular Activities, sitting alongside the Content Spine.
 
 **Phase 10 Future (recommended, sequenced after the above stabilizes):**
+
 - Public Website — recommend as a separate, parallel workstream rather than blocking the core platform's architecture evolution.
 - Full School Management System (Enrollment, Scheduling, Billing, Reporting, Administration beyond what exists) — build incrementally on top of the curriculum-agnostic engine once it's stable, not simultaneously with it.
 - Community — its own module, after the curriculum engine.
@@ -79,22 +81,26 @@ University, TVET, Degree/Diploma/Certificate progression. The source document it
 ---
 
 ## Architectural Decisions Made
+
 1. Kenya CBC/CBE, Cambridge International, and Pearson Edexcel are confirmed in scope for the curriculum-agnostic engine; American Curriculum is confirmed in scope but not yet defined precisely enough to design against.
 2. Independent Learners are recommended to be modeled as Students within a self-created `family`-type Organization, reusing the existing multi-tenant model rather than introducing an org-less user pattern.
 3. Extracurricular/part-time offerings need a new, lighter "Programme" concept alongside — not inside — the existing Content Spine.
-4. Public Website, full School Management System, Community, and Career Pathways are recommended as sequenced *after* the curriculum-agnostic engine, not built in parallel with it.
+4. Public Website, full School Management System, Community, and Career Pathways are recommended as sequenced _after_ the curriculum-agnostic engine, not built in parallel with it.
 
 ## Assumptions
+
 1. "LearnFlow" is the working project name from this point forward (see the naming note above).
 2. CBE and CBC are treated as the same system for architecture purposes.
 3. Merchandise, consultation booking, and instructor recruitment are treated as real functional workflows (not static pages) once their domain is reached.
 
 ## Risks
+
 1. **Scope breadth:** five domains plus four curricula is, collectively, the scope of several separate products. Treating all of it as equally urgent risks losing the incremental discipline that made Phases 1–9 successful — Section 9's sequencing is the mitigation, not a formality.
 2. **"American Curriculum" ambiguity**, if left unresolved, will force Phase 10B to either guess at a structure or stall — needs an answer before that phase.
 3. **Independent Learner modeling choice** (Section 5) has real downstream schema implications; confirming the recommended (lower-risk) option now avoids rework in Phase 10C.
 
 ## Questions Requiring Approval
+
 1. Confirm "LearnFlow" as the standing project name going forward.
 2. Clarify what "American Curriculum" should mean architecturally: a specific named program/accreditor, or a generic U.S.-style K-12 structure.
 3. Confirm the recommended Independent Learner model (self-organization pattern) versus a genuinely org-less user pattern.

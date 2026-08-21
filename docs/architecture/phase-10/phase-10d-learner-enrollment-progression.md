@@ -8,15 +8,15 @@
 
 ## 0. Carry-Forward from Phase 10C
 
-| # | Decision | Status |
-|---|---|---|
-| 1 | `pathways` → `tracks` | Confirmed. |
-| 2 | Provider / Standards Framework / Content Ownership as three independent extensibility mechanisms | Confirmed. |
-| 3 | `curriculum_nodes` cycle prevention via a validation trigger, treated as a production requirement | Confirmed. |
-| 4 | Reconciliation with the live `topics` table deferred to Phase 10L | Confirmed. |
-| 5 | Academic Period belongs here, not Phase 10C — see reasoning below | Applied. |
+| #   | Decision                                                                                          | Status     |
+| --- | ------------------------------------------------------------------------------------------------- | ---------- |
+| 1   | `pathways` → `tracks`                                                                             | Confirmed. |
+| 2   | Provider / Standards Framework / Content Ownership as three independent extensibility mechanisms  | Confirmed. |
+| 3   | `curriculum_nodes` cycle prevention via a validation trigger, treated as a production requirement | Confirmed. |
+| 4   | Reconciliation with the live `topics` table deferred to Phase 10L                                 | Confirmed. |
+| 5   | Academic Period belongs here, not Phase 10C — see reasoning below                                 | Applied.   |
 
-**Why Academic Period belongs here:** Phase 10C's hierarchy defines what a curriculum *is* — platform-level, timeless structure. Academic Period defines *when* a specific learner studies a slice of it — a tenant-level, time-bound fact about one learner's journey. That's this phase's subject, not 10C's.
+**Why Academic Period belongs here:** Phase 10C's hierarchy defines what a curriculum _is_ — platform-level, timeless structure. Academic Period defines _when_ a specific learner studies a slice of it — a tenant-level, time-bound fact about one learner's journey. That's this phase's subject, not 10C's.
 
 ## 1. Academic Period
 
@@ -28,18 +28,18 @@ Tenant-scoped, self-referencing, mirroring `curriculum_nodes`' pattern applied t
 
 The historical bridge between tenant-scoped Students and the platform-level curriculum hierarchy: a new `curriculum_enrollments` table.
 
-| Field (conceptual) | Purpose |
-|---|---|
-| `student_id` | The learner. |
-| `curriculum_version_id` | The specific version — "CBC 2024," not just "CBC" — so a future revision never retroactively changes what a past enrollment meant. |
-| `academic_level_id` | Grade/year/form at time of enrollment. |
-| `track_id` | Nullable — only where the curriculum has one. |
-| `academic_period_id` | Nullable (Section 1). |
-| `enrollment_category` | `primary` / `supplementary` (Section 3) — extracurriculars are explicitly **not** represented here (Section 3). |
-| `is_primary` | Convenience flag mirroring `enrollment_category = 'primary'`. |
-| `status` | The formal lifecycle in Section 4. |
-| `transferred_from_enrollment_id` | Nullable, self-referencing — links a new enrollment back to the one it succeeded. |
-| `enrolled_at` / `ended_at` | Lifecycle timestamps. |
+| Field (conceptual)               | Purpose                                                                                                                            |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| `student_id`                     | The learner.                                                                                                                       |
+| `curriculum_version_id`          | The specific version — "CBC 2024," not just "CBC" — so a future revision never retroactively changes what a past enrollment meant. |
+| `academic_level_id`              | Grade/year/form at time of enrollment.                                                                                             |
+| `track_id`                       | Nullable — only where the curriculum has one.                                                                                      |
+| `academic_period_id`             | Nullable (Section 1).                                                                                                              |
+| `enrollment_category`            | `primary` / `supplementary` (Section 3) — extracurriculars are explicitly **not** represented here (Section 3).                    |
+| `is_primary`                     | Convenience flag mirroring `enrollment_category = 'primary'`.                                                                      |
+| `status`                         | The formal lifecycle in Section 4.                                                                                                 |
+| `transferred_from_enrollment_id` | Nullable, self-referencing — links a new enrollment back to the one it succeeded.                                                  |
+| `enrolled_at` / `ended_at`       | Lifecycle timestamps.                                                                                                              |
 
 This is the authoritative, historical record of what a Student actually studied and when.
 
@@ -96,6 +96,7 @@ Per approval, `progress_records`, `assignments`, and future time-dependent acade
 ---
 
 ## Architectural Decisions Made
+
 1. Academic Period confirmed optional/nullable on enrollment.
 2. Enrollment is split into three categories — Primary, Supplementary, and Extracurricular Programme — with only the first two living in `curriculum_enrollments`; extracurriculars get their own, separately-designed Programme Enrollment concept.
 3. A standardized six-state lifecycle (Pending → Active → Completed/Transferred/Withdrawn → Archived) governs `curriculum_enrollments`.
@@ -104,16 +105,19 @@ Per approval, `progress_records`, `assignments`, and future time-dependent acade
 6. Academic records reference `curriculum_enrollment_id`, not a parallel `academic_period_id` — a refinement of this phase's own earlier draft, made to avoid a redundant, driftable pair of columns.
 
 ## Assumptions
+
 1. `enrollment_category` and `is_primary` are treated as one fact expressed two ways (a text category plus a convenience boolean) rather than two independently-set fields that could disagree — the boolean should be derived, not separately writable.
 2. Programme Enrollment's exact shape is a placeholder here; its real design is Phase 10F's responsibility.
 3. The partial-unique-index technique enforcing "exactly one active Primary enrollment" is assumed sufficient; no additional application-level locking is anticipated, but hasn't been stress-tested at this conceptual stage.
 
 ## Risks
+
 1. **Phased `grade_id`/`pathway_id` deprecation** means two sources of truth coexist temporarily during Phase 10L — a real, if time-boxed, consistency risk that needs an explicit backfill-and-verify step, not just "migrate eventually."
 2. **Enrollment-category/is_primary drift**, if the boolean is ever writable independently of the category field, could produce contradictory rows — worth enforcing as derived, not just documented as such.
 3. **Programme Enrollment being only a placeholder** here means Phase 10F inherits a real dependency (the category split assumes Programme Enrollment will exist) — low risk given it's explicitly next in sequence, but worth naming.
 
 ## Questions Requiring Approval
+
 1. Confirm `enrollment_category` as the authoritative field with `is_primary` derived from it, not independently settable.
 2. Confirm the six-state lifecycle (Section 4) as final, or adjust before it's carried into Phase 10L.
 3. Approve Phase 10D (as refined) and proceed to Phase 10E (Public Website Architecture).
