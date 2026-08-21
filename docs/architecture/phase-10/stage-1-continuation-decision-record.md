@@ -149,3 +149,26 @@ Conclusion: a revoked Platform Administrator is denied every rights mutation by
 the authoritative RLS boundary. The existence-only pre-check is a
 non-authoritative, fail-closed convenience message. No change is made, and no
 scope expansion is taken.
+
+---
+
+## SD-4 — Hosted Storage bucket provisioning and migration-ledger reconciliation
+
+**Bucket provisioning (hosted environments).** Migration
+`20260818175500` defines the `curriculum-rights-evidence` policies but cannot
+provision the bucket itself: hosted Supabase rejects `INSERT`/`UPDATE` on
+`storage.buckets` from migration SQL. In every hosted environment the private
+bucket MUST be created first through the Storage tool/API
+(`curriculum-rights-evidence`, `public = false`), and only then are the Storage
+RLS policies applied. Disposable/local CI environments continue to create the
+bucket during migration replay. Migrations alone do not provision it.
+
+**Ledger reconciliation.** Because the two Stage 1 migrations were applied to
+the live database through the hosted migration mechanism, they were recorded
+under freshly generated versions (`20260821130437`, `20260821130624`) while the
+repository versions `20260818175500` and `20260820190500` remained unrecorded.
+Their contents were independently verified as semantically equivalent to the
+live versions. The history was therefore repaired by recording those two
+versions in `supabase_migrations.schema_migrations` only — no SQL re-execution,
+no object recreation, no application-data change. Repository migrations now
+have zero pending versions against the live ledger.
