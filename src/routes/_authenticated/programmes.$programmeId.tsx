@@ -165,6 +165,38 @@ function ProgrammeDetailPage() {
                 }
               />
             ) : null}
+            {mayManage && ALLOWED_PROGRAMME_TRANSITIONS[record.status].includes("published") ? (
+              <Button
+                variant="outline"
+                disabled={programmeStatusMutation.isPending}
+                onClick={() => programmeStatusMutation.mutate("published")}
+              >
+                Publish
+              </Button>
+            ) : null}
+            {mayManage && ALLOWED_PROGRAMME_TRANSITIONS[record.status].includes("draft") ? (
+              <Button
+                variant="outline"
+                disabled={programmeStatusMutation.isPending}
+                onClick={() => programmeStatusMutation.mutate("draft")}
+              >
+                Return to draft
+              </Button>
+            ) : null}
+            {mayManage && ALLOWED_PROGRAMME_TRANSITIONS[record.status].includes("archived") ? (
+              <ConfirmAction
+                title="Archive this programme?"
+                description="Archiving is final. The programme stops accepting new learners and can no longer be published."
+                confirmLabel="Archive programme"
+                pending={programmeStatusMutation.isPending}
+                onConfirm={() => programmeStatusMutation.mutate("archived")}
+                trigger={
+                  <Button variant="outline" disabled={programmeStatusMutation.isPending}>
+                    Archive
+                  </Button>
+                }
+              />
+            ) : null}
             {mayEnroll && organizationId ? (
               <EnrollLearnerDialog
                 organizationId={organizationId}
