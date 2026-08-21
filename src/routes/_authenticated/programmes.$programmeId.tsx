@@ -22,13 +22,16 @@ import {
   EnrollLearnerDialog,
   ProgrammeDialog,
 } from "@/features/programmes/components/programme-dialogs";
+import { ConfirmAction } from "@/features/programmes/components/confirm-action";
 import {
   ALLOWED_PROGRAMME_ENROLLMENT_TRANSITIONS,
+  ALLOWED_PROGRAMME_TRANSITIONS,
   PROGRAMME_CATEGORY_LABELS,
   PROGRAMME_ENROLLMENT_STATUS_LABELS,
   PROGRAMME_STATUS_LABELS,
   programmeIsFull,
   type ProgrammeEnrollmentStatus,
+  type ProgrammeStatus,
 } from "@/features/programmes/constants";
 import {
   canEnrollInProgrammes,
@@ -38,6 +41,7 @@ import {
 import { useRoleContext } from "@/features/roles/role-context";
 import {
   changeProgrammeEnrollmentStatus,
+  changeProgrammeStatus,
   removeProgrammeInstructor,
 } from "@/lib/programmes.functions";
 import { formatDate } from "@/lib/format";
@@ -109,6 +113,16 @@ function ProgrammeDetailPage() {
     onError: (error: Error) => toast.error(error.message),
   });
 
+  const changeProgramme = useServerFn(changeProgrammeStatus);
+  const programmeStatusMutation = useMutation({
+    mutationFn: (status: ProgrammeStatus) => changeProgramme({ data: { programmeId, status } }),
+    onSuccess: () => {
+      toast.success("Programme status updated");
+      refresh();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
   if (programme.isPending) return <ListSkeleton rows={4} />;
   if (programme.error) {
     return (
@@ -144,6 +158,38 @@ function ProgrammeDetailPage() {
                 trigger={
                   <Button variant="outline">
                     <Pencil aria-hidden="true" className="size-4" /> Edit
+                  </Button>
+                }
+              />
+            ) : null}
+            {mayManage && ALLOWED_PROGRAMME_TRANSITIONS[record.status].includes("published") ? (
+              <Button
+                variant="outline"
+                disabled={programmeStatusMutation.isPending}
+                onClick={() => programmeStatusMutation.mutate("published")}
+              >
+                Publish
+              </Button>
+            ) : null}
+            {mayManage && ALLOWED_PROGRAMME_TRANSITIONS[record.status].includes("draft") ? (
+              <Button
+                variant="outline"
+                disabled={programmeStatusMutation.isPending}
+                onClick={() => programmeStatusMutation.mutate("draft")}
+              >
+                Return to draft
+              </Button>
+            ) : null}
+            {mayManage && ALLOWED_PROGRAMME_TRANSITIONS[record.status].includes("archived") ? (
+              <ConfirmAction
+                title="Archive this programme?"
+                description="Archiving is final. The programme stops accepting new learners and can no longer be published."
+                confirmLabel="Archive programme"
+                pending={programmeStatusMutation.isPending}
+                onConfirm={() => programmeStatusMutation.mutate("archived")}
+                trigger={
+                  <Button variant="outline" disabled={programmeStatusMutation.isPending}>
+                    Archive
                   </Button>
                 }
               />
@@ -238,14 +284,22 @@ function ProgrammeDetailPage() {
                         {instructor.status === "active" ? "Active" : "Ended"}
                       </Badge>
                       {mayManage && instructor.status === "active" ? (
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          disabled={endInstructorMutation.isPending}
-                          onClick={() => endInstructorMutation.mutate(instructor.id)}
-                        >
-                          End assignment
-                        </Button>
+                        <ConfirmAction
+                          title="End this instructor assignment?"
+                          description={`${instructor.fullName} will stop being an active instructor for this programme. The assignment stays on record.`}
+                          confirmLabel="End assignment"
+                          pending={endInstructorMutation.isPending}
+                          onConfirm={() => endInstructorMutation.mutate(instructor.id)}
+                          trigger={
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              disabled={endInstructorMutation.isPending}
+                            >
+                              End assignment
+                            </Button>
+                          }
+                        />
                       ) : null}
                     </div>
                   </li>
@@ -298,22 +352,54 @@ function ProgrammeDetailPage() {
                           {PROGRAMME_ENROLLMENT_STATUS_LABELS[enrollment.status]}
                         </Badge>
                         {mayChangeEnrollment
-                          ? next.map((status) => (
-                              <Button
-                                key={status}
-                                size="sm"
-                                variant="outline"
-                                disabled={changeStatusMutation.isPending}
-                                onClick={() =>
-                                  changeStatusMutation.mutate({
-                                    enrollmentId: enrollment.id,
-                                    status,
-                                  })
-                                }
-                              >
-                                {PROGRAMME_ENROLLMENT_STATUS_LABELS[status]}
-                              </Button>
-                            ))
+                          ? next.map((status) => {
+                              const label = PROGRAMME_ENROLLMENT_STATUS_LABELS[status];
+                              const button = (
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  disabled={changeStatusMutation.isPending}
+                                  onClick={
+                                    status === "withdrawn" || status === "archived"
+                                      ? undefined
+                                      : () =>
+                                          changeStatusMutation.mutate({
+                                            enrollmentId: enrollment.id,
+                                            status,
+                                          })
+                                  }
+                                >
+                                  {label}
+                                </Button>
+                              );
+                              if (status !== "withdrawn" && status !== "archived") {
+                                return <span key={status}>{button}</span>;
+                              }
+                              return (
+                                <ConfirmAction
+                                  key={status}
+                                  title={
+                                    status === "withdrawn"
+                                      ? "Withdraw this learner?"
+                                      : "Archive this enrollment?"
+                                  }
+                                  description={
+                                    status === "withdrawn"
+                                      ? `${enrollment.studentName} will be withdrawn from this programme and their place released.`
+                                      : `This enrollment for ${enrollment.studentName} will be archived. Archiving is final.`
+                                  }
+                                  confirmLabel={label}
+                                  pending={changeStatusMutation.isPending}
+                                  onConfirm={() =>
+                                    changeStatusMutation.mutate({
+                                      enrollmentId: enrollment.id,
+                                      status,
+                                    })
+                                  }
+                                  trigger={button}
+                                />
+                              );
+                            })
                           : null}
                       </div>
                     </li>
