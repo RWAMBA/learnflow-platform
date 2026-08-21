@@ -50,9 +50,6 @@ describe("correction migration is additive and forward-only", () => {
     expect(CODE).not.toMatch(/TRUNCATE/i);
   });
 
-
-
-
   it("does not change curriculum rights, readiness or activation state", () => {
     expect(CODE).not.toMatch(/UPDATE\s+public\.curriculum_versions/i);
     expect(CODE).not.toMatch(/rights_status\s*=/i);
