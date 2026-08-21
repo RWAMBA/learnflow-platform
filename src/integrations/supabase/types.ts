@@ -2336,6 +2336,219 @@ export type Database = {
         }
         Relationships: []
       }
+      programme_enrollments: {
+        Row: {
+          activated_at: string | null
+          archived_at: string | null
+          completed_at: string | null
+          created_at: string
+          created_by: string
+          enrolled_at: string
+          id: string
+          organization_id: string
+          programme_id: string
+          status: string
+          student_id: string
+          updated_at: string
+          updated_by: string | null
+          withdrawn_at: string | null
+        }
+        Insert: {
+          activated_at?: string | null
+          archived_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string
+          enrolled_at?: string
+          id?: string
+          organization_id: string
+          programme_id: string
+          status?: string
+          student_id: string
+          updated_at?: string
+          updated_by?: string | null
+          withdrawn_at?: string | null
+        }
+        Update: {
+          activated_at?: string | null
+          archived_at?: string | null
+          completed_at?: string | null
+          created_at?: string
+          created_by?: string
+          enrolled_at?: string
+          id?: string
+          organization_id?: string
+          programme_id?: string
+          status?: string
+          student_id?: string
+          updated_at?: string
+          updated_by?: string | null
+          withdrawn_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "programme_enrollments_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "programme_enrollments_programme_id_fkey"
+            columns: ["programme_id"]
+            isOneToOne: false
+            referencedRelation: "programmes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "programme_enrollments_student_id_fkey"
+            columns: ["student_id"]
+            isOneToOne: false
+            referencedRelation: "students"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      programme_instructors: {
+        Row: {
+          assigned_at: string
+          created_at: string
+          created_by: string
+          ended_at: string | null
+          id: string
+          organization_id: string
+          programme_id: string
+          status: string
+          updated_at: string
+          updated_by: string | null
+          user_role_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          created_at?: string
+          created_by?: string
+          ended_at?: string | null
+          id?: string
+          organization_id: string
+          programme_id: string
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          user_role_id: string
+        }
+        Update: {
+          assigned_at?: string
+          created_at?: string
+          created_by?: string
+          ended_at?: string | null
+          id?: string
+          organization_id?: string
+          programme_id?: string
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+          user_role_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "programme_instructors_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "programme_instructors_programme_id_fkey"
+            columns: ["programme_id"]
+            isOneToOne: false
+            referencedRelation: "programmes"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "programme_instructors_user_role_id_fkey"
+            columns: ["user_role_id"]
+            isOneToOne: false
+            referencedRelation: "user_roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      programmes: {
+        Row: {
+          author_type: string
+          authoring_organization_id: string | null
+          capacity: number | null
+          category: string
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          name: string
+          organization_id: string
+          schedule_description: string | null
+          status: string
+          subject_id: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          author_type?: string
+          authoring_organization_id?: string | null
+          capacity?: number | null
+          category: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          name: string
+          organization_id: string
+          schedule_description?: string | null
+          status?: string
+          subject_id?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          author_type?: string
+          authoring_organization_id?: string | null
+          capacity?: number | null
+          category?: string
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          name?: string
+          organization_id?: string
+          schedule_description?: string | null
+          status?: string
+          subject_id?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "programmes_authoring_organization_id_fkey"
+            columns: ["authoring_organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "programmes_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "programmes_subject_id_fkey"
+            columns: ["subject_id"]
+            isOneToOne: false
+            referencedRelation: "subjects"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       progress_records: {
         Row: {
           assessment_id: string | null
@@ -4073,6 +4286,10 @@ export type Database = {
         Args: { p_version_id: string }
         Returns: boolean
       }
+      enroll_student_in_programme: {
+        Args: { p_programme_id: string; p_student_id: string }
+        Returns: string
+      }
       search_curriculum: {
         Args: {
           p_content_type?: string
@@ -4095,6 +4312,10 @@ export type Database = {
           title: string
           total_count: number
         }[]
+      }
+      set_programme_enrollment_status: {
+        Args: { p_enrollment_id: string; p_status: string }
+        Returns: undefined
       }
     }
     Enums: {
