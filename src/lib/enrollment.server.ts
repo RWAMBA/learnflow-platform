@@ -99,47 +99,29 @@ export async function setEnrollmentStatus(
 
 /**
  * Transfers a learner onto a different curriculum version or academic level.
- * The prior enrollment is closed as `transferred` and the new record keeps a
- * pointer back to it, so placement history is never overwritten.
+ *
+ * The whole move is delegated to a single database routine so it happens in
+ * one transaction. An earlier two-call implementation could close the source
+ * placement and then fail before creating the replacement, leaving a learner
+ * with no active placement; that failure mode is now structurally impossible.
+ * The routine re-derives the learner and tenant from the source row,
+ * re-checks authorization, locks the learner's placements, applies the Stage 1
+ * availability gate and writes the audit trail.
  */
 export async function transferEnrollment(
   context: Ctx,
   input: z.infer<typeof enrollmentTransferSchema>,
 ) {
-  await assertVersionAvailable(context, input.curriculumVersionId);
-
-  const existing = await context.supabase
-    .from("curriculum_enrollments")
-    .select("id, student_id, enrollment_category, status")
-    .eq("id", input.enrollmentId)
-    .maybeSingle();
-  if (existing.error) throw new Error(existing.error.message);
-  if (!existing.data) throw new Error("That enrollment no longer exists");
-  if (existing.data.status !== "active") {
-    throw new Error("Only an active enrollment can be transferred");
-  }
-
-  const closed = await context.supabase
-    .from("curriculum_enrollments")
-    .update({ status: "transferred", ended_at: new Date().toISOString() })
-    .eq("id", input.enrollmentId);
-  if (closed.error) throw new Error(closed.error.message);
-
-  const created = await context.supabase
-    .from("curriculum_enrollments")
-    .insert({
-      student_id: existing.data.student_id,
-      curriculum_version_id: input.curriculumVersionId,
-      academic_level_id: input.academicLevelId,
-      track_id: input.trackId ?? null,
-      academic_period_id: input.academicPeriodId ?? null,
-      enrollment_category: existing.data.enrollment_category,
-      status: "active",
-      enrolled_at: new Date().toISOString(),
-      transferred_from_enrollment_id: input.enrollmentId,
-    })
-    .select("id")
-    .single();
-  if (created.error) throw new Error(created.error.message);
-  return { id: created.data.id };
+  const { data, error } = await context.supabase.rpc("transfer_curriculum_enrollment", {
+    p_enrollment_id: input.enrollmentId,
+    p_curriculum_version_id: input.curriculumVersionId,
+    p_academic_level_id: input.academicLevelId,
+    p_track_id: input.trackId ?? undefined,
+    p_academic_period_id: input.academicPeriodId ?? undefined,
+  });
+  if (error) throw new Error(error.message);
+  const result = data as { enrollment_id: string } | null;
+  if (!result?.enrollment_id) throw new Error("The transfer did not return a new placement");
+  return { id: result.enrollment_id };
 }
+
