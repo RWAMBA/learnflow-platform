@@ -1,14 +1,10 @@
-name: RLS principal tests (disposable Supabase)
+name: PR quality gates (Stage 1)
 
-# Live-principal RLS allow/deny proof for Phase 10 Stage 1C.
+# Mandatory gates for candidate -> main pull requests.
 #
-# Runs ONLY against a disposable local Supabase stack created by the Supabase
-# CLI inside this GitHub Actions job and destroyed with it. It provides the real
-# auth schema (auth.users, auth.uid()) and the real anon / authenticated /
-# service_role roles. No production URL, key, password, secret or project
-# connection is referenced anywhere in this workflow.
-#
-# Trigger is pull_request only; the privileged fork-secret trigger is never used.
+# Everything here is local/disposable: no hosted Supabase endpoint, no
+# production secret, no deployment credential is referenced. Every gate fails
+# closed — a skipped or unavailable gate fails the job rather than passing it.
 
 on:
   pull_request:
@@ -17,22 +13,81 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: pr-quality-gates-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  rls-principal-tests:
+  static-gates:
+    name: Typecheck, lint, tests, build, scans
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v2
+      - name: Install dependencies (lockfile enforced)
+        run: bun install --frozen-lockfile
+
+      - name: Typecheck
+        run: bun run typecheck
+
+      - name: ESLint (zero errors required)
+        run: bun run lint
+
+      - name: Unit and integration tests
+        run: bun run test
+
+      - name: Secret scan
+        run: bun run scan:secrets
+
+      - name: Migration order and duplicate-version check
+        run: bun run check:migrations
+
+      - name: Production build
+        run: bun run build
+
+      - name: Browser-bundle leakage scan
+        run: bun run scan:bundle
+
+      - name: Server/client boundary check
+        run: |
+          set -euo pipefail
+          # No client-reachable module may import the service-role client at
+          # module scope; it is only ever loaded inside a server handler.
+          if grep -rn "^import .*integrations/supabase/client\.server" src --include="*.ts" --include="*.tsx" \
+               | grep -v "\.server\.ts"; then
+            echo "Server-only Supabase admin client imported at module scope."; exit 1
+          fi
+          echo "Boundary check OK."
+
+      - name: End-to-end journeys (existing Playwright harness)
+        run: |
+          set -euo pipefail
+          bunx playwright install --with-deps chromium
+          bun run test:e2e
+
+      - name: Upload test evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stage1-static-gate-evidence
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 7
+
+  database-gates:
+    name: Disposable Supabase migration, RLS and Storage principals
     runs-on: ubuntu-latest
     env:
-      # Fixed Supabase CLI local defaults. Disposable, local-only, never hosted.
       RLS_DISPOSABLE_DB: "1"
       RLS_TEST_DATABASE_URL: postgresql://postgres:postgres@127.0.0.1:54322/postgres
       SUPABASE_CLI_VERSION: 2.30.4
     steps:
       - uses: actions/checkout@v4
-
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
-
-      - name: Static Stage 1C + Storage structural suites (always on)
-        run: bunx vitest run src/lib/stage1c-enrollment-lifecycle.test.ts src/lib/stage1-storage-authorization.test.ts
 
       - name: Reject any hosted Supabase / pooler endpoint
         run: |
@@ -46,7 +101,6 @@ jobs:
             postgresql://postgres:postgres@127.0.0.1:54322/*) ;;
             *) echo "Refusing: not the disposable local Supabase endpoint."; exit 1;;
           esac
-          # No production project may be linked in this checkout.
           if [ -f supabase/.temp/project-ref ]; then
             echo "Refusing: a linked Supabase project ref is present."; exit 1
           fi
@@ -59,8 +113,6 @@ jobs:
       - name: Start the disposable local Supabase stack (no migrations yet)
         run: |
           set -euo pipefail
-          # The migration history is replayed explicitly in a later step so the
-          # out-of-band prelude can run against an empty database first.
           mv supabase/migrations /tmp/learnflow-migrations
           mkdir -p supabase/migrations
           supabase start -x realtime,imgproxy,studio,edge-runtime,logflare,vector,supavisor,mailpit
@@ -68,7 +120,7 @@ jobs:
       - name: Apply the out-of-band prelude (authoritative hosted definition)
         run: psql "$RLS_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/rls/ci-prelude.sql
 
-      - name: Apply the complete migration history (Stage 1C included)
+      - name: Apply the complete migration history
         run: |
           set -euo pipefail
           rmdir supabase/migrations
@@ -78,34 +130,34 @@ jobs:
       - name: Prove the prehistory object is authoritative (not a no-op)
         run: psql "$RLS_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/rls/ci-prelude-verify.sql
 
-      - name: Verify Stage 1C objects exist in the disposable database
+      - name: Reconciliation check (non-zero fixtures, zero unresolved)
         run: |
           set -euo pipefail
-          # Explicit fail-closed assertions. A constant division-by-zero sentinel is unsafe:
-          # PostgreSQL may constant-fold the division during planning even when
-          # the failure branch is not selected.
           psql "$RLS_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -Atq -c "
             DO \$\$
+            DECLARE v_open int; v_dupes int;
             BEGIN
-              IF to_regclass('public.curriculum_enrollments') IS NULL THEN
-                RAISE EXCEPTION 'Stage 1C object missing: public.curriculum_enrollments';
+              SELECT count(*) INTO v_open FROM app_private.unreconciled_legacy_placements();
+              IF v_open <> 0 THEN
+                RAISE EXCEPTION 'RECONCILIATION: % resolvable legacy placement(s) left open', v_open;
               END IF;
-              IF to_regclass('public.academic_periods') IS NULL THEN
-                RAISE EXCEPTION 'Stage 1C object missing: public.academic_periods';
-              END IF;
-              IF to_regprocedure('app_private.can_administer_academic_period(uuid)') IS NULL THEN
-                RAISE EXCEPTION 'Stage 1C object missing: app_private.can_administer_academic_period(uuid)';
+              SELECT count(*) INTO v_dupes FROM (
+                SELECT student_id FROM public.curriculum_enrollments
+                 WHERE enrollment_category = 'primary' AND status = 'active'
+                 GROUP BY student_id HAVING count(*) > 1) d;
+              IF v_dupes <> 0 THEN
+                RAISE EXCEPTION 'RECONCILIATION: % duplicate active primary enrollment(s)', v_dupes;
               END IF;
             END
             \$\$;"
 
-      - name: Live-principal allow/deny proof (always rolled back)
+      - name: Cross-tenant and RLS live-principal proof
         run: node scripts/run-rls-principal-tests.mjs
 
-      - name: Prove zero residue after rollback
+      - name: Prove zero RLS residue after rollback
         run: psql "$RLS_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/rls/stage1c-residue-check.sql
 
-      - name: Storage live-principal allow/deny proof (always rolled back)
+      - name: Storage live-principal proof
         run: node scripts/run-storage-principal-tests.mjs
 
       - name: Prove zero storage residue after rollback

@@ -941,6 +941,65 @@ export type Database = {
           },
         ]
       }
+      curriculum_import_batches: {
+        Row: {
+          batch_reference: string
+          completed_at: string | null
+          created_at: string
+          dry_run: boolean
+          dry_run_result: Json | null
+          errors: Json
+          id: string
+          imported_by: string | null
+          record_counts: Json
+          rollback_reference: string | null
+          source_artifact_id: string | null
+          source_package: string | null
+          started_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          batch_reference: string
+          completed_at?: string | null
+          created_at?: string
+          dry_run?: boolean
+          dry_run_result?: Json | null
+          errors?: Json
+          id?: string
+          imported_by?: string | null
+          record_counts?: Json
+          rollback_reference?: string | null
+          source_artifact_id?: string | null
+          source_package?: string | null
+          started_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          batch_reference?: string
+          completed_at?: string | null
+          created_at?: string
+          dry_run?: boolean
+          dry_run_result?: Json | null
+          errors?: Json
+          id?: string
+          imported_by?: string | null
+          record_counts?: Json
+          rollback_reference?: string | null
+          source_artifact_id?: string | null
+          source_package?: string | null
+          started_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "curriculum_import_batches_source_artifact_id_fkey"
+            columns: ["source_artifact_id"]
+            isOneToOne: false
+            referencedRelation: "source_artifacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       curriculum_nodes: {
         Row: {
           authoring_organization_id: string | null
@@ -1110,6 +1169,9 @@ export type Database = {
       }
       curriculum_versions: {
         Row: {
+          activation_status: string
+          availability_note: string | null
+          content_readiness: string
           created_at: string
           created_by: string | null
           curriculum_id: string
@@ -1120,10 +1182,16 @@ export type Database = {
           organization_id: string | null
           parent_version_id: string | null
           published_at: string | null
+          rights_reviewed_at: string | null
+          rights_reviewed_by: string | null
+          rights_status: string
           status: string
           updated_at: string
         }
         Insert: {
+          activation_status?: string
+          availability_note?: string | null
+          content_readiness?: string
           created_at?: string
           created_by?: string | null
           curriculum_id: string
@@ -1134,10 +1202,16 @@ export type Database = {
           organization_id?: string | null
           parent_version_id?: string | null
           published_at?: string | null
+          rights_reviewed_at?: string | null
+          rights_reviewed_by?: string | null
+          rights_status?: string
           status?: string
           updated_at?: string
         }
         Update: {
+          activation_status?: string
+          availability_note?: string | null
+          content_readiness?: string
           created_at?: string
           created_by?: string | null
           curriculum_id?: string
@@ -1148,6 +1222,9 @@ export type Database = {
           organization_id?: string | null
           parent_version_id?: string | null
           published_at?: string | null
+          rights_reviewed_at?: string | null
+          rights_reviewed_by?: string | null
+          rights_status?: string
           status?: string
           updated_at?: string
         }
@@ -1187,30 +1264,36 @@ export type Database = {
           created_at: string
           curriculum_version_id: string
           id: string
+          is_available: boolean
           name: string
           published_at: string | null
           sequence_order: number
           status: string
+          unavailable_reason: string | null
           updated_at: string
         }
         Insert: {
           created_at?: string
           curriculum_version_id: string
           id?: string
+          is_available?: boolean
           name: string
           published_at?: string | null
           sequence_order?: number
           status?: string
+          unavailable_reason?: string | null
           updated_at?: string
         }
         Update: {
           created_at?: string
           curriculum_version_id?: string
           id?: string
+          is_available?: boolean
           name?: string
           published_at?: string | null
           sequence_order?: number
           status?: string
+          unavailable_reason?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -1229,33 +1312,39 @@ export type Database = {
           curriculum_id: string
           education_stage_id: string | null
           id: string
+          is_available: boolean
           name: string
           pathway_required: boolean
           published_at: string | null
           sequence_order: number
           status: string
+          unavailable_reason: string | null
         }
         Insert: {
           created_at?: string
           curriculum_id: string
           education_stage_id?: string | null
           id?: string
+          is_available?: boolean
           name: string
           pathway_required?: boolean
           published_at?: string | null
           sequence_order: number
           status?: string
+          unavailable_reason?: string | null
         }
         Update: {
           created_at?: string
           curriculum_id?: string
           education_stage_id?: string | null
           id?: string
+          is_available?: boolean
           name?: string
           pathway_required?: boolean
           published_at?: string | null
           sequence_order?: number
           status?: string
+          unavailable_reason?: string | null
         }
         Relationships: [
           {
@@ -1697,6 +1786,48 @@ export type Database = {
             columns: ["recipient_user_role_id"]
             isOneToOne: false
             referencedRelation: "user_roles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      objective_standard_crosswalk: {
+        Row: {
+          alignment_strength: string
+          created_at: string
+          id: string
+          learning_objective_id: string
+          note: string | null
+          standards_statement_id: string
+        }
+        Insert: {
+          alignment_strength?: string
+          created_at?: string
+          id?: string
+          learning_objective_id: string
+          note?: string | null
+          standards_statement_id: string
+        }
+        Update: {
+          alignment_strength?: string
+          created_at?: string
+          id?: string
+          learning_objective_id?: string
+          note?: string | null
+          standards_statement_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "objective_standard_crosswalk_learning_objective_id_fkey"
+            columns: ["learning_objective_id"]
+            isOneToOne: false
+            referencedRelation: "learning_objectives"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "objective_standard_crosswalk_standards_statement_id_fkey"
+            columns: ["standards_statement_id"]
+            isOneToOne: false
+            referencedRelation: "standards_statements"
             referencedColumns: ["id"]
           },
         ]
@@ -2429,6 +2560,125 @@ export type Database = {
           },
         ]
       }
+      rights_audit_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          new_state: Json | null
+          previous_state: Json | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          new_state?: Json | null
+          previous_state?: Json | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          new_state?: Json | null
+          previous_state?: Json | null
+        }
+        Relationships: []
+      }
+      rights_grants: {
+        Row: {
+          attribution_text: string | null
+          created_at: string
+          effective_date: string | null
+          evidence_storage_path: string | null
+          expiry_date: string | null
+          grant_reference: string | null
+          grant_type: string
+          id: string
+          permits_authenticated_display: boolean
+          permits_commercial_use: boolean
+          permits_derivative_works: boolean
+          permits_download: boolean
+          permits_public_display: boolean
+          permits_storage: boolean
+          permits_sublicensing: boolean
+          permits_transformation: boolean
+          permits_translation: boolean
+          restrictions: string | null
+          reviewed_at: string | null
+          reviewer_id: string | null
+          source_artifact_id: string
+          territory: string | null
+          updated_at: string
+        }
+        Insert: {
+          attribution_text?: string | null
+          created_at?: string
+          effective_date?: string | null
+          evidence_storage_path?: string | null
+          expiry_date?: string | null
+          grant_reference?: string | null
+          grant_type?: string
+          id?: string
+          permits_authenticated_display?: boolean
+          permits_commercial_use?: boolean
+          permits_derivative_works?: boolean
+          permits_download?: boolean
+          permits_public_display?: boolean
+          permits_storage?: boolean
+          permits_sublicensing?: boolean
+          permits_transformation?: boolean
+          permits_translation?: boolean
+          restrictions?: string | null
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          source_artifact_id: string
+          territory?: string | null
+          updated_at?: string
+        }
+        Update: {
+          attribution_text?: string | null
+          created_at?: string
+          effective_date?: string | null
+          evidence_storage_path?: string | null
+          expiry_date?: string | null
+          grant_reference?: string | null
+          grant_type?: string
+          id?: string
+          permits_authenticated_display?: boolean
+          permits_commercial_use?: boolean
+          permits_derivative_works?: boolean
+          permits_download?: boolean
+          permits_public_display?: boolean
+          permits_storage?: boolean
+          permits_sublicensing?: boolean
+          permits_transformation?: boolean
+          permits_translation?: boolean
+          restrictions?: string | null
+          reviewed_at?: string | null
+          reviewer_id?: string | null
+          source_artifact_id?: string
+          territory?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rights_grants_source_artifact_id_fkey"
+            columns: ["source_artifact_id"]
+            isOneToOne: false
+            referencedRelation: "source_artifacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       roles: {
         Row: {
           code: string
@@ -2654,6 +2904,193 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      source_artifact_links: {
+        Row: {
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          note: string | null
+          source_artifact_id: string
+        }
+        Insert: {
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          note?: string | null
+          source_artifact_id: string
+        }
+        Update: {
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          note?: string | null
+          source_artifact_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "source_artifact_links_source_artifact_id_fkey"
+            columns: ["source_artifact_id"]
+            isOneToOne: false
+            referencedRelation: "source_artifacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      source_artifacts: {
+        Row: {
+          acquisition_method: string
+          authoritative_url: string | null
+          checksum: string | null
+          created_at: string
+          created_by: string | null
+          document_date: string | null
+          edition: string | null
+          id: string
+          jurisdiction: string | null
+          notes: string | null
+          original_artifact_path: string | null
+          rights_holder: string
+          source_title: string
+          source_type: string
+          updated_at: string
+          verification_status: string
+        }
+        Insert: {
+          acquisition_method?: string
+          authoritative_url?: string | null
+          checksum?: string | null
+          created_at?: string
+          created_by?: string | null
+          document_date?: string | null
+          edition?: string | null
+          id?: string
+          jurisdiction?: string | null
+          notes?: string | null
+          original_artifact_path?: string | null
+          rights_holder: string
+          source_title: string
+          source_type?: string
+          updated_at?: string
+          verification_status?: string
+        }
+        Update: {
+          acquisition_method?: string
+          authoritative_url?: string | null
+          checksum?: string | null
+          created_at?: string
+          created_by?: string | null
+          document_date?: string | null
+          edition?: string | null
+          id?: string
+          jurisdiction?: string | null
+          notes?: string | null
+          original_artifact_path?: string | null
+          rights_holder?: string
+          source_title?: string
+          source_type?: string
+          updated_at?: string
+          verification_status?: string
+        }
+        Relationships: []
+      }
+      standards_frameworks: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          is_available: boolean
+          jurisdiction: string | null
+          name: string
+          source_artifact_id: string | null
+          status: string
+          updated_at: string
+          version_label: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          is_available?: boolean
+          jurisdiction?: string | null
+          name: string
+          source_artifact_id?: string | null
+          status?: string
+          updated_at?: string
+          version_label?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          is_available?: boolean
+          jurisdiction?: string | null
+          name?: string
+          source_artifact_id?: string | null
+          status?: string
+          updated_at?: string
+          version_label?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "standards_frameworks_source_artifact_id_fkey"
+            columns: ["source_artifact_id"]
+            isOneToOne: false
+            referencedRelation: "source_artifacts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      standards_statements: {
+        Row: {
+          code: string
+          created_at: string
+          description: string
+          framework_id: string
+          id: string
+          parent_statement_id: string | null
+          sequence_order: number
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          description: string
+          framework_id: string
+          id?: string
+          parent_statement_id?: string | null
+          sequence_order?: number
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          description?: string
+          framework_id?: string
+          id?: string
+          parent_statement_id?: string | null
+          sequence_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "standards_statements_framework_id_fkey"
+            columns: ["framework_id"]
+            isOneToOne: false
+            referencedRelation: "standards_frameworks"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "standards_statements_parent_statement_id_fkey"
+            columns: ["parent_statement_id"]
+            isOneToOne: false
+            referencedRelation: "standards_statements"
             referencedColumns: ["id"]
           },
         ]
@@ -3544,6 +3981,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      curriculum_version_is_available: {
+        Args: { p_version_id: string }
+        Returns: boolean
+      }
       search_curriculum: {
         Args: {
           p_content_type?: string

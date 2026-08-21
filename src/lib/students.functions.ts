@@ -13,52 +13,45 @@ const createStudentSchema = z.object({
 });
 
 /**
- * Multi-step: creates the student record and the creating guardian's
- * full-management relationship in one operation.
+ * Stage 1 controlled correction — atomic learner creation.
+ *
+ * The student record, the creating guardian's full-management relationship and
+ * (when a grade is supplied) one pending primary `curriculum_enrollments` row
+ * are created in a single database transaction by
+ * `public.create_student_with_placement`. The deprecated
+ * `students.grade_id` / `students.pathway_id` columns are never written: the
+ * enrollment is the authoritative placement. Curriculum version resolution is
+ * deterministic-or-fail-closed and tenant ownership is derived server-side from
+ * the authenticated actor's active membership.
  */
 export const createStudentWithGuardian = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => createStudentSchema.parse(input))
   .handler(async ({ data, context }) => {
-    const { supabase, userId } = context;
+    const { supabase } = context;
 
-    const { data: student, error } = await supabase
-      .from("students")
-      .insert({
-        organization_id: data.organizationId,
-        created_by: userId,
-        first_name: data.firstName,
-        last_name: data.lastName,
-        date_of_birth: data.dateOfBirth || null,
-        grade_id: data.gradeId || null,
-        pathway_id: data.pathwayId || null,
-      })
-      .select("id")
-      .single();
-    if (error) throw new Error(error.message);
-
-    const { error: relationshipError } = await supabase
-      .from("parent_student_relationships")
-      .insert({
-        organization_id: data.organizationId,
-        parent_id: userId,
-        student_id: student.id,
-        role_subtype: data.roleSubtype,
-        permission_level: "full_management",
-        status: "active",
-        invitation_status: "accepted",
-        created_by: userId,
-      });
-    if (relationshipError) throw new Error(relationshipError.message);
-
-    await supabase.from("audit_logs").insert({
-      actor_user_id: userId,
-      organization_id: data.organizationId,
-      action: "student.created",
-      entity_type: "students",
-      entity_id: student.id,
-      after_state: { first_name: data.firstName, last_name: data.lastName },
+    const { data: result, error } = await (
+      supabase as unknown as {
+        rpc: (
+          fn: string,
+          args: Record<string, unknown>,
+        ) => Promise<{
+          data: { student_id: string; enrollment_id: string | null } | null;
+          error: { message: string } | null;
+        }>;
+      }
+    ).rpc("create_student_with_placement", {
+      p_organization_id: data.organizationId,
+      p_first_name: data.firstName,
+      p_last_name: data.lastName,
+      p_date_of_birth: data.dateOfBirth || null,
+      p_academic_level_id: data.gradeId || null,
+      p_track_id: data.pathwayId || null,
+      p_role_subtype: data.roleSubtype,
     });
 
-    return { studentId: student.id };
+    if (error) throw new Error(error.message);
+    if (!result?.student_id) throw new Error("The student could not be created");
+
+    return { studentId: result.student_id, enrollmentId: result.enrollment_id ?? null };
   });

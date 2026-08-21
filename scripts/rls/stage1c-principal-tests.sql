@@ -170,4 +170,177 @@ BEGIN
 END
 $outer$;
 
+-- ---------------------------------------------------------------------------
+-- Stage 1 controlled correction — live-principal proof of the privileged RPC
+-- public.create_student_with_placement(...). The function is invoked ONLY as a
+-- real `authenticated` principal carrying request.jwt.claims for a synthetic
+-- guardian; no owner, service_role or migration role shortcut is used, and no
+-- row the function is responsible for is inserted by hand.
+-- ---------------------------------------------------------------------------
+DO $rpc$
+DECLARE
+  v_org uuid := gen_random_uuid();
+  v_other_org uuid := gen_random_uuid();
+  v_parent uuid := gen_random_uuid();
+  v_role_parent uuid;
+  v_curriculum uuid := gen_random_uuid();
+  v_version uuid := gen_random_uuid();
+  v_level uuid := gen_random_uuid();
+  v_result jsonb;
+  v_student uuid;
+  v_enrollment uuid;
+  v_count int;
+  v_row record;
+BEGIN
+  IF to_regprocedure(
+       'public.create_student_with_placement(uuid, text, text, date, uuid, uuid, text)'
+     ) IS NULL THEN
+    RAISE EXCEPTION 'Stage 1 correction migration is not applied in this disposable database';
+  END IF;
+
+  -- ---------------------------------------------------------------- fixtures
+  INSERT INTO auth.users (id, email) VALUES (v_parent, 'rpc-parent@example.test')
+  ON CONFLICT DO NOTHING;
+  INSERT INTO public.profiles (id, full_name) VALUES (v_parent, 'RPC Parent')
+  ON CONFLICT (id) DO NOTHING;
+
+  INSERT INTO public.organizations (id, name, tenant_type) VALUES
+    (v_org, 'Disposable Org RPC', 'family'),
+    (v_other_org, 'Disposable Org RPC Other', 'family');
+
+  INSERT INTO public.organization_memberships (organization_id, user_id, status, created_by)
+  VALUES (v_org, v_parent, 'active', v_parent);
+
+  SELECT id INTO v_role_parent FROM public.roles WHERE code = 'parent_guardian';
+  IF v_role_parent IS NULL THEN
+    RAISE EXCEPTION 'roles.parent_guardian missing in disposable database';
+  END IF;
+
+  INSERT INTO public.user_roles (organization_id, user_id, role_id, status, created_by)
+  VALUES (v_org, v_parent, v_role_parent, 'active', v_parent);
+
+  INSERT INTO public.curricula (id, code, name) VALUES (v_curriculum, 'DISPRPC', 'Disposable RPC');
+  -- Exactly one current version for this curriculum: the deterministic path.
+  -- Publication is required for a current version by the schema's own check
+  -- constraint. Rights, readiness and activation state are deliberately left at
+  -- their fail-closed defaults, so the version remains unavailable to ordinary
+  -- users; only the deterministic resolution path is exercised.
+  INSERT INTO public.curriculum_versions (id, curriculum_id, label, status, is_current)
+  VALUES (v_version, v_curriculum, 'v1', 'published', true);
+  INSERT INTO public.grades (id, curriculum_id, name, sequence_order)
+  VALUES (v_level, v_curriculum, 'RPC Level 1', 1);
+
+  SELECT count(*) INTO v_count
+    FROM public.curriculum_versions WHERE curriculum_id = v_curriculum AND is_current;
+  IF v_count <> 1 THEN
+    RAISE EXCEPTION 'FIXTURE FAILED: expected exactly one current version, found %', v_count;
+  END IF;
+
+  -- ------------------------------------- live invocation as the real principal
+  SET LOCAL ROLE authenticated;
+  PERFORM set_config('request.jwt.claims',
+    json_build_object('sub', v_parent, 'role', 'authenticated')::text, true);
+
+  SELECT public.create_student_with_placement(
+    v_org, 'Disposable', 'Learner', NULL::date, v_level, NULL::uuid, 'legal_guardian'
+  ) INTO v_result;
+
+  RESET ROLE;
+
+  -- ------------------------------------------------------------- assertions
+  IF v_result IS NULL OR v_result->>'student_id' IS NULL THEN
+    RAISE EXCEPTION 'RPC FAILED: no student identifier returned';
+  END IF;
+  v_student := (v_result->>'student_id')::uuid;
+  v_enrollment := nullif(v_result->>'enrollment_id', '')::uuid;
+  IF v_enrollment IS NULL THEN
+    RAISE EXCEPTION 'RPC FAILED: no enrollment identifier returned';
+  END IF;
+
+  SELECT count(*) INTO v_count FROM public.students WHERE id = v_student;
+  IF v_count <> 1 THEN
+    RAISE EXCEPTION 'RPC FAILED: expected exactly one created student, found %', v_count;
+  END IF;
+
+  SELECT organization_id, created_by, grade_id, pathway_id INTO v_row
+    FROM public.students WHERE id = v_student;
+  IF v_row.organization_id <> v_org THEN
+    RAISE EXCEPTION 'RPC FAILED: student tenant is not the target organization';
+  END IF;
+  IF v_row.created_by IS DISTINCT FROM v_parent THEN
+    RAISE EXCEPTION 'RPC FAILED: creator does not resolve to the authenticated principal';
+  END IF;
+  IF v_row.grade_id IS NOT NULL THEN
+    RAISE EXCEPTION 'RPC FAILED: deprecated students.grade_id was written';
+  END IF;
+  IF v_row.pathway_id IS NOT NULL THEN
+    RAISE EXCEPTION 'RPC FAILED: deprecated students.pathway_id was written';
+  END IF;
+
+  SELECT count(*) INTO v_count
+    FROM public.parent_student_relationships
+   WHERE student_id = v_student AND parent_id = v_parent
+     AND organization_id = v_org AND status = 'active';
+  IF v_count <> 1 THEN
+    RAISE EXCEPTION 'RPC FAILED: expected exactly one active guardian relationship, found %', v_count;
+  END IF;
+
+  SELECT count(*) INTO v_count
+    FROM public.curriculum_enrollments WHERE student_id = v_student;
+  IF v_count <> 1 THEN
+    RAISE EXCEPTION 'RPC FAILED: expected exactly one enrollment, found %', v_count;
+  END IF;
+
+  SELECT status, enrollment_category, academic_level_id, curriculum_version_id, track_id
+    INTO v_row
+    FROM public.curriculum_enrollments WHERE id = v_enrollment;
+  IF v_row.enrollment_category <> 'primary' THEN
+    RAISE EXCEPTION 'RPC FAILED: enrollment is not primary';
+  END IF;
+  IF v_row.status <> 'pending' THEN
+    RAISE EXCEPTION 'RPC FAILED: enrollment status is %, expected pending', v_row.status;
+  END IF;
+  IF v_row.academic_level_id <> v_level THEN
+    RAISE EXCEPTION 'RPC FAILED: enrollment academic level does not match the selected grade';
+  END IF;
+  IF v_row.curriculum_version_id <> v_version THEN
+    RAISE EXCEPTION 'RPC FAILED: enrollment version is not the single deterministic current version';
+  END IF;
+  IF v_row.track_id IS NOT NULL THEN
+    RAISE EXCEPTION 'RPC FAILED: a track was invented for a gradeless pathway selection';
+  END IF;
+
+  -- Tenant scope of the placement is the target organization only.
+  SELECT count(*) INTO v_count
+    FROM public.curriculum_enrollments e
+    JOIN public.students s ON s.id = e.student_id
+   WHERE e.id = v_enrollment AND s.organization_id = v_org;
+  IF v_count <> 1 THEN
+    RAISE EXCEPTION 'RPC FAILED: enrollment does not belong to the target tenant';
+  END IF;
+
+  -- No unrelated or duplicate placement leaked into the other disposable tenant.
+  SELECT count(*) INTO v_count
+    FROM public.curriculum_enrollments e
+    JOIN public.students s ON s.id = e.student_id
+   WHERE s.organization_id = v_other_org;
+  IF v_count <> 0 THEN
+    RAISE EXCEPTION 'RPC FAILED: an unrelated placement was created';
+  END IF;
+
+  -- Audit/history entry.
+  SELECT count(*) INTO v_count
+    FROM public.audit_logs
+   WHERE entity_type = 'students' AND entity_id = v_student
+     AND action = 'student.created' AND actor_user_id = v_parent
+     AND organization_id = v_org;
+  IF v_count <> 1 THEN
+    RAISE EXCEPTION 'RPC FAILED: expected exactly one audit entry, found %', v_count;
+  END IF;
+
+  RAISE NOTICE '[stage1c-rpc] live-principal create_student_with_placement assertions passed';
+END
+$rpc$;
+
 ROLLBACK;
+
