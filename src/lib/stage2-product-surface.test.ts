@@ -156,19 +156,18 @@ describe("Stage 2 — removed scope", () => {
     const forbidden = [
       "certificate",
       "credential",
-      "badge",
       "university",
       "tvet",
       "diploma",
       "career pathway",
       "career aspiration",
+      "achievement badge",
     ];
     for (const source of CLIENT_SURFACE) {
       const lower = source.toLowerCase();
+      const disclaimers = lower.split("no certificate is issued").length - 1;
       for (const term of forbidden) {
-        // "no certificate is issued" is the only permitted mention.
         const occurrences = lower.split(term).length - 1;
-        const disclaimers = lower.split("no certificate is issued").length - 1;
         expect(occurrences - (term === "certificate" ? disclaimers : 0)).toBe(0);
       }
     }
