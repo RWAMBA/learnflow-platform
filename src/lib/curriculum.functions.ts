@@ -363,20 +363,53 @@ export const assignPathwayToStudents = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { supabase } = context;
+
+    // The Track lives on the authoritative curriculum enrollment. The
+    // deprecated students.pathway_id column is never written.
+    const enrollments = await supabase
+      .from("curriculum_enrollments")
+      .select("id, student_id, academic_level_id")
+      .in("student_id", data.studentIds)
+      .eq("enrollment_category", "primary")
+      .eq("status", "pending");
+    if (enrollments.error) throw new Error(enrollments.error.message);
+
+    const rows = enrollments.data ?? [];
+    if (rows.length !== data.studentIds.length) {
+      throw new Error(
+        "Every selected learner needs a pending primary curriculum enrollment before a pathway can be assigned",
+      );
+    }
+
+    const pathway = await supabase
+      .from("pathways")
+      .select("id, grade_id")
+      .eq("id", data.pathwayId)
+      .maybeSingle();
+    if (pathway.error) throw new Error(pathway.error.message);
+    if (!pathway.data) throw new Error("That pathway no longer exists");
+    if (rows.some((row) => row.academic_level_id !== pathway.data!.grade_id)) {
+      throw new Error("That pathway does not belong to every selected learner's grade");
+    }
+
     const { error } = await supabase
-      .from("students")
-      .update({ pathway_id: data.pathwayId })
-      .in("id", data.studentIds);
+      .from("curriculum_enrollments")
+      .update({ track_id: data.pathwayId })
+      .in(
+        "id",
+        rows.map((row) => row.id),
+      );
     if (error) throw new Error(error.message);
     await writeAudit(context, {
       organizationId: data.organizationId,
       action: "curriculum.pathway.assigned",
-      entityType: "students",
+      entityType: "curriculum_enrollments",
       entityId: data.pathwayId,
       afterState: { student_ids: data.studentIds },
     });
     return { assigned: data.studentIds.length };
   });
+
 
 /* -------------------------------------------------------------- progress */
 
