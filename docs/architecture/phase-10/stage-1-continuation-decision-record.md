@@ -172,3 +172,44 @@ live versions. The history was therefore repaired by recording those two
 versions in `supabase_migrations.schema_migrations` only — no SQL re-execution,
 no object recreation, no application-data change. Repository migrations now
 have zero pending versions against the live ledger.
+
+## 2026-08-21 — PR #7 CI replay correction (repository-only)
+
+Both disposable workflows failed while replaying
+`20260821171702_6004cc94-9fe5-4b97-a5d7-e4a61c3daf56.sql`. The migration's final
+postcondition block encoded the live production census (`students = 3`,
+`active primary enrollments = 3`) as if it were a schema invariant. A clean
+disposable database correctly contains zero learners, so the block raised
+`P0001 Postcondition failed: students = 0, expected 3` immediately after the
+recovery block correctly reported `no unplaced learner; nothing to do
+(idempotent)`. The Storage API proof was consequently skipped, its manifest was
+empty, and the unconditional residue step then reported the migration-created
+baseline audit row as unmanifested — a secondary effect only.
+
+Under a narrow, explicitly authorized exception to the rule prohibiting edits to
+applied migrations, the erroneous postcondition block — and only that block —
+was corrected in the repository.
+
+- The applied live SQL was **not** re-executed. No live migration was rerun.
+- Production data and the live migration ledger were **untouched**; no rows,
+  policies, grants or ledger versions were changed.
+- The live recovery outcome is unchanged: the affected learner keeps the
+  restored placement created when the migration was originally applied.
+- The RPC definition, its authorization, the atomic-transfer logic and the
+  incident-recovery operations are byte-for-byte unchanged.
+
+Only invalid environment-specific postconditions were replaced with
+state-relative invariants that hold in both empty and populated environments:
+zero learners is valid; the recovery no-ops when the historical incident is
+absent; no learner may be left unplaced or hold duplicate active-primary
+placements; any recovered placement must reproduce the proven source version,
+academic level, track and period; and the transfer RPC must exist with
+`EXECUTE` for `authenticated` and not for `anon`.
+
+Migration SHA-256:
+
+- before: `28e64e03335d6e7248b906d1f6b2e7aaeea3eaf239cea6f92c8a2d06db37547f`
+- after:  `34d51c7ff5201d1898e1782b80fedde6274b7fc69418c7e07edc599218025402`
+
+Regression coverage: `src/lib/stage2-migration-replay.test.ts` plus the updated
+assertions in `src/lib/stage2-transfer-repair.test.ts`.

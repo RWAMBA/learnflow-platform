@@ -179,19 +179,25 @@ describe("forward-only learner recovery", () => {
     );
   });
 
-  it("verifies the whole census before committing", () => {
+  it("verifies state-relative invariants before committing", () => {
     for (const check of [
-      "Postcondition failed: students = %, expected 3",
-      "Postcondition failed: active primary enrollments = %, expected 3",
       "learner(s) unplaced",
       "duplicate active primary placements",
       "unreconciled legacy placements",
       "curriculum version(s) now pass the availability gate",
       "CBC grade count = %, expected 12",
       "pre-primary level(s) present",
+      "recovered placement(s) diverge from the proven source",
+      "public.transfer_curriculum_enrollment is missing",
     ]) {
       expect(CODE).toContain(check);
     }
+  });
+
+  it("encodes no absolute production census as a schema invariant", () => {
+    expect(CODE).not.toContain("students = %, expected 3");
+    expect(CODE).not.toContain("active primary enrollments = %, expected 3");
+    expect(CODE).not.toMatch(/count\(\*\)\s+INTO\s+v_n\s+FROM public\.students;/);
   });
 });
 

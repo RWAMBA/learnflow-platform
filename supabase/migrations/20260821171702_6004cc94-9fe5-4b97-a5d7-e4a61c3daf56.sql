@@ -327,13 +327,43 @@ $$;
 DO $$
 DECLARE v_n integer;
 BEGIN
-  SELECT count(*) INTO v_n FROM public.students;
-  IF v_n <> 3 THEN RAISE EXCEPTION 'Postcondition failed: students = %, expected 3', v_n; END IF;
+  -- State-relative invariants only. Absolute production census values
+  -- (three learners / three active primary placements) are NOT schema
+  -- invariants: a clean disposable database legitimately contains zero
+  -- learners, and this migration must replay deterministically there.
+  IF to_regprocedure('public.transfer_curriculum_enrollment(uuid, uuid, uuid, uuid, uuid)') IS NULL THEN
+    RAISE EXCEPTION 'Postcondition failed: public.transfer_curriculum_enrollment is missing';
+  END IF;
+  IF NOT has_function_privilege('authenticated',
+        'public.transfer_curriculum_enrollment(uuid, uuid, uuid, uuid, uuid)', 'EXECUTE') THEN
+    RAISE EXCEPTION 'Postcondition failed: authenticated cannot execute the transfer RPC';
+  END IF;
+  IF has_function_privilege('anon',
+        'public.transfer_curriculum_enrollment(uuid, uuid, uuid, uuid, uuid)', 'EXECUTE') THEN
+    RAISE EXCEPTION 'Postcondition failed: anon may execute the transfer RPC';
+  END IF;
 
-  SELECT count(*) INTO v_n FROM public.curriculum_enrollments
-   WHERE enrollment_category = 'primary' AND status = 'active';
-  IF v_n <> 3 THEN RAISE EXCEPTION 'Postcondition failed: active primary enrollments = %, expected 3', v_n; END IF;
+  -- Any placement produced by the recovery block must reproduce the proven
+  -- source placement exactly (version, level, track, period).
+  SELECT count(*) INTO v_n
+    FROM public.curriculum_enrollments e
+    JOIN public.curriculum_enrollments src ON src.id = e.transferred_from_enrollment_id
+   WHERE e.enrollment_category = 'primary'
+     AND e.status = 'active'
+     AND src.status = 'transferred'
+     AND EXISTS (SELECT 1 FROM public.audit_logs a
+                  WHERE a.entity_type = 'curriculum_enrollments'
+                    AND a.entity_id = e.id
+                    AND a.action = 'curriculum_enrollment.transfer_incident_recovered')
+     AND (e.curriculum_version_id IS DISTINCT FROM src.curriculum_version_id
+       OR e.academic_level_id      IS DISTINCT FROM src.academic_level_id
+       OR e.track_id               IS DISTINCT FROM src.track_id
+       OR e.academic_period_id     IS DISTINCT FROM src.academic_period_id);
+  IF v_n <> 0 THEN
+    RAISE EXCEPTION 'Postcondition failed: % recovered placement(s) diverge from the proven source', v_n;
+  END IF;
 
+  -- Whatever learners exist (possibly none), none may be left unplaced.
   SELECT count(*) INTO v_n FROM public.students s
    WHERE NOT EXISTS (SELECT 1 FROM public.curriculum_enrollments e
                       WHERE e.student_id = s.id AND e.enrollment_category = 'primary'
