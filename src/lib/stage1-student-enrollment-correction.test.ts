@@ -37,7 +37,7 @@ describe("correction migration is additive and forward-only", () => {
     // under fresh ledger timestamps. Those twins are the only migrations
     // permitted after the correction, and each must carry approved Stage 1
     // content only.
-    const later = files.slice(files.indexOf(MIGRATION_FILE) + 1);
+    const later = files.slice(files.indexOf(MIGRATION_FILE!) + 1);
     for (const file of later) {
       const body = readFileSync(`supabase/migrations/${file!}`, "utf8");
       expect(
