@@ -199,7 +199,6 @@ describe("forward-only learner recovery", () => {
     expect(CODE).not.toContain("active primary enrollments = %, expected 3");
     expect(CODE).not.toMatch(/count\(\*\)\s+INTO\s+v_n\s+FROM public\.students;/);
   });
-
 });
 
 describe("application cutover", () => {
