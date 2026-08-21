@@ -41,7 +41,9 @@ const CODE = stripComments(readFileSync(`supabase/migrations/${STAGE2_FILE}`, "u
 describe("Stage 2 — migration artifact", () => {
   it("is ordered after every Stage 1 migration", () => {
     const index = MIGRATIONS.indexOf(STAGE2_FILE);
-    expect(index).toBe(MIGRATIONS.length - 1);
+    // Later Stage 2 continuation migrations may follow it; none may precede it.
+    expect(index).toBeGreaterThan(0);
+    expect(MIGRATIONS.slice(0, index).every((file) => file < STAGE2_FILE)).toBe(true);
   });
 
   it("is forward-only, additive and non-destructive", () => {

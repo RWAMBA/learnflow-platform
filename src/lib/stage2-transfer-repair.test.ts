@@ -23,7 +23,7 @@ const RPC = CODE.slice(
   CODE.indexOf("FUNCTION public.transfer_curriculum_enrollment"),
   CODE.indexOf("REVOKE ALL ON FUNCTION public.transfer_curriculum_enrollment"),
 );
-const RECOVERY = CODE.slice(CODE.indexOf("no unplaced learner"));
+const RECOVERY = CODE.slice(CODE.indexOf("  v_unplaced   integer;"));
 
 describe("atomic transfer — migration artifact", () => {
   it("is additive, forward-only and non-destructive", () => {
