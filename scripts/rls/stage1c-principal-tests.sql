@@ -221,8 +221,12 @@ BEGIN
 
   INSERT INTO public.curricula (id, code, name) VALUES (v_curriculum, 'DISPRPC', 'Disposable RPC');
   -- Exactly one current version for this curriculum: the deterministic path.
-  INSERT INTO public.curriculum_versions (id, curriculum_id, label, is_current)
-  VALUES (v_version, v_curriculum, 'v1', true);
+  -- Publication is required for a current version by the schema's own check
+  -- constraint. Rights, readiness and activation state are deliberately left at
+  -- their fail-closed defaults, so the version remains unavailable to ordinary
+  -- users; only the deterministic resolution path is exercised.
+  INSERT INTO public.curriculum_versions (id, curriculum_id, label, status, is_current)
+  VALUES (v_version, v_curriculum, 'v1', 'published', true);
   INSERT INTO public.grades (id, curriculum_id, name, sequence_order)
   VALUES (v_level, v_curriculum, 'RPC Level 1', 1);
 
