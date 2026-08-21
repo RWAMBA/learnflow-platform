@@ -25,19 +25,19 @@ Two invariants govern everything below:
 A source artifact is a single, versioned, identifiable real-world document from which curriculum content
 derives. Required attributes:
 
-| Attribute | Meaning |
-| --- | --- |
-| `source_title` | Title of the document as published |
-| `rights_holder` | Legal owner of the work |
-| `authoritative_url` | Canonical publisher location, where one exists |
-| `document_date` | Publication/version date of the document |
-| `jurisdiction` | Legal territory the document originates from |
-| `acquisition_method` | `unknown \| official_download \| licensed_supply \| direct_grant \| public_domain \| learnflow_authored` |
-| `source_type` | `official_document \| publisher_material \| open_licensed \| learnflow_original \| other` |
-| `checksum` | Digest of the acquired artifact, proving what was actually obtained |
-| `original_artifact_path` | Private Storage path to the retained copy |
-| `verification_status` | `unverified \| in_review \| verified \| rejected` |
-| `edition`, `notes` | Supporting metadata |
+| Attribute                | Meaning                                                                                                  |
+| ------------------------ | -------------------------------------------------------------------------------------------------------- |
+| `source_title`           | Title of the document as published                                                                       |
+| `rights_holder`          | Legal owner of the work                                                                                  |
+| `authoritative_url`      | Canonical publisher location, where one exists                                                           |
+| `document_date`          | Publication/version date of the document                                                                 |
+| `jurisdiction`           | Legal territory the document originates from                                                             |
+| `acquisition_method`     | `unknown \| official_download \| licensed_supply \| direct_grant \| public_domain \| learnflow_authored` |
+| `source_type`            | `official_document \| publisher_material \| open_licensed \| learnflow_original \| other`                |
+| `checksum`               | Digest of the acquired artifact, proving what was actually obtained                                      |
+| `original_artifact_path` | Private Storage path to the retained copy                                                                |
+| `verification_status`    | `unverified \| in_review \| verified \| rejected`                                                        |
+| `edition`, `notes`       | Supporting metadata                                                                                      |
 
 Source artifacts are platform-controlled reference data. A new edition of a document is a **new artifact**,
 never an in-place edit of an existing one.
@@ -113,11 +113,11 @@ carry a verified `learnflow_owned` grant with recorded provenance. `author_type 
 
 Until lawful content and rights are verified, the shipped state is:
 
-| Curriculum | State |
-| --- | --- |
-| Kenya CBC | configured, rights review required |
-| Cambridge International | configured, awaiting authorized data |
-| Pearson Edexcel | configured, awaiting authorized data |
+| Curriculum                  | State                                        |
+| --------------------------- | -------------------------------------------- |
+| Kenya CBC                   | configured, rights review required           |
+| Cambridge International     | configured, awaiting authorized data         |
+| Pearson Edexcel             | configured, awaiting authorized data         |
 | LearnFlow U.S. K–12 pathway | configured, framework/source package pending |
 
 Unavailable curricula must not appear in ordinary-user selectors, enrolment flows, learner content

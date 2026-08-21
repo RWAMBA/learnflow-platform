@@ -29,11 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  addProgrammeInstructor,
-  enrollLearner,
-  saveProgramme,
-} from "@/lib/programmes.functions";
+import { addProgrammeInstructor, enrollLearner, saveProgramme } from "@/lib/programmes.functions";
 import {
   PROGRAMME_CATEGORIES,
   PROGRAMME_CATEGORY_LABELS,
@@ -134,7 +130,10 @@ export function ProgrammeDialog({
 
           <div className="grid gap-2">
             <Label htmlFor="programme-category">Category</Label>
-            <Select value={category} onValueChange={(value) => setCategory(value as ProgrammeCategory)}>
+            <Select
+              value={category}
+              onValueChange={(value) => setCategory(value as ProgrammeCategory)}
+            >
               <SelectTrigger id="programme-category">
                 <SelectValue />
               </SelectTrigger>

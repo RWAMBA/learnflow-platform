@@ -170,9 +170,7 @@ function ProgrammesPage() {
                             {programme.name}
                           </Link>
                         </CardTitle>
-                        <Badge
-                          variant={programme.status === "published" ? "default" : "secondary"}
-                        >
+                        <Badge variant={programme.status === "published" ? "default" : "secondary"}>
                           {PROGRAMME_STATUS_LABELS[programme.status]}
                         </Badge>
                       </div>
