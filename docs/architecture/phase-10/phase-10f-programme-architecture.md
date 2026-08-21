@@ -94,8 +94,32 @@ Unchanged for `programmes`/`programme_enrollments` from the prior revision. `pro
 2. `programme_instructors` introduced as a dedicated relationship, enabling both the enrollment-authorization refinement and future multi-instructor/scheduling support without redesign.
 3. Extracurricular Programme Enrollment authorization extended to instructor Teachers/Tutors, strictly bounded by their existing relationship with the target Student — reuses, rather than duplicates or bypasses, the established authorization framework.
 4. Programme Category formalized as a nine-value TEXT+CHECK vocabulary, reasoned against the `tenant_type` precedent rather than the `roles`/`curriculum_providers` precedent.
-5. `issues_certificate` added to `programmes`, keeping certificate issuance configurable rather than universal.
+5. ~~`issues_certificate` added to `programmes`~~ — **reversed**. Certificates, credentials and badges are architecturally removed; completion is an enrollment status only.
+
+## Stage 2 Implementation Record
+
+Delivered against this phase:
+
+- `public.programmes`, `public.programme_instructors`, `public.programme_enrollments`,
+  each `organization_id`-scoped, RLS-enabled, granted to `authenticated` and
+  `service_role` only, with no `anon` grant and no `DELETE` grant.
+- The nine-value category vocabulary as TEXT+CHECK, exactly as approved.
+- Nullable `capacity` meaning unlimited; capacity counted from `enrolled` and
+  `active` enrollments only, and it cannot be reduced below current occupancy.
+- Atomic enrollment through `public.enroll_student_in_programme`, which takes a
+  row lock on the programme before counting places, so the final place cannot be
+  awarded twice under concurrency. The RPC re-runs the same authorization test
+  the RLS insert policy applies, so the privileged path is not a bypass.
+- The three-path enrollment authorization from Section 3, with the
+  instructor path requiring an assigned `programme_instructors` row **and** an
+  active `teacher_student_relationships` / `tutor_student_relationships` row for
+  that same learner.
+- Immutable ownership, terminal archival, undeletable instructor and enrollment
+  history, and an audit row for every insert and update.
+- UI at `/programmes` and `/programmes/$programmeId`, role-aware: only an
+  Organization Administrator can author programmes, assign or end instructors and
+  move enrollments through their lifecycle.
 
 ## Questions Requiring Approval
-1. Confirm the nine-value Programme Category vocabulary (Section 2) as complete for MVP, or adjust the list.
-2. Approve Phase 10F (as refined) and proceed to Phase 10G (Community Architecture).
+1. None outstanding. The nine-value Programme Category vocabulary is confirmed
+   and implemented; certificate scope is removed.
