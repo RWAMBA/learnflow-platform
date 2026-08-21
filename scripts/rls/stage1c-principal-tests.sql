@@ -419,8 +419,13 @@ BEGIN
          (v_to_level, v_curriculum, 'Level 2', 2);
 
   -- Rights chain that makes the destination version genuinely available.
-  INSERT INTO public.source_artifacts (id, title, artifact_type)
-  VALUES (v_artifact, 'Disposable Transfer Artifact', 'official_document');
+  -- Authoritative columns (20260818154626): rights_holder / source_title /
+  -- source_type. There is no `title` or `artifact_type` column; the canonical
+  -- display value is source_title.
+  INSERT INTO public.source_artifacts (id, rights_holder, source_title, source_type)
+  VALUES (v_artifact, 'Disposable Rights Holder', 'Disposable Transfer Artifact',
+          'official_document');
+
   INSERT INTO public.source_artifact_links (source_artifact_id, entity_type, entity_id)
   VALUES (v_artifact, 'curriculum_version', v_to_ver);
   INSERT INTO public.rights_grants
