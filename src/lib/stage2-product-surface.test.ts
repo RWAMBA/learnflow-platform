@@ -222,3 +222,83 @@ describe("stage 2 programme_instructors principal fixtures", () => {
     );
   });
 });
+
+// -------------------------------------------------- enrollment-history deletion proof
+describe("stage 2 enrollment-history deletion proof", () => {
+  const FIXTURE = readFileSync(
+    resolve(process.cwd(), "scripts/rls/stage2-principal-tests.sql"),
+    "utf8",
+  );
+  const BLOCK = FIXTURE.slice(
+    FIXTURE.indexOf("history cannot be destroyed"),
+    FIXTURE.indexOf("anonymous denial"),
+  );
+
+  it("isolates the deletion proof block", () => {
+    expect(BLOCK.length).toBeGreaterThan(500);
+  });
+
+  it("records the affected row count instead of assuming an exception", () => {
+    expect(BLOCK).toContain("GET DIAGNOSTICS v_deleted = ROW_COUNT");
+    expect(BLOCK).not.toContain("DENY FAILED: an enrollment record was deleted");
+  });
+
+  it("treats any affected row as a security defect", () => {
+    expect(BLOCK).toContain("SECURITY DEFECT: % deleted % enrollment row(s)");
+    expect(BLOCK).toContain("IF v_deleted IS NULL OR v_deleted <> 0 THEN");
+  });
+
+  it("proves persistence through an observer that is not the denied caller", () => {
+    expect(BLOCK).toContain("RESET ROLE;");
+    expect(BLOCK).toContain("SECURITY DEFECT: the enrollment disappeared after the % attempt");
+    expect(BLOCK).toContain("IF v_count <> 1 THEN");
+  });
+
+  it("exercises every role that must not be able to hard-delete history", () => {
+    for (const label of [
+      "'org admin'",
+      "'teacher'",
+      "'tutor'",
+      "'guardian'",
+      "'learner'",
+      "'non-member'",
+      "'cross-tenant admin'",
+    ]) {
+      expect(BLOCK).toContain(label);
+    }
+    for (const principal of [
+      "v_admin_a",
+      "v_teacher_linked",
+      "v_tutor",
+      "v_parent_full",
+      "v_learner",
+      "v_outsider",
+      "v_admin_b",
+    ]) {
+      expect(BLOCK).toContain(principal);
+    }
+  });
+
+  it("asserts the immutability trigger stays attached and enabled", () => {
+    expect(BLOCK).toContain("programme_enrollments_no_delete");
+    expect(BLOCK).toContain("t.tgenabled <> 'D'");
+    expect(BLOCK).toContain(
+      "IMMUTABILITY FAILED: the enrollment history delete trigger is missing or disabled",
+    );
+  });
+
+  it("forbids a permissive DELETE policy on enrollment history", () => {
+    expect(BLOCK).toContain("cmd IN ('DELETE', 'ALL')");
+    expect(BLOCK).toContain("IMMUTABILITY FAILED: a DELETE policy exists on programme_enrollments");
+  });
+
+  it("keeps lifecycle changes to approved status transitions", () => {
+    expect(BLOCK).toContain(
+      "LIFECYCLE FAILED: the enrollment status changed during the deletion proof",
+    );
+  });
+
+  it("still accepts the documented trigger rejection message", () => {
+    expect(BLOCK).toContain("IF sqlerrm NOT LIKE '%cannot be deleted%' THEN RAISE; END IF;");
+  });
+});
