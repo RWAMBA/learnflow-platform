@@ -47,6 +47,8 @@ import { Route as AuthenticatedMfaChallengeRouteImport } from './routes/_authent
 import { Route as AuthenticatedOrganizationIndexRouteImport } from './routes/_authenticated/organization.index'
 import { Route as AuthenticatedOrganizationBillingRouteImport } from './routes/_authenticated/organization.billing'
 import { Route as AuthenticatedOrganizationPeriodsRouteImport } from './routes/_authenticated/organization.periods'
+import { Route as AuthenticatedProgrammesIndexRouteImport } from './routes/_authenticated/programmes.index'
+import { Route as AuthenticatedProgrammesProgrammeIdRouteImport } from './routes/_authenticated/programmes.$programmeId'
 import { Route as AuthenticatedStudentsIndexRouteImport } from './routes/_authenticated/students.index'
 import { Route as AuthenticatedStudentsStudentIdRouteImport } from './routes/_authenticated/students.$studentId'
 import { Route as AuthenticatedStudentsNewRouteImport } from './routes/_authenticated/students.new'
@@ -273,6 +275,18 @@ const AuthenticatedOrganizationPeriodsRoute =
     path: '/organization/periods',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedProgrammesIndexRoute =
+  AuthenticatedProgrammesIndexRouteImport.update({
+    id: '/programmes/',
+    path: '/programmes/',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedProgrammesProgrammeIdRoute =
+  AuthenticatedProgrammesProgrammeIdRouteImport.update({
+    id: '/programmes/$programmeId',
+    path: '/programmes/$programmeId',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 const AuthenticatedStudentsIndexRoute =
   AuthenticatedStudentsIndexRouteImport.update({
     id: '/students/',
@@ -355,6 +369,7 @@ export interface FileRoutesByFullPath {
   '/mfa/challenge': typeof AuthenticatedMfaChallengeRoute
   '/organization/billing': typeof AuthenticatedOrganizationBillingRoute
   '/organization/periods': typeof AuthenticatedOrganizationPeriodsRoute
+  '/programmes/$programmeId': typeof AuthenticatedProgrammesProgrammeIdRoute
   '/students/$studentId': typeof AuthenticatedStudentsStudentIdRoute
   '/students/new': typeof AuthenticatedStudentsNewRoute
   '/assessments/': typeof AuthenticatedAssessmentsIndexRoute
@@ -362,6 +377,7 @@ export interface FileRoutesByFullPath {
   '/curriculum/': typeof AuthenticatedCurriculumIndexRoute
   '/messages/': typeof AuthenticatedMessagesIndexRoute
   '/organization/': typeof AuthenticatedOrganizationIndexRoute
+  '/programmes/': typeof AuthenticatedProgrammesIndexRoute
   '/students/': typeof AuthenticatedStudentsIndexRoute
   '/assessments/grade/$submissionId': typeof AuthenticatedAssessmentsGradeSubmissionIdRoute
   '/assessments/take/$submissionId': typeof AuthenticatedAssessmentsTakeSubmissionIdRoute
@@ -402,6 +418,7 @@ export interface FileRoutesByTo {
   '/mfa/challenge': typeof AuthenticatedMfaChallengeRoute
   '/organization/billing': typeof AuthenticatedOrganizationBillingRoute
   '/organization/periods': typeof AuthenticatedOrganizationPeriodsRoute
+  '/programmes/$programmeId': typeof AuthenticatedProgrammesProgrammeIdRoute
   '/students/$studentId': typeof AuthenticatedStudentsStudentIdRoute
   '/students/new': typeof AuthenticatedStudentsNewRoute
   '/assessments': typeof AuthenticatedAssessmentsIndexRoute
@@ -409,6 +426,7 @@ export interface FileRoutesByTo {
   '/curriculum': typeof AuthenticatedCurriculumIndexRoute
   '/messages': typeof AuthenticatedMessagesIndexRoute
   '/organization': typeof AuthenticatedOrganizationIndexRoute
+  '/programmes': typeof AuthenticatedProgrammesIndexRoute
   '/students': typeof AuthenticatedStudentsIndexRoute
   '/assessments/grade/$submissionId': typeof AuthenticatedAssessmentsGradeSubmissionIdRoute
   '/assessments/take/$submissionId': typeof AuthenticatedAssessmentsTakeSubmissionIdRoute
@@ -451,6 +469,7 @@ export interface FileRoutesById {
   '/_authenticated/mfa/challenge': typeof AuthenticatedMfaChallengeRoute
   '/_authenticated/organization/billing': typeof AuthenticatedOrganizationBillingRoute
   '/_authenticated/organization/periods': typeof AuthenticatedOrganizationPeriodsRoute
+  '/_authenticated/programmes/$programmeId': typeof AuthenticatedProgrammesProgrammeIdRoute
   '/_authenticated/students/$studentId': typeof AuthenticatedStudentsStudentIdRoute
   '/_authenticated/students/new': typeof AuthenticatedStudentsNewRoute
   '/_authenticated/assessments/': typeof AuthenticatedAssessmentsIndexRoute
@@ -458,6 +477,7 @@ export interface FileRoutesById {
   '/_authenticated/curriculum/': typeof AuthenticatedCurriculumIndexRoute
   '/_authenticated/messages/': typeof AuthenticatedMessagesIndexRoute
   '/_authenticated/organization/': typeof AuthenticatedOrganizationIndexRoute
+  '/_authenticated/programmes/': typeof AuthenticatedProgrammesIndexRoute
   '/_authenticated/students/': typeof AuthenticatedStudentsIndexRoute
   '/_authenticated/assessments/grade/$submissionId': typeof AuthenticatedAssessmentsGradeSubmissionIdRoute
   '/_authenticated/assessments/take/$submissionId': typeof AuthenticatedAssessmentsTakeSubmissionIdRoute
@@ -500,6 +520,7 @@ export interface FileRouteTypes {
     | '/mfa/challenge'
     | '/organization/billing'
     | '/organization/periods'
+    | '/programmes/$programmeId'
     | '/students/$studentId'
     | '/students/new'
     | '/assessments/'
@@ -507,6 +528,7 @@ export interface FileRouteTypes {
     | '/curriculum/'
     | '/messages/'
     | '/organization/'
+    | '/programmes/'
     | '/students/'
     | '/assessments/grade/$submissionId'
     | '/assessments/take/$submissionId'
@@ -547,6 +569,7 @@ export interface FileRouteTypes {
     | '/mfa/challenge'
     | '/organization/billing'
     | '/organization/periods'
+    | '/programmes/$programmeId'
     | '/students/$studentId'
     | '/students/new'
     | '/assessments'
@@ -554,6 +577,7 @@ export interface FileRouteTypes {
     | '/curriculum'
     | '/messages'
     | '/organization'
+    | '/programmes'
     | '/students'
     | '/assessments/grade/$submissionId'
     | '/assessments/take/$submissionId'
@@ -595,6 +619,7 @@ export interface FileRouteTypes {
     | '/_authenticated/mfa/challenge'
     | '/_authenticated/organization/billing'
     | '/_authenticated/organization/periods'
+    | '/_authenticated/programmes/$programmeId'
     | '/_authenticated/students/$studentId'
     | '/_authenticated/students/new'
     | '/_authenticated/assessments/'
@@ -602,6 +627,7 @@ export interface FileRouteTypes {
     | '/_authenticated/curriculum/'
     | '/_authenticated/messages/'
     | '/_authenticated/organization/'
+    | '/_authenticated/programmes/'
     | '/_authenticated/students/'
     | '/_authenticated/assessments/grade/$submissionId'
     | '/_authenticated/assessments/take/$submissionId'
@@ -891,6 +917,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedOrganizationPeriodsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/programmes/': {
+      id: '/_authenticated/programmes/'
+      path: '/programmes'
+      fullPath: '/programmes/'
+      preLoaderRoute: typeof AuthenticatedProgrammesIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/programmes/$programmeId': {
+      id: '/_authenticated/programmes/$programmeId'
+      path: '/programmes/$programmeId'
+      fullPath: '/programmes/$programmeId'
+      preLoaderRoute: typeof AuthenticatedProgrammesProgrammeIdRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/students/': {
       id: '/_authenticated/students/'
       path: '/students'
@@ -974,6 +1014,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedMfaChallengeRoute: typeof AuthenticatedMfaChallengeRoute
   AuthenticatedOrganizationBillingRoute: typeof AuthenticatedOrganizationBillingRoute
   AuthenticatedOrganizationPeriodsRoute: typeof AuthenticatedOrganizationPeriodsRoute
+  AuthenticatedProgrammesProgrammeIdRoute: typeof AuthenticatedProgrammesProgrammeIdRoute
   AuthenticatedStudentsStudentIdRoute: typeof AuthenticatedStudentsStudentIdRoute
   AuthenticatedStudentsNewRoute: typeof AuthenticatedStudentsNewRoute
   AuthenticatedAssessmentsIndexRoute: typeof AuthenticatedAssessmentsIndexRoute
@@ -981,6 +1022,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedCurriculumIndexRoute: typeof AuthenticatedCurriculumIndexRoute
   AuthenticatedMessagesIndexRoute: typeof AuthenticatedMessagesIndexRoute
   AuthenticatedOrganizationIndexRoute: typeof AuthenticatedOrganizationIndexRoute
+  AuthenticatedProgrammesIndexRoute: typeof AuthenticatedProgrammesIndexRoute
   AuthenticatedStudentsIndexRoute: typeof AuthenticatedStudentsIndexRoute
   AuthenticatedAssessmentsGradeSubmissionIdRoute: typeof AuthenticatedAssessmentsGradeSubmissionIdRoute
   AuthenticatedAssessmentsTakeSubmissionIdRoute: typeof AuthenticatedAssessmentsTakeSubmissionIdRoute
@@ -1019,6 +1061,8 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedMfaChallengeRoute: AuthenticatedMfaChallengeRoute,
   AuthenticatedOrganizationBillingRoute: AuthenticatedOrganizationBillingRoute,
   AuthenticatedOrganizationPeriodsRoute: AuthenticatedOrganizationPeriodsRoute,
+  AuthenticatedProgrammesProgrammeIdRoute:
+    AuthenticatedProgrammesProgrammeIdRoute,
   AuthenticatedStudentsStudentIdRoute: AuthenticatedStudentsStudentIdRoute,
   AuthenticatedStudentsNewRoute: AuthenticatedStudentsNewRoute,
   AuthenticatedAssessmentsIndexRoute: AuthenticatedAssessmentsIndexRoute,
@@ -1026,6 +1070,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedCurriculumIndexRoute: AuthenticatedCurriculumIndexRoute,
   AuthenticatedMessagesIndexRoute: AuthenticatedMessagesIndexRoute,
   AuthenticatedOrganizationIndexRoute: AuthenticatedOrganizationIndexRoute,
+  AuthenticatedProgrammesIndexRoute: AuthenticatedProgrammesIndexRoute,
   AuthenticatedStudentsIndexRoute: AuthenticatedStudentsIndexRoute,
   AuthenticatedAssessmentsGradeSubmissionIdRoute:
     AuthenticatedAssessmentsGradeSubmissionIdRoute,

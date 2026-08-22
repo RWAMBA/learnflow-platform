@@ -12,7 +12,7 @@ The prior revision's "Programme Pricing" (Section 6) — a simple `price_amount`
 
 ## 1. The Two Billing Directions — Unchanged Core Insight
 
-Still the central organizing fact of this phase: **Platform → Organization** (LearnFlow bills an Organization for its SaaS subscription) and **Organization → Member/Family** (a School, Academy, or Learning Centre bills a specific Parent/member within itself for tuition, programme fees, or other education-service charges) remain structurally distinct. What's refined is *how* the billed party is represented (Section 2).
+Still the central organizing fact of this phase: **Platform → Organization** (LearnFlow bills an Organization for its SaaS subscription) and **Organization → Member/Family** (a School, Academy, or Learning Centre bills a specific Parent/member within itself for tuition, programme fees, or other education-service charges) remain structurally distinct. What's refined is _how_ the billed party is represented (Section 2).
 
 ## 2. Billed-Party Model, Refined
 
@@ -44,21 +44,22 @@ Unchanged in shape, refined in trigger condition: a Receipt corresponds to a **v
 
 The actual education-service pricing mechanism, deliberately kept simple — a configurable schedule, not a rules engine:
 
-| Field (conceptual) | Purpose |
-|---|---|
-| `issuing_organization_id` | Nullable — null means a LearnFlow-suggested/default fee schedule; populated means a specific Organization's own pricing. |
-| `fee_type` | `homeschooling_tuition` / `tuition_part_time` / `term_fee` / `subject_fee` / `programme_fee` / `registration_fee` / `custom`. |
-| `name`, `description` | What it is. |
-| `amount`, `currency` | Fixed-precision monetary value (Section 11). |
-| `billing_frequency` | `one_time` / `per_term` / `per_academic_period` / `monthly` / `annual`. |
-| `effective_from`, `effective_to` | Nullable end date — open-ended if still in effect. |
-| `applies_organization_wide` | Boolean, refined per approval. |
-| `curriculum_id`, `academic_level_id`, `subject_id`, `programme_id` | All nullable applicability filters. |
-| `status` | The same draft/published/archived lifecycle used throughout Phase 10. |
+| Field (conceptual)                                                 | Purpose                                                                                                                       |
+| ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| `issuing_organization_id`                                          | Nullable — null means a LearnFlow-suggested/default fee schedule; populated means a specific Organization's own pricing.      |
+| `fee_type`                                                         | `homeschooling_tuition` / `tuition_part_time` / `term_fee` / `subject_fee` / `programme_fee` / `registration_fee` / `custom`. |
+| `name`, `description`                                              | What it is.                                                                                                                   |
+| `amount`, `currency`                                               | Fixed-precision monetary value (Section 11).                                                                                  |
+| `billing_frequency`                                                | `one_time` / `per_term` / `per_academic_period` / `monthly` / `annual`.                                                       |
+| `effective_from`, `effective_to`                                   | Nullable end date — open-ended if still in effect.                                                                            |
+| `applies_organization_wide`                                        | Boolean, refined per approval.                                                                                                |
+| `curriculum_id`, `academic_level_id`, `subject_id`, `programme_id` | All nullable applicability filters.                                                                                           |
+| `status`                                                           | The same draft/published/archived lifecycle used throughout Phase 10.                                                         |
 
 **Applicability rule, refined to eliminate ambiguity:** a Fee Definition must satisfy exactly one of two states — **(A)** one or more of the four applicability filters is populated (a scoped fee — e.g., Grade-10-CBC tuition, Mathematics tutoring, Chess Club), or **(B)** `applies_organization_wide = true` with zero filters populated (a genuine broad fee — registration, administrative, materials, annual service charges). An entirely unscoped Fee Definition with `applies_organization_wide = false` is not a valid state — it would be indistinguishable from an incomplete configuration, not an intentional broad fee. A Chess Club fee (Phase 10F's original pricing need) lives here with `programme_id` populated, not on `programmes` itself.
 
 **Matching precedence for MVP**, confirmed as "most specific wins," with concrete rules:
+
 - Matching happens **within one `fee_type` at a time** — different fee types (e.g., tuition and a registration fee) can both legitimately apply to the same billing context simultaneously, each producing its own invoice line item.
 - A Fee Definition is a candidate only when **every filter it has populated matches the billing context** — a definition with `curriculum_id` + `academic_level_id` set needs both to match; one with only `academic_level_id` set needs just that.
 - Specificity is counted by number of matching populated filters; `applies_organization_wide = true` is the least-specific fallback within its fee type.
@@ -92,14 +93,14 @@ Refined per this revision — financial-data access is not limited to administra
 3. **Billed Organization Administrator** — records billed to their Organization.
 4. **The specific `billed_to_profile_id`** — their own applicable invoice/payment/receipt records, and only their own.
 
-**Teachers and Tutors get no financial-data access by virtue of their instructional role.** If a Teacher or Tutor happens to also be a `billed_to_profile_id` on some invoice (e.g., they're independently paying for their own child's tuition as a Parent), their access to *that* invoice derives entirely from being the billed party — never from being a Teacher/Tutor.
+**Teachers and Tutors get no financial-data access by virtue of their instructional role.** If a Teacher or Tutor happens to also be a `billed_to_profile_id` on some invoice (e.g., they're independently paying for their own child's tuition as a Parent), their access to _that_ invoice derives entirely from being the billed party — never from being a Teacher/Tutor.
 
 ## 11. Financial Integrity Requirements (carried forward to Phase 10L)
 
 - One Invoice may have multiple or partial Payments.
 - Payment currency must match Invoice currency at MVP.
 - Invoice `paid` status is derived from verified payment totals, not a freely-settable manual status.
-- Receipts correspond to *verified* Payments specifically.
+- Receipts correspond to _verified_ Payments specifically.
 - Issued invoice financial values are historical records, not casually mutated after issuance.
 - Monetary values use fixed-precision numeric types with an explicit currency code — never floating-point arithmetic, consistent with how `plans.price_amount` was already defined back in Phase 5.
 - Validation that a line item's `source_id` actually corresponds to its declared `source_type`.
@@ -116,6 +117,7 @@ Refined per this revision — financial-data access is not limited to administra
 Billing remains a record-keeping system, not a payment processor. This revision replaces an under-scoped "price field on Programmes" with a proper Fee Definition concept that actually covers the fees that matter most (tuition, term fees, subject fees) — while keeping it explicitly separate from LearnFlow's own SaaS subscription model, since conflating the two would have been a real conceptual error. The billed-party model now supports Organizations, specific Profiles, and external non-account customers without ever fabricating a fake tenant Organization to represent a billing recipient, and every issued invoice preserves an immutable snapshot of both who was billed and what they were charged.
 
 ## Refinements Made During This Phase
+
 1. Programme pricing withdrawn from `programmes.price_amount` in favor of Fee Definitions — an explicit correction of this phase's own earlier draft, not an external requirement layered on top.
 2. Billed party expanded from a single required Organization reference to three mutually exclusive shapes (Organization, Profile, external inquiry), plus a mandatory immutable name/email/phone snapshot.
 3. Line item provenance (`source_type`/`source_id`) reclassified as optional traceability, not the authoritative financial value — each line item now explicitly owns its own permanent snapshot.
@@ -125,8 +127,10 @@ Billing remains a record-keeping system, not a payment processor. This revision 
 7. Fee Definition matching precedence finalized: most-specific-wins within one `fee_type`, with equally-specific conflicting matches treated as a configuration error requiring administrator resolution, never a silent tiebreak.
 
 ## Assumptions & Risks
-1. **Risk, unresolved by design (intentionally):** the exact mechanism for detecting and surfacing equally-specific Fee Definition conflicts (Section 6) is carried to Phase 10L, not solved here — this document establishes the *principle* (never silently choose), not the implementation.
+
+1. **Risk, unresolved by design (intentionally):** the exact mechanism for detecting and surfacing equally-specific Fee Definition conflicts (Section 6) is carried to Phase 10L, not solved here — this document establishes the _principle_ (never silently choose), not the implementation.
 2. **Risk:** three billed-party shapes plus a snapshot is more fields than a typical invoice table — accepted as directly serving an explicit requirement (no fake tenants for billing recipients), not incidental complexity.
 
 ## Remaining Approval Decisions
+
 1. Approve Phase 10I as finalized and proceed to Phase 10J (already approved) / Phase 10K (Security & Authorization Review).
