@@ -24,15 +24,21 @@ DECLARE
   v_parent_view uuid := gen_random_uuid();
   v_teacher_linked uuid := gen_random_uuid();
   v_teacher_unlinked uuid := gen_random_uuid();
+  v_tutor uuid := gen_random_uuid();
+  v_learner uuid := gen_random_uuid();
   v_outsider uuid := gen_random_uuid();
+
 
   v_role_admin uuid;
   v_role_parent uuid;
   v_role_teacher uuid;
+  v_role_tutor uuid;
+  v_role_student uuid;
 
   v_ur_teacher_linked uuid;
   v_ur_teacher_unlinked uuid;
   v_ur_teacher_b uuid;
+  v_ur_learner uuid;
 
   v_student_linked uuid;
   v_student_other uuid;
@@ -42,6 +48,12 @@ DECLARE
   v_enrollment uuid;
   v_visible int;
   v_count int;
+  v_deleted int;
+  v_status text;
+  v_principals uuid[];
+  v_labels text[];
+  v_i int;
+
 BEGIN
   IF to_regclass('public.programmes') IS NULL
      OR to_regprocedure('public.enroll_student_in_programme(uuid, uuid)') IS NULL THEN
@@ -56,6 +68,8 @@ BEGIN
     (v_parent_view, 's2-parent-view@example.test'),
     (v_teacher_linked, 's2-teacher-linked@example.test'),
     (v_teacher_unlinked, 's2-teacher-unlinked@example.test'),
+    (v_tutor, 's2-tutor@example.test'),
+    (v_learner, 's2-learner@example.test'),
     (v_outsider, 's2-outsider@example.test')
   ON CONFLICT DO NOTHING;
 
@@ -63,8 +77,10 @@ BEGIN
     (v_admin_a, 'S2 Admin A'), (v_admin_b, 'S2 Admin B'),
     (v_parent_full, 'S2 Parent Full'), (v_parent_view, 'S2 Parent View'),
     (v_teacher_linked, 'S2 Teacher Linked'), (v_teacher_unlinked, 'S2 Teacher Unlinked'),
+    (v_tutor, 'S2 Tutor'), (v_learner, 'S2 Learner'),
     (v_outsider, 'S2 Outsider')
   ON CONFLICT (id) DO NOTHING;
+
 
   INSERT INTO public.organizations (id, name, tenant_type) VALUES
     (v_org_a, 'Disposable Org S2A', 'private_school'),
@@ -76,14 +92,20 @@ BEGIN
     (v_org_a, v_parent_view, 'active', v_admin_a),
     (v_org_a, v_teacher_linked, 'active', v_admin_a),
     (v_org_a, v_teacher_unlinked, 'active', v_admin_a),
+    (v_org_a, v_tutor, 'active', v_admin_a),
+    (v_org_a, v_learner, 'active', v_admin_a),
     (v_org_b, v_admin_b, 'active', v_admin_b);
 
   SELECT id INTO v_role_admin FROM public.roles WHERE code = 'org_admin';
   SELECT id INTO v_role_parent FROM public.roles WHERE code = 'parent_guardian';
   SELECT id INTO v_role_teacher FROM public.roles WHERE code = 'teacher';
-  IF v_role_admin IS NULL OR v_role_parent IS NULL OR v_role_teacher IS NULL THEN
+  SELECT id INTO v_role_tutor FROM public.roles WHERE code = 'tutor';
+  SELECT id INTO v_role_student FROM public.roles WHERE code = 'student';
+  IF v_role_admin IS NULL OR v_role_parent IS NULL OR v_role_teacher IS NULL
+     OR v_role_tutor IS NULL OR v_role_student IS NULL THEN
     RAISE EXCEPTION 'base roles missing in disposable database';
   END IF;
+
 
   INSERT INTO public.user_roles (organization_id, user_id, role_id, status, created_by) VALUES
     (v_org_a, v_admin_a, v_role_admin, 'active', v_admin_a),
@@ -99,14 +121,21 @@ BEGIN
   VALUES (v_org_a, v_teacher_unlinked, v_role_teacher, 'active', v_admin_a)
   RETURNING id INTO v_ur_teacher_unlinked;
 
+  INSERT INTO public.user_roles (organization_id, user_id, role_id, status, created_by)
+  VALUES (v_org_a, v_tutor, v_role_tutor, 'active', v_admin_a);
+
+  INSERT INTO public.user_roles (organization_id, user_id, role_id, status, created_by)
+  VALUES (v_org_a, v_learner, v_role_student, 'active', v_admin_a)
+  RETURNING id INTO v_ur_learner;
+
   -- A Teacher role that belongs to the OTHER tenant: used for the cross-tenant
   -- instructor-assignment denial.
   INSERT INTO public.user_roles (organization_id, user_id, role_id, status, created_by)
   VALUES (v_org_b, v_admin_b, v_role_teacher, 'active', v_admin_b)
   RETURNING id INTO v_ur_teacher_b;
 
-  INSERT INTO public.students (organization_id, created_by, first_name, last_name)
-  VALUES (v_org_a, v_admin_a, 'Linked', 'Learner') RETURNING id INTO v_student_linked;
+  INSERT INTO public.students (organization_id, created_by, first_name, last_name, user_role_id)
+  VALUES (v_org_a, v_admin_a, 'Linked', 'Learner', v_ur_learner) RETURNING id INTO v_student_linked;
   INSERT INTO public.students (organization_id, created_by, first_name, last_name)
   VALUES (v_org_a, v_admin_a, 'Other', 'Learner') RETURNING id INTO v_student_other;
 
@@ -120,6 +149,12 @@ BEGIN
   INSERT INTO public.teacher_student_relationships
     (organization_id, teacher_id, student_id, status, created_by)
   VALUES (v_org_a, v_teacher_linked, v_student_linked, 'active', v_admin_a);
+
+  -- An authorized Tutor relationship: proves a Tutor also cannot destroy history.
+  INSERT INTO public.tutor_student_relationships
+    (organization_id, tutor_id, student_id, status, created_by)
+  VALUES (v_org_a, v_tutor, v_student_linked, 'active', v_admin_a);
+
 
   SET LOCAL ROLE authenticated;
 
@@ -370,17 +405,89 @@ BEGIN
   END IF;
 
   -- ============================================= history cannot be destroyed
-  PERFORM set_config('request.jwt.claims',
-    json_build_object('sub', v_admin_a, 'role', 'authenticated')::text, true);
-  BEGIN
-    DELETE FROM public.programme_enrollments WHERE id = v_enrollment;
-    RAISE EXCEPTION 'DENY FAILED: an enrollment record was deleted';
-  EXCEPTION
-    WHEN insufficient_privilege THEN NULL;
-    WHEN raise_exception THEN
-      IF sqlerrm LIKE 'DENY FAILED%' THEN RAISE; END IF;
-      IF sqlerrm NOT LIKE '%cannot be deleted%' THEN RAISE; END IF;
-  END;
+  --
+  -- Enrollment history is immutable, and the database enforces that twice:
+  --   * there is no DELETE policy on public.programme_enrollments, so RLS
+  --     filters every candidate row away and the statement reports zero
+  --     affected rows without raising (fail-closed silent denial); and
+  --   * where a privilege path does reach a row, the BEFORE DELETE trigger
+  --     app_private.reject_programme_history_delete() raises.
+  --
+  -- The earlier proof assumed only the exception path and therefore failed on
+  -- the legitimate zero-row denial. The corrected proof records the affected
+  -- row count with GET DIAGNOSTICS, accepts either fail-closed outcome, and
+  -- then proves persistence through a deterministic observer that is not
+  -- subject to the caller's row visibility.
+
+  -- The immutability trigger must be attached AND enabled.
+  RESET ROLE;
+  SELECT count(*) INTO v_count
+    FROM pg_trigger t JOIN pg_class c ON c.oid = t.tgrelid
+    JOIN pg_namespace n ON n.oid = c.relnamespace
+   WHERE n.nspname = 'public' AND c.relname = 'programme_enrollments'
+     AND t.tgname = 'programme_enrollments_no_delete'
+     AND NOT t.tgisinternal AND t.tgenabled <> 'D';
+  IF v_count <> 1 THEN
+    RAISE EXCEPTION 'IMMUTABILITY FAILED: the enrollment history delete trigger is missing or disabled';
+  END IF;
+
+  -- No permissive DELETE (or ALL) policy may exist on enrollment history.
+  SELECT count(*) INTO v_count FROM pg_policies
+   WHERE schemaname = 'public' AND tablename = 'programme_enrollments'
+     AND cmd IN ('DELETE', 'ALL');
+  IF v_count <> 0 THEN
+    RAISE EXCEPTION 'IMMUTABILITY FAILED: a DELETE policy exists on programme_enrollments';
+  END IF;
+
+  SELECT status INTO v_status FROM public.programme_enrollments WHERE id = v_enrollment;
+  IF v_status IS NULL THEN
+    RAISE EXCEPTION 'FIXTURE FAILED: the target enrollment does not exist before the deletion proof';
+  END IF;
+
+  v_principals := ARRAY[v_admin_a, v_teacher_linked, v_tutor, v_parent_full,
+                        v_learner, v_outsider, v_admin_b];
+  v_labels := ARRAY['org admin', 'teacher', 'tutor', 'guardian',
+                    'learner', 'non-member', 'cross-tenant admin'];
+
+  SET LOCAL ROLE authenticated;
+  FOR v_i IN 1 .. array_length(v_principals, 1) LOOP
+    PERFORM set_config('request.jwt.claims',
+      json_build_object('sub', v_principals[v_i], 'role', 'authenticated')::text, true);
+    v_deleted := NULL;
+    BEGIN
+      DELETE FROM public.programme_enrollments WHERE id = v_enrollment;
+      GET DIAGNOSTICS v_deleted = ROW_COUNT;
+    EXCEPTION
+      -- Case B: a documented fail-closed rejection.
+      WHEN insufficient_privilege THEN v_deleted := 0;
+      WHEN raise_exception THEN
+        IF sqlerrm NOT LIKE '%cannot be deleted%' THEN RAISE; END IF;
+        v_deleted := 0;
+    END;
+    -- Case C: any affected row is a security defect, never an accepted result.
+    IF v_deleted IS NULL OR v_deleted <> 0 THEN
+      RAISE EXCEPTION 'SECURITY DEFECT: % deleted % enrollment row(s)',
+        v_labels[v_i], coalesce(v_deleted, -1);
+    END IF;
+
+    -- Persistence, checked by an observer that always sees the row.
+    RESET ROLE;
+    SELECT count(*) INTO v_count
+      FROM public.programme_enrollments WHERE id = v_enrollment;
+    IF v_count <> 1 THEN
+      RAISE EXCEPTION 'SECURITY DEFECT: the enrollment disappeared after the % attempt', v_labels[v_i];
+    END IF;
+    SET LOCAL ROLE authenticated;
+  END LOOP;
+
+  -- Lifecycle state is untouched: only approved status transitions change it.
+  RESET ROLE;
+  SELECT status INTO v_status FROM public.programme_enrollments WHERE id = v_enrollment;
+  IF v_status <> 'completed' THEN
+    RAISE EXCEPTION 'LIFECYCLE FAILED: the enrollment status changed during the deletion proof';
+  END IF;
+  SET LOCAL ROLE authenticated;
+
 
   -- ======================================================= anonymous denial
   RESET ROLE;
