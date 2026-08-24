@@ -42,17 +42,31 @@ DECLARE
 
   v_student_linked uuid;
   v_student_other uuid;
+  v_student_b uuid;
 
   v_prog uuid;
   v_prog_unlimited uuid;
+  v_prog_archived uuid;
   v_enrollment uuid;
+  v_enrollment_archived uuid;
   v_visible int;
   v_count int;
   v_deleted int;
+  v_updated int;
   v_status text;
   v_principals uuid[];
   v_labels text[];
   v_i int;
+
+  -- Academic-placement fixtures for the learner self-view proof.
+  v_curriculum uuid := gen_random_uuid();
+  v_version uuid := gen_random_uuid();
+  v_level uuid := gen_random_uuid();
+  v_period_a uuid;
+  v_period_b uuid;
+  v_ce_linked uuid;
+  v_ce_other uuid;
+  v_ce_cross uuid;
 
 BEGIN
   IF to_regclass('public.programmes') IS NULL
@@ -154,6 +168,46 @@ BEGIN
   INSERT INTO public.tutor_student_relationships
     (organization_id, tutor_id, student_id, status, created_by)
   VALUES (v_org_a, v_tutor, v_student_linked, 'active', v_admin_a);
+
+  -- ---------------- academic placements for the learner self-view proof ----
+  -- The learner's authenticated identity resolves to their Student record
+  -- exclusively through the live-schema path
+  --   auth.users -> user_roles (v_ur_learner) -> students.user_role_id
+  -- which is exactly what app_private.can_view_student() evaluates.
+  INSERT INTO public.curricula (id, code, name) VALUES (v_curriculum, 'DISPS2', 'Disposable S2');
+  INSERT INTO public.curriculum_versions (id, curriculum_id, label)
+  VALUES (v_version, v_curriculum, 'v1');
+  INSERT INTO public.grades (id, curriculum_id, name, sequence_order)
+  VALUES (v_level, v_curriculum, 'Level 1', 1);
+
+  INSERT INTO public.academic_periods (id, organization_id, period_type, name, start_date, end_date)
+  VALUES (gen_random_uuid(), v_org_a, 'year', '2026', '2026-01-01', '2026-12-31')
+  RETURNING id INTO v_period_a;
+  INSERT INTO public.academic_periods (id, organization_id, period_type, name, start_date, end_date)
+  VALUES (gen_random_uuid(), v_org_b, 'year', '2026', '2026-01-01', '2026-12-31')
+  RETURNING id INTO v_period_b;
+
+  -- The linked learner holds an active Primary placement.
+  INSERT INTO public.curriculum_enrollments
+    (student_id, curriculum_version_id, academic_level_id, academic_period_id, enrollment_category)
+  VALUES (v_student_linked, v_version, v_level, v_period_a, 'primary')
+  RETURNING id INTO v_ce_linked;
+  UPDATE public.curriculum_enrollments SET status = 'active' WHERE id = v_ce_linked;
+
+  -- The other learner holds a Supplementary placement the linked learner must
+  -- never see.
+  INSERT INTO public.curriculum_enrollments
+    (student_id, curriculum_version_id, academic_level_id, academic_period_id, enrollment_category)
+  VALUES (v_student_other, v_version, v_level, v_period_a, 'supplementary')
+  RETURNING id INTO v_ce_other;
+
+  -- A second tenant's placement is the cross-tenant evidence.
+  INSERT INTO public.students (organization_id, created_by, first_name, last_name)
+  VALUES (v_org_b, v_admin_b, 'Cross', 'Tenant') RETURNING id INTO v_student_b;
+  INSERT INTO public.curriculum_enrollments
+    (student_id, curriculum_version_id, academic_level_id, academic_period_id, enrollment_category)
+  VALUES (v_student_b, v_version, v_level, v_period_b, 'primary')
+  RETURNING id INTO v_ce_cross;
 
 
   SET LOCAL ROLE authenticated;
@@ -403,6 +457,312 @@ BEGIN
   IF v_visible <> 0 THEN
     RAISE EXCEPTION 'DENY FAILED: cross-tenant programme enrollments are readable';
   END IF;
+
+  -- ======================================= learner self-view (own records)
+  --
+  -- Independent-login Learner principal proof. Authorization path under test:
+  --   auth.users (v_learner)
+  --     -> user_roles (v_ur_learner, role 'student', status active, org A)
+  --     -> students.user_role_id (v_student_linked)
+  -- which is exactly the join app_private.can_view_student() evaluates. The
+  -- learner must see precisely their own academic and programme records, the
+  -- associated published programme and its authorized instructor display data,
+  -- and nothing else.
+
+  -- Fixture sanity: the identity link used by this proof really is the
+  -- live-schema one.
+  RESET ROLE;
+  SELECT count(*) INTO v_count
+    FROM public.students s
+    JOIN public.user_roles ur ON ur.id = s.user_role_id
+    JOIN public.roles r ON r.id = ur.role_id
+   WHERE s.id = v_student_linked
+     AND ur.user_id = v_learner
+     AND ur.status = 'active'
+     AND r.code = 'student';
+  IF v_count <> 1 THEN
+    RAISE EXCEPTION 'FIXTURE FAILED: the learner identity is not linked to the student record';
+  END IF;
+  SET LOCAL ROLE authenticated;
+
+  PERFORM set_config('request.jwt.claims',
+    json_build_object('sub', v_learner, 'role', 'authenticated')::text, true);
+
+  -- ALLOW: the learner reads their own student record.
+  SELECT count(*) INTO v_visible FROM public.students WHERE id = v_student_linked;
+  IF v_visible <> 1 THEN
+    RAISE EXCEPTION 'ALLOW FAILED: a learner cannot read their own student record';
+  END IF;
+
+  -- ALLOW: the learner reads their own academic Primary enrollment information.
+  SELECT count(*) INTO v_visible FROM public.curriculum_enrollments
+   WHERE id = v_ce_linked AND student_id = v_student_linked
+     AND enrollment_category = 'primary' AND status = 'active';
+  IF v_visible <> 1 THEN
+    RAISE EXCEPTION 'ALLOW FAILED: a learner cannot read their own academic enrollment';
+  END IF;
+
+  -- ALLOW: the learner reads their own extracurricular programme enrollment.
+  SELECT count(*) INTO v_visible FROM public.programme_enrollments
+   WHERE id = v_enrollment AND student_id = v_student_linked;
+  IF v_visible <> 1 THEN
+    RAISE EXCEPTION 'ALLOW FAILED: a learner cannot read their own programme enrollment';
+  END IF;
+
+  -- ALLOW: the associated published programme details.
+  SELECT count(*) INTO v_visible FROM public.programmes
+   WHERE id = v_prog AND status = 'published';
+  IF v_visible <> 1 THEN
+    RAISE EXCEPTION 'ALLOW FAILED: a learner cannot read a published programme they are enrolled in';
+  END IF;
+
+  -- ALLOW: authorized instructor display data for that programme — the active
+  -- assignment rows plus the instructor's member profile used for display.
+  SELECT count(*) INTO v_visible FROM public.programme_instructors
+   WHERE programme_id = v_prog AND status = 'active';
+  IF v_visible <> 2 THEN
+    RAISE EXCEPTION 'ALLOW FAILED: a learner cannot read the instructor assignments';
+  END IF;
+  SELECT count(*) INTO v_visible FROM public.profiles WHERE id = v_teacher_linked;
+  IF v_visible <> 1 THEN
+    RAISE EXCEPTION 'ALLOW FAILED: a learner cannot read an instructor display name';
+  END IF;
+
+  -- DENY: another learner's academic and programme records stay invisible.
+  SELECT count(*) INTO v_visible FROM public.curriculum_enrollments WHERE id = v_ce_other;
+  IF v_visible <> 0 THEN
+    RAISE EXCEPTION 'DENY FAILED: a learner read another learner''s academic enrollment';
+  END IF;
+  SELECT count(*) INTO v_visible FROM public.programme_enrollments
+   WHERE student_id = v_student_other;
+  IF v_visible <> 0 THEN
+    RAISE EXCEPTION 'DENY FAILED: a learner read another learner''s programme enrollment';
+  END IF;
+  SELECT count(*) INTO v_visible FROM public.students WHERE id = v_student_other;
+  IF v_visible <> 0 THEN
+    RAISE EXCEPTION 'DENY FAILED: a learner read another learner''s student record';
+  END IF;
+
+  -- DENY: cross-tenant records remain invisible to the learner.
+  SELECT count(*) INTO v_visible FROM public.curriculum_enrollments WHERE id = v_ce_cross;
+  IF v_visible <> 0 THEN
+    RAISE EXCEPTION 'DENY FAILED: a learner read a cross-tenant academic enrollment';
+  END IF;
+  SELECT count(*) INTO v_visible FROM public.programme_enrollments pe
+    JOIN public.programmes p ON p.id = pe.programme_id
+   WHERE p.organization_id = v_org_b;
+  IF v_visible <> 0 THEN
+    RAISE EXCEPTION 'DENY FAILED: a learner read a cross-tenant programme enrollment';
+  END IF;
+
+  -- DENY: the learner holds no programme-management capability at all.
+  BEGIN
+    INSERT INTO public.programmes (organization_id, authoring_organization_id, name, category)
+    VALUES (v_org_a, v_org_a, 'Learner Club', 'stem');
+    RAISE EXCEPTION 'DENY FAILED: a learner created a programme';
+  EXCEPTION WHEN insufficient_privilege THEN NULL;
+  END;
+
+  UPDATE public.programmes SET name = 'Learner Rename' WHERE id = v_prog;
+  GET DIAGNOSTICS v_updated = ROW_COUNT;
+  IF v_updated <> 0 THEN
+    RAISE EXCEPTION 'DENY FAILED: a learner updated a programme';
+  END IF;
+  UPDATE public.programmes SET status = 'archived' WHERE id = v_prog;
+  GET DIAGNOSTICS v_updated = ROW_COUNT;
+  IF v_updated <> 0 THEN
+    RAISE EXCEPTION 'DENY FAILED: a learner archived a programme';
+  END IF;
+
+  BEGIN
+    INSERT INTO public.programme_instructors
+      (organization_id, programme_id, user_role_id, created_by)
+    VALUES (v_org_a, v_prog, v_ur_teacher_unlinked, v_learner);
+    RAISE EXCEPTION 'DENY FAILED: a learner managed an instructor assignment';
+  EXCEPTION WHEN insufficient_privilege THEN NULL;
+  END;
+
+  BEGIN
+    PERFORM public.enroll_student_in_programme(v_prog_unlimited, v_student_other);
+    RAISE EXCEPTION 'DENY FAILED: a learner enrolled another learner';
+  EXCEPTION WHEN raise_exception THEN
+    IF sqlerrm LIKE 'DENY FAILED%' THEN RAISE; END IF;
+    IF sqlerrm NOT LIKE '%Not authorized to enroll%' THEN RAISE; END IF;
+  END;
+
+  BEGIN
+    PERFORM public.set_programme_enrollment_status(v_enrollment, 'archived');
+    RAISE EXCEPTION 'DENY FAILED: a learner changed an enrollment lifecycle status';
+  EXCEPTION WHEN raise_exception THEN
+    IF sqlerrm LIKE 'DENY FAILED%' THEN RAISE; END IF;
+    IF sqlerrm NOT LIKE '%Only an Organization Administrator%' THEN RAISE; END IF;
+  END;
+
+  -- DENY: the learner cannot hard-delete enrollment history (zero affected
+  -- rows or the documented trigger rejection; persistence proven by observer).
+  v_deleted := NULL;
+  BEGIN
+    DELETE FROM public.programme_enrollments WHERE id = v_enrollment;
+    GET DIAGNOSTICS v_deleted = ROW_COUNT;
+  EXCEPTION
+    WHEN insufficient_privilege THEN v_deleted := 0;
+    WHEN raise_exception THEN
+      IF sqlerrm NOT LIKE '%cannot be deleted%' THEN RAISE; END IF;
+      v_deleted := 0;
+  END;
+  IF v_deleted IS NULL OR v_deleted <> 0 THEN
+    RAISE EXCEPTION 'SECURITY DEFECT: a learner deleted % enrollment row(s)', coalesce(v_deleted, -1);
+  END IF;
+  RESET ROLE;
+  SELECT count(*) INTO v_count FROM public.programme_enrollments WHERE id = v_enrollment;
+  IF v_count <> 1 THEN
+    RAISE EXCEPTION 'SECURITY DEFECT: the enrollment disappeared after the learner deletion attempt';
+  END IF;
+  SET LOCAL ROLE authenticated;
+
+  -- ========================= archived programme behaviour (distinct from draft)
+  --
+  -- Draft invisibility is proven separately above; this block exercises the
+  -- archived status end to end so neither status can stand in for the other.
+  PERFORM set_config('request.jwt.claims',
+    json_build_object('sub', v_admin_a, 'role', 'authenticated')::text, true);
+
+  INSERT INTO public.programmes
+    (organization_id, authoring_organization_id, name, category, capacity, status)
+  VALUES (v_org_a, v_org_a, 'Archive Robotics', 'stem', NULL, 'draft')
+  RETURNING id INTO v_prog_archived;
+
+  -- While it is still a draft, a learner cannot publish it (zero-row denial).
+  PERFORM set_config('request.jwt.claims',
+    json_build_object('sub', v_learner, 'role', 'authenticated')::text, true);
+  UPDATE public.programmes SET status = 'published' WHERE id = v_prog_archived;
+  GET DIAGNOSTICS v_updated = ROW_COUNT;
+  IF v_updated <> 0 THEN
+    RAISE EXCEPTION 'DENY FAILED: a learner published a programme';
+  END IF;
+
+  -- The administrator publishes, enrolls a learner, then archives through the
+  -- authorized lifecycle path.
+  PERFORM set_config('request.jwt.claims',
+    json_build_object('sub', v_admin_a, 'role', 'authenticated')::text, true);
+  UPDATE public.programmes SET status = 'published' WHERE id = v_prog_archived;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'ALLOW FAILED: org admin cannot publish the archive-test programme';
+  END IF;
+
+  v_enrollment_archived := public.enroll_student_in_programme(v_prog_archived, v_student_other);
+  IF v_enrollment_archived IS NULL THEN
+    RAISE EXCEPTION 'ALLOW FAILED: org admin could not enroll before archiving';
+  END IF;
+
+  UPDATE public.programmes SET status = 'archived' WHERE id = v_prog_archived;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'ALLOW FAILED: org admin cannot archive a programme';
+  END IF;
+  RESET ROLE;
+  SELECT status INTO v_status FROM public.programmes WHERE id = v_prog_archived;
+  IF v_status <> 'archived' THEN
+    RAISE EXCEPTION 'LIFECYCLE FAILED: the programme did not reach archived';
+  END IF;
+  SET LOCAL ROLE authenticated;
+
+  -- ALLOW: the Organization Administrator still reaches the archived programme
+  -- through the authorized management view.
+  PERFORM set_config('request.jwt.claims',
+    json_build_object('sub', v_admin_a, 'role', 'authenticated')::text, true);
+  SELECT count(*) INTO v_visible FROM public.programmes WHERE id = v_prog_archived;
+  IF v_visible <> 1 THEN
+    RAISE EXCEPTION 'ALLOW FAILED: an archived programme disappeared from the management view';
+  END IF;
+
+  -- DENY: the archived programme is absent from every ordinary catalogue —
+  -- even by direct-ID lookup (ID swapping exposes nothing).
+  v_principals := ARRAY[v_parent_full, v_teacher_linked, v_tutor, v_learner];
+  v_labels := ARRAY['guardian', 'teacher', 'tutor', 'learner'];
+  FOR v_i IN 1 .. array_length(v_principals, 1) LOOP
+    PERFORM set_config('request.jwt.claims',
+      json_build_object('sub', v_principals[v_i], 'role', 'authenticated')::text, true);
+    SELECT count(*) INTO v_visible FROM public.programmes WHERE id = v_prog_archived;
+    IF v_visible <> 0 THEN
+      RAISE EXCEPTION 'DENY FAILED: an archived programme is visible to a %', v_labels[v_i];
+    END IF;
+  END LOOP;
+
+  -- DENY: no new enrollment into an archived programme — neither an
+  -- administrator nor an otherwise-authorized instructor can enroll; the
+  -- database answers with the published-only lifecycle rejection.
+  PERFORM set_config('request.jwt.claims',
+    json_build_object('sub', v_admin_a, 'role', 'authenticated')::text, true);
+  BEGIN
+    PERFORM public.enroll_student_in_programme(v_prog_archived, v_student_linked);
+    RAISE EXCEPTION 'DENY FAILED: an administrator enrolled into an archived programme';
+  EXCEPTION WHEN raise_exception THEN
+    IF sqlerrm LIKE 'DENY FAILED%' THEN RAISE; END IF;
+    IF sqlerrm NOT LIKE '%published programme can accept enrollments%' THEN RAISE; END IF;
+  END;
+
+  PERFORM set_config('request.jwt.claims',
+    json_build_object('sub', v_teacher_linked, 'role', 'authenticated')::text, true);
+  BEGIN
+    PERFORM public.enroll_student_in_programme(v_prog_archived, v_student_linked);
+    RAISE EXCEPTION 'DENY FAILED: an instructor enrolled into an archived programme';
+  EXCEPTION WHEN raise_exception THEN
+    IF sqlerrm LIKE 'DENY FAILED%' THEN RAISE; END IF;
+    IF sqlerrm NOT LIKE '%published programme can accept enrollments%' THEN RAISE; END IF;
+  END;
+
+  -- DENY: direct-ID management by a non-manager is a zero-row denial …
+  UPDATE public.programmes SET status = 'published' WHERE id = v_prog_archived;
+  GET DIAGNOSTICS v_updated = ROW_COUNT;
+  IF v_updated <> 0 THEN
+    RAISE EXCEPTION 'DENY FAILED: a teacher reopened an archived programme';
+  END IF;
+
+  -- … and even the administrator cannot reopen it: archival is one-way.
+  PERFORM set_config('request.jwt.claims',
+    json_build_object('sub', v_admin_a, 'role', 'authenticated')::text, true);
+  BEGIN
+    UPDATE public.programmes SET status = 'published' WHERE id = v_prog_archived;
+    RAISE EXCEPTION 'DENY FAILED: an archived programme was reopened';
+  EXCEPTION WHEN raise_exception THEN
+    IF sqlerrm LIKE 'DENY FAILED%' THEN RAISE; END IF;
+    IF sqlerrm NOT LIKE '%archived programme cannot be reopened%' THEN RAISE; END IF;
+  END;
+
+  -- Existing enrollment history survives archival: still readable through the
+  -- authorized guardian path, and still impossible to hard-delete.
+  PERFORM set_config('request.jwt.claims',
+    json_build_object('sub', v_parent_view, 'role', 'authenticated')::text, true);
+  SELECT count(*) INTO v_visible FROM public.programme_enrollments WHERE id = v_enrollment_archived;
+  IF v_visible <> 1 THEN
+    RAISE EXCEPTION 'ALLOW FAILED: a guardian lost their learner''s enrollment history at archival';
+  END IF;
+
+  v_deleted := NULL;
+  BEGIN
+    DELETE FROM public.programme_enrollments WHERE id = v_enrollment_archived;
+    GET DIAGNOSTICS v_deleted = ROW_COUNT;
+  EXCEPTION
+    WHEN insufficient_privilege THEN v_deleted := 0;
+    WHEN raise_exception THEN
+      IF sqlerrm NOT LIKE '%cannot be deleted%' THEN RAISE; END IF;
+      v_deleted := 0;
+  END;
+  IF v_deleted IS NULL OR v_deleted <> 0 THEN
+    RAISE EXCEPTION 'SECURITY DEFECT: archival enabled deletion of % enrollment row(s)',
+      coalesce(v_deleted, -1);
+  END IF;
+
+  RESET ROLE;
+  SELECT count(*) INTO v_count FROM public.programme_enrollments WHERE id = v_enrollment_archived;
+  IF v_count <> 1 THEN
+    RAISE EXCEPTION 'SECURITY DEFECT: enrollment history vanished after archival';
+  END IF;
+  SELECT status INTO v_status FROM public.programmes WHERE id = v_prog_archived;
+  IF v_status <> 'archived' THEN
+    RAISE EXCEPTION 'LIFECYCLE FAILED: an archived programme was reopened during the proof';
+  END IF;
+  SET LOCAL ROLE authenticated;
 
   -- ============================================= history cannot be destroyed
   --
