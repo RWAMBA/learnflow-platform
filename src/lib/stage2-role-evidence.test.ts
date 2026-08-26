@@ -53,10 +53,17 @@ describe("Stage 2 — learner self-view principal proof", () => {
   });
 
   it("proves another learner's records and cross-tenant records stay invisible", () => {
-    expect(LEARNER_BLOCK).toContain(
-      "DENY FAILED: a learner read another learner's academic enrollment",
-    );
+    // Apostrophes are SQL-escaped as '' inside the PL/pgSQL string literals.
+    for (const denial of [
+      "DENY FAILED: a learner read another learner''s academic enrollment",
+      "DENY FAILED: a learner read another learner''s programme enrollment",
+      "DENY FAILED: a learner read another learner''s student record",
+    ]) {
+      expect(LEARNER_BLOCK).toContain(denial);
+    }
     expect(LEARNER_BLOCK).toContain("v_student_other");
+    // Cross-tenant isolation is proven separately from same-tenant isolation.
+    expect(LEARNER_BLOCK).toContain("v_ce_cross");
   });
 
   it("proves the learner holds no programme-management authority", () => {
