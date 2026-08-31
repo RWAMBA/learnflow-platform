@@ -45,7 +45,27 @@ export const canGradeAssessments = (role: RoleCode | undefined) =>
   role === "teacher" || role === "tutor" || role === "org_admin";
 
 /** Who may sit an assessment. */
+/** Who may sit an assessment. */
 export const canTakeAssessments = (role: RoleCode | undefined) => role === "student";
+
+/**
+ * Stage 2 — who may author extracurricular programmes and assign instructors.
+ * Organization Administrator only; Teachers and Tutors instruct, they do not
+ * create programmes or assign themselves.
+ */
+export const canManageProgrammes = (role: RoleCode | undefined) => role === "org_admin";
+
+/**
+ * Who may attempt a programme enrollment. The database narrows this further:
+ * a Parent/Guardian must hold full management of that learner, and a
+ * Teacher/Tutor must be an assigned instructor *and* already have an active
+ * relationship with that same learner.
+ */
+export const canEnrollInProgrammes = (role: RoleCode | undefined) =>
+  role === "org_admin" || role === "parent_guardian" || role === "teacher" || role === "tutor";
+
+/** Who may move a programme enrollment through its lifecycle. */
+export const canManageProgrammeEnrollments = (role: RoleCode | undefined) => role === "org_admin";
 
 /** Who may see organization-wide assessment analytics. */
 export const canViewAssessmentAnalytics = (role: RoleCode | undefined) =>

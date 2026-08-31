@@ -1,5 +1,16 @@
 # LearnFlow — Phase 10H: Career Pathways Architecture
 
+> **SUPERSEDED — SCOPE ARCHITECTURALLY REMOVED (Stage 2, approved).**
+>
+> LearnFlow supports **school-level education only**. University, TVET, degree,
+> diploma, certificate, credential, admissions, higher-education exploration,
+> progression, career aspiration and career-pathway functionality are
+> **architecturally removed, not deferred**. No table, relationship, route, API,
+> permission, dashboard, badge, achievement record or UI in this document may be
+> implemented. This file is retained for historical traceability only.
+>
+> Restoring any concept below requires a new, separately approved requirement.
+
 **Scope:** University, TVET, Degree, Diploma, Certificate progression, academic completion, and future institutional exploration.
 **Status:** Approved, with refinements applied in this revision (issuer-identity model, Career Aspiration permissions, certificate integrity rules). See below.
 **Builds on:** Phases 1–9 and Phase 10A–10G — approved.
@@ -12,7 +23,7 @@ Event publish/archive authority split and the two Phase 10L implementation items
 
 ## 1. Certificates — Issuer Identity, Refined
 
-**The original `issued_by` (a `user_role_id`) was a real design inconsistency**, not just a minor gap: every `user_role` is tenant-scoped by construction (Phase 5), but a Platform Administrator is deliberately modeled *outside* that chain (`platform_admins`, also Phase 5) — so a platform-issued certificate could never have satisfied that field without contradicting the project's own Platform Administrator separation principle. Corrected to:
+**The original `issued_by` (a `user_role_id`) was a real design inconsistency**, not just a minor gap: every `user_role` is tenant-scoped by construction (Phase 5), but a Platform Administrator is deliberately modeled _outside_ that chain (`platform_admins`, also Phase 5) — so a platform-issued certificate could never have satisfied that field without contradicting the project's own Platform Administrator separation principle. Corrected to:
 
 - **`issued_by_profile_id`** — the authenticated person's raw identity (`profiles`), not their tenant role. Works identically whether the issuer is a tenant Organization Administrator or a Platform Administrator.
 - **`issuing_organization_id`** — nullable. Populated for an Organization-issued certificate; absent for a LearnFlow/platform-issued one.
@@ -67,14 +78,17 @@ Career Pathways at MVP remains Career Aspiration tracking only. Real university/
 Certificates are fully designed, including a corrected issuer-identity model that resolves a real inconsistency with the Platform Administrator separation established in Phase 5, and a deliberately narrow, privacy-minimized public verification mechanism. Career Aspiration tracking has a permission model reasoned specifically for what it actually is (learner-directed planning, not academic record) rather than defaulting to an existing pattern that didn't quite fit. Academic Completion required no new work. The MVP boundary for this domain — aspiration tracking, not institutional integration — is confirmed and explicit.
 
 ## Refinements Made During This Phase
+
 1. Certificate issuer changed from `issued_by` (`user_role_id`) to `issued_by_profile_id` + nullable `issuing_organization_id`, fixing a real conflict with the Phase 5 Platform Administrator separation principle.
 2. Public certificate verification confirmed to use a narrow server-side function returning a fixed four-field projection, not a filtered table SELECT policy.
 3. Career Aspiration permissions redesigned around what the data actually is (self, Parent, Organization Administrator — explicitly not Teacher/Tutor by default) rather than mirroring academic-record rights.
 4. Five concrete certificate integrity rules (Section 2) recorded for Phase 10L enforcement.
 
 ## Assumptions & Risks
+
 1. **Assumption:** an independently logged-in Student's right to manage their own aspirations doesn't require any additional relationship check beyond their own identity — it's their own data about themselves.
 2. **Risk, carried forward:** verification-code entropy and the narrow-RPC-not-raw-SELECT requirement (Section 3) are both real implementation obligations, not automatically satisfied by this design — flagged explicitly so Phase 10L treats them as requirements, not implementation-detail suggestions.
 
 ## Remaining Approval Decisions
+
 1. Approve Phase 10H (as refined) and proceed to Phase 10I (Billing & Commercial Architecture).

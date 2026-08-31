@@ -496,7 +496,8 @@ Phase 1–9 functionality is implemented with the gaps listed in section 5.
 Phase 10 Stage 1A and Stage 1B are implemented and reconciled (section 8a).
 Stage 1C is applied and reconciled on its feature branch (section 8b). Next scope after security: Stage 1 Universal
 Curriculum Engine → Stage 2 Programmes → Stage 3 Public Website → Stage 4
-Community → Stage 5 Career Pathways → Stage 6 Billing, each independently
+Community → Stage 5 (REMOVED — Career Pathways/Certificates are architecturally
+removed, numbering preserved for history) → Stage 6 Billing, each independently
 testable and deployable, followed by a full gap analysis against Phase 10A–10L
 and unfinished Phase 1–9 work. Private instructor-document controls and the
 `assignment-submissions` bucket belong to Stage 2.

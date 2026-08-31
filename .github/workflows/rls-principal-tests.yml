@@ -31,8 +31,8 @@ jobs:
       - uses: oven-sh/setup-bun@v2
       - run: bun install --frozen-lockfile
 
-      - name: Static Stage 1C + Storage structural suites (always on)
-        run: bunx vitest run src/lib/stage1c-enrollment-lifecycle.test.ts src/lib/stage1-storage-authorization.test.ts
+      - name: Static Stage 1C + Storage + Stage 2 structural suites (always on)
+        run: bunx vitest run src/lib/stage1c-enrollment-lifecycle.test.ts src/lib/stage1-storage-authorization.test.ts src/lib/stage2-programmes.test.ts
 
       - name: Reject any hosted Supabase / pooler endpoint
         run: |
@@ -104,6 +104,33 @@ jobs:
 
       - name: Prove zero residue after rollback
         run: psql "$RLS_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/rls/stage1c-residue-check.sql
+
+      - name: Verify Stage 2 objects exist in the disposable database
+        run: |
+          set -euo pipefail
+          psql "$RLS_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -Atq -c "
+            DO \$\$
+            BEGIN
+              IF to_regclass('public.programmes') IS NULL THEN
+                RAISE EXCEPTION 'Stage 2 object missing: public.programmes';
+              END IF;
+              IF to_regclass('public.programme_instructors') IS NULL THEN
+                RAISE EXCEPTION 'Stage 2 object missing: public.programme_instructors';
+              END IF;
+              IF to_regclass('public.programme_enrollments') IS NULL THEN
+                RAISE EXCEPTION 'Stage 2 object missing: public.programme_enrollments';
+              END IF;
+              IF to_regprocedure('public.enroll_student_in_programme(uuid, uuid)') IS NULL THEN
+                RAISE EXCEPTION 'Stage 2 object missing: public.enroll_student_in_programme';
+              END IF;
+            END
+            \$\$;"
+
+      - name: Stage 2 Programmes live-principal proof (always rolled back)
+        run: node scripts/run-stage2-rls-tests.mjs
+
+      - name: Prove zero Stage 2 residue after rollback
+        run: psql "$RLS_TEST_DATABASE_URL" -v ON_ERROR_STOP=1 -f scripts/rls/stage2-residue-check.sql
 
       - name: Storage live-principal allow/deny proof (always rolled back)
         run: node scripts/run-storage-principal-tests.mjs

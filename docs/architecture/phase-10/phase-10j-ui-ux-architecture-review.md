@@ -12,19 +12,19 @@ The Fee Definition/billing model (Phase 10I) is the primary driver of new UI in 
 
 ## 1. Design System Continuity — No New System Introduced
 
-The Phase 7 design system (tokens, Inter, Lucide, the shadcn/ui component mapping, the amber-reserved-for-achievement rule, WCAG 2.2 AA baseline with AAA for educational content) applies to every new surface in Phase 10 without modification. This phase reviews *journeys*, not tokens — nothing here proposes a second visual language for the public website, Community, or Billing screens. Where a new component pattern is genuinely needed (Section 4's curriculum wizard), it's still built from existing shadcn/ui primitives per the Phase 7 mapping, not a new library.
+The Phase 7 design system (tokens, Inter, Lucide, the shadcn/ui component mapping, the amber-reserved-for-achievement rule, WCAG 2.2 AA baseline with AAA for educational content) applies to every new surface in Phase 10 without modification. This phase reviews _journeys_, not tokens — nothing here proposes a second visual language for the public website, Community, or Billing screens. Where a new component pattern is genuinely needed (Section 4's curriculum wizard), it's still built from existing shadcn/ui primitives per the Phase 7 mapping, not a new library.
 
 ## 2. New Dashboard Widgets
 
 Extending Phase 4's Widget catalog and Dashboard Shell (Phase 7, Section 6) — new widgets, composed the same way existing ones are, not a new dashboard architecture:
 
-| Widget | Shown to | Content |
-|---|---|---|
-| Career Aspiration | Student (self), Parent, Organization Administrator | Current aspiration + edit action, per Phase 10H's permission model |
-| Community Feed | All roles, audience-filtered | Upcoming Events + recent Announcements the viewer's `audience_scope` permits (Phase 10G) |
-| Programme Roster | Programme instructor (Teacher/Tutor with an active `programme_instructors` assignment) | Their assigned programmes' enrolled Students |
-| Financial Overview | Organization Administrator (issuing and/or billed) | Outstanding invoices, recent payments (Phase 10I) |
-| My Invoices | A `billed_to_profile_id` (a Parent or other billed individual) | Their own invoices/payments/receipts only, per Phase 10I's fourth visibility path |
+| Widget             | Shown to                                                                               | Content                                                                                  |
+| ------------------ | -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Career Aspiration  | Student (self), Parent, Organization Administrator                                     | Current aspiration + edit action, per Phase 10H's permission model                       |
+| Community Feed     | All roles, audience-filtered                                                           | Upcoming Events + recent Announcements the viewer's `audience_scope` permits (Phase 10G) |
+| Programme Roster   | Programme instructor (Teacher/Tutor with an active `programme_instructors` assignment) | Their assigned programmes' enrolled Students                                             |
+| Financial Overview | Organization Administrator (issuing and/or billed)                                     | Outstanding invoices, recent payments (Phase 10I)                                        |
+| My Invoices        | A `billed_to_profile_id` (a Parent or other billed individual)                         | Their own invoices/payments/receipts only, per Phase 10I's fourth visibility path        |
 
 Each follows the existing widget pattern exactly — a `Card`-based component, permission-filtered into the Dashboard Shell, nothing structurally new.
 
@@ -59,7 +59,7 @@ An audience-scoped feed (Events + Announcements together, chronological), reusin
 
 ## 8. Financial / Billing UI
 
-A new Organization Administrator area (Invoices, Payments, Fee Definitions) and a new "My Invoices" surface for any `billed_to_profile_id`, per Phase 10I's four-path visibility model (Section 10 of that document) — this is the one area of Phase 10 introducing a genuinely new *section* of the app, not just new widgets, since Billing didn't have any UI footprint before this phase. Fee Definition management (creating/editing an Organization's own tuition/term/subject fee schedule) is an Organization Administrator-only screen, mirroring how curriculum-authoring screens are already scoped.
+A new Organization Administrator area (Invoices, Payments, Fee Definitions) and a new "My Invoices" surface for any `billed_to_profile_id`, per Phase 10I's four-path visibility model (Section 10 of that document) — this is the one area of Phase 10 introducing a genuinely new _section_ of the app, not just new widgets, since Billing didn't have any UI footprint before this phase. Fee Definition management (creating/editing an Organization's own tuition/term/subject fee schedule) is an Organization Administrator-only screen, mirroring how curriculum-authoring screens are already scoped.
 
 ## 9. Public Website Continuity
 
@@ -71,7 +71,7 @@ Unchanged: Tailwind's default breakpoints, mobile-first, WCAG 2.2 AA baseline. O
 
 ## 11. The UI Is Never the Security Boundary
 
-A principle carried explicitly into Phase 10K, though it isn't new — it's been the design philosophy since Phase 5/6, and this phase's job is to confirm it still holds across every new Phase 10 domain, not to introduce it: the UI may use server-resolved permissions/capabilities to decide what to *show* (which is all Section 2's widget composition and Section 5/8's action-hiding actually do), but every protected action stays independently enforced through server-side authorization, RLS, tenant membership, and relationship checks. A user who manually attempts a request the UI would normally hide must still be denied — hiding a button is a convenience, never a permission.
+A principle carried explicitly into Phase 10K, though it isn't new — it's been the design philosophy since Phase 5/6, and this phase's job is to confirm it still holds across every new Phase 10 domain, not to introduce it: the UI may use server-resolved permissions/capabilities to decide what to _show_ (which is all Section 2's widget composition and Section 5/8's action-hiding actually do), but every protected action stays independently enforced through server-side authorization, RLS, tenant membership, and relationship checks. A user who manually attempts a request the UI would normally hide must still be denied — hiding a button is a convenience, never a permission.
 
 ---
 
@@ -80,15 +80,17 @@ A principle carried explicitly into Phase 10K, though it isn't new — it's been
 No new design system, no new dashboard architecture, and no new accessibility framework were needed for any part of Phase 10 — the review's main finding is that Phase 4/7's widget-and-shell pattern absorbs almost everything cleanly. The two genuine exceptions are an adaptive curriculum-selection flow (replacing what would otherwise be an unusable ten-layer manual picker, with its visible step count varying by curriculum rather than fixed) and a new Billing section of the app (since financial data had no prior UI footprint at all). Independent Learner dashboards required no new design, confirming the Phase 3 Family-tenant merge decision generalizes correctly to this new actor type. The five confirmed widgets are treated as sufficient for MVP — new administrative domains (Public Inquiries, Instructor Applications, Fee Definitions, Events administration) get their own dedicated application sections rather than additional dashboard widgets by default.
 
 ## Refinements Made During This Phase
+
 1. Five new dashboard widgets specified and confirmed final (Career Aspiration, Community Feed, Programme Roster, Financial Overview, My Invoices) — no further widgets added merely because a new domain exists.
 2. Curriculum-selection flow refined from a fixed four-step wizard into an adaptive flow whose visible step count varies by curriculum, with Curriculum Version resolution always automatic and a future Org-Admin-only historical-correction workflow reserved but not designed.
 3. Guide articles (Phase 10E) confirmed to fall under the AAA educational-content contrast rule (Phase 7).
 4. The "UI is never the security boundary" principle made explicit and carried forward into Phase 10K.
 
 ## Assumptions & Risks
+
 1. **Assumption:** Programme browsing and Curriculum selection remain visually and navigationally distinct, reinforcing rather than blurring the Phase 10F enrollment-category boundary.
 2. **Risk:** the adaptive curriculum flow's step logic could grow more complex if a future fifth curriculum has a materially different shape than the four confirmed ones — acceptable now, worth revisiting if that happens.
 
 ## Remaining Approval Decisions
-_None outstanding — Phase 10J is approved and finalized._
 
+_None outstanding — Phase 10J is approved and finalized._
