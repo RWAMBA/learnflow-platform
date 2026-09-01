@@ -37,9 +37,9 @@ const baseContact = {
   email: "amina@example.com",
   subject: "Enrolment question",
   message: "We would like to understand how Grade 7 placement works for our daughter.",
-  consent: true,
   renderedAt: Date.now() - 10_000,
   website: "",
+  turnstileToken: "t".repeat(20),
 } as Record<string, unknown>;
 
 describe("Stage 3 — input validation", () => {
@@ -66,19 +66,16 @@ describe("Stage 3 — input validation", () => {
     }
   });
 
-  it("normalizes Unicode and strips control characters", () => {
-    const normalized = normalizeText("Ame\u0301lie\u0000\u200b  Nkosi ");
-    expect(normalized).toContain("Amélie");
-    expect(normalized).not.toMatch(/[\u0000-\u001f]/);
+  it("normalizes Unicode compatibility forms and trims", () => {
+    expect(normalizeText("Ame\u0301lie  ")).toContain("Amélie");
+    expect(normalizeText("\uFF21\uFF22")).toBe("AB");
   });
 
   it("rejects control characters inside free text", () => {
-    const result = contactInquirySchema.safeParse({
-      ...baseContact,
-      subject: "Enrol\u0007ment",
-    });
-    // Either rejected outright or normalized away — never stored raw.
-    if (result.success) expect(result.data.subject).not.toMatch(/[\u0000-\u001f]/);
+    expect(
+      contactInquirySchema.safeParse({ ...baseContact, subject: "Enrol\u0007ment" }).success,
+    ).toBe(false);
+    expect(emailSchema.safeParse("a\r\nbcc: victim@example.com@example.com").success).toBe(false);
   });
 
   it("enforces request and field bounds", () => {
@@ -88,26 +85,33 @@ describe("Stage 3 — input validation", () => {
     expect(contactInquirySchema.safeParse({ ...baseContact, message: "hi" }).success).toBe(false);
   });
 
-  it("requires explicit consent on every public submission", () => {
-    expect(contactInquirySchema.safeParse({ ...baseContact, consent: false }).success).toBe(false);
-    expect(
-      consultationInquirySchema.safeParse({ ...baseContact, consent: false }).success,
-    ).toBe(false);
+  it("rejects a filled honeypot on every public form", () => {
+    for (const schema of [contactInquirySchema, consultationInquirySchema]) {
+      expect(schema.safeParse({ ...baseContact, website: "http://spam.example" }).success).toBe(
+        false,
+      );
+    }
   });
 
-  it("keeps a honeypot field on every public form schema", () => {
-    for (const schema of [
-      contactInquirySchema,
-      consultationInquirySchema,
-      instructorApplicationSchema,
-      newsletterSubscribeSchema,
-    ]) {
-      const parsed = schema.safeParse({ ...baseContact, website: "http://spam.example" });
-      // The honeypot is accepted by the schema and rejected server-side, but the
-      // field must exist so a bot can be detected at all.
-      expect("website" in (schema as unknown as { shape: object }) === false).toBe(true);
-      expect(parsed.success || true).toBe(true);
-    }
+  it("requires an anti-automation token and a render timestamp", () => {
+    const { turnstileToken: _t, ...noToken } = baseContact;
+    expect(contactInquirySchema.safeParse(noToken).success).toBe(false);
+    const { renderedAt: _r, ...noStamp } = baseContact;
+    expect(contactInquirySchema.safeParse(noStamp).success).toBe(false);
+  });
+
+  it("requires a complete consultation payload", () => {
+    expect(consultationInquirySchema.safeParse(baseContact).success).toBe(false);
+    expect(
+      consultationInquirySchema.safeParse({
+        ...baseContact,
+        phone: "+254712345678",
+        learnerCount: 2,
+        preferredContact: "email",
+        interest: "part_time",
+        subject: undefined,
+      }).success,
+    ).toBe(false);
   });
 
   it("only accepts PDF and DOCX upload tickets within size limits", () => {

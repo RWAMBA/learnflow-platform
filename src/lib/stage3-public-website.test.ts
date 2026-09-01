@@ -116,16 +116,15 @@ describe("Stage 3 — content lifecycle and immutability", () => {
 
   it("rejects hard deletes on published content and submissions", () => {
     expect(SQL).toContain("app_private.reject_hard_delete()");
-    for (const table of [
-      "site_content",
-      "guide_articles",
-      "testimonials",
-      "faqs",
-      "merchandise_items",
-      "public_inquiries",
-      "newsletter_subscriptions",
+    // CMS tables receive the guard through one generated loop; submission
+    // tables declare it literally.
+    expect(SQL).toContain("t || '_no_delete'");
+    for (const trigger of [
+      "public_inquiries_no_delete",
+      "instructor_applications_no_delete",
+      "newsletter_subscriptions_no_delete",
     ]) {
-      expect(SQL).toMatch(new RegExp(`${table}_no_delete`));
+      expect(SQL).toContain(trigger);
     }
   });
 
