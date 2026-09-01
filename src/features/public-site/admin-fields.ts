@@ -175,7 +175,13 @@ export function buildValues(entity: CmsEntity, form: Record<string, string>) {
     if (field.kind === "number") {
       values[field.key] = raw === "" ? (field.key === "displayOrder" ? 0 : null) : Number(raw);
     } else if (field.kind === "tags") {
-      values[field.key] = raw === "" ? [] : raw.split(",").map((t) => t.trim()).filter(Boolean);
+      values[field.key] =
+        raw === ""
+          ? []
+          : raw
+              .split(",")
+              .map((t) => t.trim())
+              .filter(Boolean);
     } else if (field.required || field.kind === "markdown") {
       values[field.key] = raw;
     } else {

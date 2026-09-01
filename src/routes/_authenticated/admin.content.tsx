@@ -350,20 +350,21 @@ function EntityEditor({
     <Dialog open onOpenChange={(open) => (!open ? onClose() : undefined)}>
       <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>
-            {row ? `Edit ${entity.singular}` : `New ${entity.singular}`}
-          </DialogTitle>
+          <DialogTitle>{row ? `Edit ${entity.singular}` : `New ${entity.singular}`}</DialogTitle>
           <DialogDescription>
             Saving records an immutable audit entry. Publication is a separate, explicit action.
           </DialogDescription>
         </DialogHeader>
 
         {conflict ? (
-          <div role="alert" className="flex gap-2 rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm">
+          <div
+            role="alert"
+            className="flex gap-2 rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm"
+          >
             <AlertTriangle className="mt-0.5 size-4 shrink-0 text-destructive" aria-hidden="true" />
             <span>
-              This item changed since you opened it. Close and reopen it to load the current
-              version before saving again.
+              This item changed since you opened it. Close and reopen it to load the current version
+              before saving again.
             </span>
           </div>
         ) : null}
@@ -382,9 +383,8 @@ function EntityEditor({
               value: form[field.key] ?? "",
               required: field.required,
               "aria-describedby": field.help ? `${id}-help` : undefined,
-              onChange: (
-                event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-              ) => setForm((prev) => ({ ...prev, [field.key]: event.target.value })),
+              onChange: (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+                setForm((prev) => ({ ...prev, [field.key]: event.target.value })),
             };
             return (
               <div key={field.key} className="space-y-1.5">

@@ -122,12 +122,10 @@ describe("Stage 3 — input validation", () => {
       turnstileToken: "t".repeat(20),
     };
     expect(uploadTicketSchema.safeParse(ok).success).toBe(true);
-    expect(
-      uploadTicketSchema.safeParse({ ...ok, contentType: "image/svg+xml" }).success,
-    ).toBe(false);
-    expect(
-      uploadTicketSchema.safeParse({ ...ok, contentType: "text/html" }).success,
-    ).toBe(false);
+    expect(uploadTicketSchema.safeParse({ ...ok, contentType: "image/svg+xml" }).success).toBe(
+      false,
+    );
+    expect(uploadTicketSchema.safeParse({ ...ok, contentType: "text/html" }).success).toBe(false);
     expect(uploadTicketSchema.safeParse({ ...ok, sizeBytes: 50_000_000 }).success).toBe(false);
   });
 
@@ -253,15 +251,15 @@ describe("Stage 3 — administrative contracts", () => {
   });
 
   it("rejects unknown keys on a save envelope", () => {
-    expect(
-      cmsSaveSchema.safeParse({ table: "faqs", values: {}, elevate: true }).success,
-    ).toBe(false);
+    expect(cmsSaveSchema.safeParse({ table: "faqs", values: {}, elevate: true }).success).toBe(
+      false,
+    );
   });
 
   it("validates each entity payload strictly", () => {
-    expect(siteContentInputSchema.safeParse({ contentKey: "A B", pageSlug: "x", title: "t" }).success).toBe(
-      false,
-    );
+    expect(
+      siteContentInputSchema.safeParse({ contentKey: "A B", pageSlug: "x", title: "t" }).success,
+    ).toBe(false);
     expect(
       guideArticleInputSchema.safeParse({
         slug: "getting-started",

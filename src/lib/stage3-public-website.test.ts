@@ -208,8 +208,12 @@ describe("Stage 3 — function security", () => {
       "public.withdraw_newsletter_subscription",
       "public.consume_rate_limit",
     ]) {
-      expect(SQL).toMatch(new RegExp(`GRANT EXECUTE ON FUNCTION ${fn.replace(".", "\\.")}[^;]*TO service_role`));
-      expect(SQL).not.toMatch(new RegExp(`GRANT EXECUTE ON FUNCTION ${fn.replace(".", "\\.")}[^;]*TO anon`));
+      expect(SQL).toMatch(
+        new RegExp(`GRANT EXECUTE ON FUNCTION ${fn.replace(".", "\\.")}[^;]*TO service_role`),
+      );
+      expect(SQL).not.toMatch(
+        new RegExp(`GRANT EXECUTE ON FUNCTION ${fn.replace(".", "\\.")}[^;]*TO anon`),
+      );
     }
   });
 
