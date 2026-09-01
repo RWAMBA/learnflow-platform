@@ -67,6 +67,7 @@ import { Route as AuthenticatedStudentsStudentIdRouteImport } from './routes/_au
 import { Route as AuthenticatedStudentsNewRouteImport } from './routes/_authenticated/students.new'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as ApiPublicInquiriesRouteImport } from './routes/api/public/inquiries'
+import { Route as ApiPublicUploadTicketRouteImport } from './routes/api/public/upload-ticket'
 import { Route as AuthenticatedAssessmentsGradeSubmissionIdRouteImport } from './routes/_authenticated/assessments.grade.$submissionId'
 import { Route as AuthenticatedAssessmentsTakeSubmissionIdRouteImport } from './routes/_authenticated/assessments.take.$submissionId'
 import { Route as AuthenticatedCurriculumGradesGradeIdRouteImport } from './routes/_authenticated/curriculum.grades.$gradeId'
@@ -398,6 +399,11 @@ const ApiPublicInquiriesRoute = ApiPublicInquiriesRouteImport.update({
   path: '/api/public/inquiries',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicUploadTicketRoute = ApiPublicUploadTicketRouteImport.update({
+  id: '/api/public/upload-ticket',
+  path: '/api/public/upload-ticket',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAssessmentsGradeSubmissionIdRoute =
   AuthenticatedAssessmentsGradeSubmissionIdRouteImport.update({
     id: '/assessments/grade/$submissionId',
@@ -498,6 +504,7 @@ export interface FileRoutesByFullPath {
   '/students/new': typeof AuthenticatedStudentsNewRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/inquiries': typeof ApiPublicInquiriesRoute
+  '/api/public/upload-ticket': typeof ApiPublicUploadTicketRoute
   '/assessments/': typeof AuthenticatedAssessmentsIndexRoute
   '/assignments/': typeof AuthenticatedAssignmentsIndexRoute
   '/curriculum/': typeof AuthenticatedCurriculumIndexRoute
@@ -565,6 +572,7 @@ export interface FileRoutesByTo {
   '/students/new': typeof AuthenticatedStudentsNewRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/inquiries': typeof ApiPublicInquiriesRoute
+  '/api/public/upload-ticket': typeof ApiPublicUploadTicketRoute
   '/assessments': typeof AuthenticatedAssessmentsIndexRoute
   '/assignments': typeof AuthenticatedAssignmentsIndexRoute
   '/curriculum': typeof AuthenticatedCurriculumIndexRoute
@@ -634,6 +642,7 @@ export interface FileRoutesById {
   '/_authenticated/students/new': typeof AuthenticatedStudentsNewRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/inquiries': typeof ApiPublicInquiriesRoute
+  '/api/public/upload-ticket': typeof ApiPublicUploadTicketRoute
   '/_authenticated/assessments/': typeof AuthenticatedAssessmentsIndexRoute
   '/_authenticated/assignments/': typeof AuthenticatedAssignmentsIndexRoute
   '/_authenticated/curriculum/': typeof AuthenticatedCurriculumIndexRoute
@@ -703,6 +712,7 @@ export interface FileRouteTypes {
     | '/students/new'
     | '/api/public/health'
     | '/api/public/inquiries'
+    | '/api/public/upload-ticket'
     | '/assessments/'
     | '/assignments/'
     | '/curriculum/'
@@ -770,6 +780,7 @@ export interface FileRouteTypes {
     | '/students/new'
     | '/api/public/health'
     | '/api/public/inquiries'
+    | '/api/public/upload-ticket'
     | '/assessments'
     | '/assignments'
     | '/curriculum'
@@ -838,6 +849,7 @@ export interface FileRouteTypes {
     | '/_authenticated/students/new'
     | '/api/public/health'
     | '/api/public/inquiries'
+    | '/api/public/upload-ticket'
     | '/_authenticated/assessments/'
     | '/_authenticated/assignments/'
     | '/_authenticated/curriculum/'
@@ -881,6 +893,7 @@ export interface RootRouteChildren {
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
   ApiPublicInquiriesRoute: typeof ApiPublicInquiriesRoute
+  ApiPublicUploadTicketRoute: typeof ApiPublicUploadTicketRoute
   ApiPublicNewsletterConfirmRoute: typeof ApiPublicNewsletterConfirmRoute
   ApiPublicNewsletterSubscribeRoute: typeof ApiPublicNewsletterSubscribeRoute
   ApiPublicNewsletterUnsubscribeRoute: typeof ApiPublicNewsletterUnsubscribeRoute
@@ -1294,6 +1307,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicInquiriesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/upload-ticket': {
+      id: '/api/public/upload-ticket'
+      path: '/api/public/upload-ticket'
+      fullPath: '/api/public/upload-ticket'
+      preLoaderRoute: typeof ApiPublicUploadTicketRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/assessments/grade/$submissionId': {
       id: '/_authenticated/assessments/grade/$submissionId'
       path: '/assessments/grade/$submissionId'
@@ -1477,6 +1497,7 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicHealthRoute: ApiPublicHealthRoute,
   ApiPublicInquiriesRoute: ApiPublicInquiriesRoute,
+  ApiPublicUploadTicketRoute: ApiPublicUploadTicketRoute,
   ApiPublicNewsletterConfirmRoute: ApiPublicNewsletterConfirmRoute,
   ApiPublicNewsletterSubscribeRoute: ApiPublicNewsletterSubscribeRoute,
   ApiPublicNewsletterUnsubscribeRoute: ApiPublicNewsletterUnsubscribeRoute,
