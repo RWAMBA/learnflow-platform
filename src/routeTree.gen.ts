@@ -41,6 +41,7 @@ import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[
 import { Route as AuthenticatedAccountMfaRouteImport } from './routes/_authenticated/account.mfa'
 import { Route as AuthenticatedAccountSecurityRouteImport } from './routes/_authenticated/account.security'
 import { Route as AuthenticatedAccountSecurityChecklistRouteImport } from './routes/_authenticated/account.security-checklist'
+import { Route as AuthenticatedAdminContentRouteImport } from './routes/_authenticated/admin.content'
 import { Route as AuthenticatedAdminTenantsRouteImport } from './routes/_authenticated/admin.tenants'
 import { Route as AuthenticatedAssessmentsIndexRouteImport } from './routes/_authenticated/assessments.index'
 import { Route as AuthenticatedAssessmentsAssessmentIdRouteImport } from './routes/_authenticated/assessments.$assessmentId'
@@ -244,6 +245,12 @@ const AuthenticatedAccountSecurityChecklistRoute =
   AuthenticatedAccountSecurityChecklistRouteImport.update({
     id: '/account/security-checklist',
     path: '/account/security-checklist',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAdminContentRoute =
+  AuthenticatedAdminContentRouteImport.update({
+    id: '/admin/content',
+    path: '/admin/content',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedAdminTenantsRoute =
@@ -509,6 +516,7 @@ export interface FileRoutesByFullPath {
   '/account/mfa': typeof AuthenticatedAccountMfaRoute
   '/account/security': typeof AuthenticatedAccountSecurityRoute
   '/account/security-checklist': typeof AuthenticatedAccountSecurityChecklistRoute
+  '/admin/content': typeof AuthenticatedAdminContentRoute
   '/admin/tenants': typeof AuthenticatedAdminTenantsRoute
   '/assessments/$assessmentId': typeof AuthenticatedAssessmentsAssessmentIdRoute
   '/assessments/analytics': typeof AuthenticatedAssessmentsAnalyticsRoute
@@ -581,6 +589,7 @@ export interface FileRoutesByTo {
   '/account/mfa': typeof AuthenticatedAccountMfaRoute
   '/account/security': typeof AuthenticatedAccountSecurityRoute
   '/account/security-checklist': typeof AuthenticatedAccountSecurityChecklistRoute
+  '/admin/content': typeof AuthenticatedAdminContentRoute
   '/admin/tenants': typeof AuthenticatedAdminTenantsRoute
   '/assessments/$assessmentId': typeof AuthenticatedAssessmentsAssessmentIdRoute
   '/assessments/analytics': typeof AuthenticatedAssessmentsAnalyticsRoute
@@ -655,6 +664,7 @@ export interface FileRoutesById {
   '/_authenticated/account/mfa': typeof AuthenticatedAccountMfaRoute
   '/_authenticated/account/security': typeof AuthenticatedAccountSecurityRoute
   '/_authenticated/account/security-checklist': typeof AuthenticatedAccountSecurityChecklistRoute
+  '/_authenticated/admin/content': typeof AuthenticatedAdminContentRoute
   '/_authenticated/admin/tenants': typeof AuthenticatedAdminTenantsRoute
   '/_authenticated/assessments/$assessmentId': typeof AuthenticatedAssessmentsAssessmentIdRoute
   '/_authenticated/assessments/analytics': typeof AuthenticatedAssessmentsAnalyticsRoute
@@ -729,6 +739,7 @@ export interface FileRouteTypes {
     | '/account/mfa'
     | '/account/security'
     | '/account/security-checklist'
+    | '/admin/content'
     | '/admin/tenants'
     | '/assessments/$assessmentId'
     | '/assessments/analytics'
@@ -801,6 +812,7 @@ export interface FileRouteTypes {
     | '/account/mfa'
     | '/account/security'
     | '/account/security-checklist'
+    | '/admin/content'
     | '/admin/tenants'
     | '/assessments/$assessmentId'
     | '/assessments/analytics'
@@ -874,6 +886,7 @@ export interface FileRouteTypes {
     | '/_authenticated/account/mfa'
     | '/_authenticated/account/security'
     | '/_authenticated/account/security-checklist'
+    | '/_authenticated/admin/content'
     | '/_authenticated/admin/tenants'
     | '/_authenticated/assessments/$assessmentId'
     | '/_authenticated/assessments/analytics'
@@ -1177,6 +1190,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAccountSecurityChecklistRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/admin/content': {
+      id: '/_authenticated/admin/content'
+      path: '/admin/content'
+      fullPath: '/admin/content'
+      preLoaderRoute: typeof AuthenticatedAdminContentRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/admin/tenants': {
       id: '/_authenticated/admin/tenants'
       path: '/admin/tenants'
@@ -1460,6 +1480,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAccountMfaRoute: typeof AuthenticatedAccountMfaRoute
   AuthenticatedAccountSecurityRoute: typeof AuthenticatedAccountSecurityRoute
   AuthenticatedAccountSecurityChecklistRoute: typeof AuthenticatedAccountSecurityChecklistRoute
+  AuthenticatedAdminContentRoute: typeof AuthenticatedAdminContentRoute
   AuthenticatedAdminTenantsRoute: typeof AuthenticatedAdminTenantsRoute
   AuthenticatedAssessmentsAssessmentIdRoute: typeof AuthenticatedAssessmentsAssessmentIdRoute
   AuthenticatedAssessmentsAnalyticsRoute: typeof AuthenticatedAssessmentsAnalyticsRoute
@@ -1502,6 +1523,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAccountSecurityRoute: AuthenticatedAccountSecurityRoute,
   AuthenticatedAccountSecurityChecklistRoute:
     AuthenticatedAccountSecurityChecklistRoute,
+  AuthenticatedAdminContentRoute: AuthenticatedAdminContentRoute,
   AuthenticatedAdminTenantsRoute: AuthenticatedAdminTenantsRoute,
   AuthenticatedAssessmentsAssessmentIdRoute:
     AuthenticatedAssessmentsAssessmentIdRoute,
