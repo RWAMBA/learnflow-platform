@@ -70,6 +70,7 @@ import { Route as AuthenticatedStudentsStudentIdRouteImport } from './routes/_au
 import { Route as AuthenticatedStudentsNewRouteImport } from './routes/_authenticated/students.new'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as ApiPublicInquiriesRouteImport } from './routes/api/public/inquiries'
+import { Route as ApiPublicSitemapDotxmlRouteImport } from './routes/api/public/sitemap[.]xml'
 import { Route as ApiPublicUploadTicketRouteImport } from './routes/api/public/upload-ticket'
 import { Route as AuthenticatedAssessmentsGradeSubmissionIdRouteImport } from './routes/_authenticated/assessments.grade.$submissionId'
 import { Route as AuthenticatedAssessmentsTakeSubmissionIdRouteImport } from './routes/_authenticated/assessments.take.$submissionId'
@@ -417,6 +418,11 @@ const ApiPublicInquiriesRoute = ApiPublicInquiriesRouteImport.update({
   path: '/api/public/inquiries',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicSitemapDotxmlRoute = ApiPublicSitemapDotxmlRouteImport.update({
+  id: '/api/public/sitemap.xml',
+  path: '/api/public/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicUploadTicketRoute = ApiPublicUploadTicketRouteImport.update({
   id: '/api/public/upload-ticket',
   path: '/api/public/upload-ticket',
@@ -525,6 +531,7 @@ export interface FileRoutesByFullPath {
   '/students/new': typeof AuthenticatedStudentsNewRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/inquiries': typeof ApiPublicInquiriesRoute
+  '/api/public/sitemap.xml': typeof ApiPublicSitemapDotxmlRoute
   '/api/public/upload-ticket': typeof ApiPublicUploadTicketRoute
   '/assessments/': typeof AuthenticatedAssessmentsIndexRoute
   '/assignments/': typeof AuthenticatedAssignmentsIndexRoute
@@ -596,6 +603,7 @@ export interface FileRoutesByTo {
   '/students/new': typeof AuthenticatedStudentsNewRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/inquiries': typeof ApiPublicInquiriesRoute
+  '/api/public/sitemap.xml': typeof ApiPublicSitemapDotxmlRoute
   '/api/public/upload-ticket': typeof ApiPublicUploadTicketRoute
   '/assessments': typeof AuthenticatedAssessmentsIndexRoute
   '/assignments': typeof AuthenticatedAssignmentsIndexRoute
@@ -669,6 +677,7 @@ export interface FileRoutesById {
   '/_authenticated/students/new': typeof AuthenticatedStudentsNewRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/inquiries': typeof ApiPublicInquiriesRoute
+  '/api/public/sitemap.xml': typeof ApiPublicSitemapDotxmlRoute
   '/api/public/upload-ticket': typeof ApiPublicUploadTicketRoute
   '/_authenticated/assessments/': typeof AuthenticatedAssessmentsIndexRoute
   '/_authenticated/assignments/': typeof AuthenticatedAssignmentsIndexRoute
@@ -742,6 +751,7 @@ export interface FileRouteTypes {
     | '/students/new'
     | '/api/public/health'
     | '/api/public/inquiries'
+    | '/api/public/sitemap.xml'
     | '/api/public/upload-ticket'
     | '/assessments/'
     | '/assignments/'
@@ -813,6 +823,7 @@ export interface FileRouteTypes {
     | '/students/new'
     | '/api/public/health'
     | '/api/public/inquiries'
+    | '/api/public/sitemap.xml'
     | '/api/public/upload-ticket'
     | '/assessments'
     | '/assignments'
@@ -885,6 +896,7 @@ export interface FileRouteTypes {
     | '/_authenticated/students/new'
     | '/api/public/health'
     | '/api/public/inquiries'
+    | '/api/public/sitemap.xml'
     | '/api/public/upload-ticket'
     | '/_authenticated/assessments/'
     | '/_authenticated/assignments/'
@@ -932,6 +944,7 @@ export interface RootRouteChildren {
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
   ApiPublicInquiriesRoute: typeof ApiPublicInquiriesRoute
+  ApiPublicSitemapDotxmlRoute: typeof ApiPublicSitemapDotxmlRoute
   ApiPublicUploadTicketRoute: typeof ApiPublicUploadTicketRoute
   ApiPublicNewsletterConfirmRoute: typeof ApiPublicNewsletterConfirmRoute
   ApiPublicNewsletterSubscribeRoute: typeof ApiPublicNewsletterSubscribeRoute
@@ -1367,6 +1380,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicInquiriesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/sitemap.xml': {
+      id: '/api/public/sitemap.xml'
+      path: '/api/public/sitemap.xml'
+      fullPath: '/api/public/sitemap.xml'
+      preLoaderRoute: typeof ApiPublicSitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/upload-ticket': {
       id: '/api/public/upload-ticket'
       path: '/api/public/upload-ticket'
@@ -1560,6 +1580,7 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicHealthRoute: ApiPublicHealthRoute,
   ApiPublicInquiriesRoute: ApiPublicInquiriesRoute,
+  ApiPublicSitemapDotxmlRoute: ApiPublicSitemapDotxmlRoute,
   ApiPublicUploadTicketRoute: ApiPublicUploadTicketRoute,
   ApiPublicNewsletterConfirmRoute: ApiPublicNewsletterConfirmRoute,
   ApiPublicNewsletterSubscribeRoute: ApiPublicNewsletterSubscribeRoute,
