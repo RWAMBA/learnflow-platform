@@ -201,8 +201,10 @@ describe("Stage 3 — safe rendering", () => {
   it("escapes stored HTML instead of executing it", () => {
     const html = render('<img src=x onerror="alert(1)"> <script>alert(2)</script>');
     expect(html).not.toContain("<script");
-    expect(html).not.toContain("onerror=");
+    expect(html).not.toContain("<img");
+    // The payload survives only as escaped text inside a paragraph.
     expect(html).toContain("&lt;script");
+    expect(html).toContain("&lt;img");
   });
 
   it("drops javascript: and data: links but keeps the label", () => {

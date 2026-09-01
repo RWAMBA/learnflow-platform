@@ -68,8 +68,17 @@ describe("Stage 3 — migration artifacts", () => {
   });
 
   it("enables row level security on every entity plus the audit log", () => {
-    for (const table of [...TEN_ENTITIES, "public_site_audit_log"]) {
-      expect(SQL).toMatch(
+    // CMS tables are enabled through one generated loop; the rest literally.
+    expect(SQL).toMatch(/ALTER TABLE public\.%I ENABLE ROW LEVEL SECURITY/i);
+    for (const table of [
+      "public_inquiries",
+      "instructor_application_details",
+      "submission_throttle",
+      "newsletter_subscriptions",
+      "newsletter_consent_events",
+      "public_site_audit_log",
+    ]) {
+      expect(SQL, table).toMatch(
         new RegExp(`ALTER TABLE public\\.${table} ENABLE ROW LEVEL SECURITY`, "i"),
       );
     }
