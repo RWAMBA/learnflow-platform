@@ -11,6 +11,8 @@ import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AppStatusBar } from "./app-status-bar";
 import { ConsentProvider, useConsent } from "./consent";
+import { NewsletterSignup } from "./newsletter-signup";
+
 
 const NAV = [
   { to: "/", label: "Home" },
