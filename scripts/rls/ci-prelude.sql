@@ -66,3 +66,36 @@ CREATE EVENT TRIGGER ensure_rls
   ON ddl_command_end
   WHEN TAG IN ('CREATE TABLE', 'CREATE TABLE AS', 'SELECT INTO')
   EXECUTE FUNCTION public.rls_auto_enable();
+
+-- Stage 3 adopts a private Storage bucket provisioned out of band on the
+-- hosted project. Reproduce that dependency before disposable migration replay.
+-- The constraints mirror the server-enforced per-file upload contract.
+INSERT INTO storage.buckets (
+  id,
+  name,
+  public,
+  file_size_limit,
+  allowed_mime_types
+)
+VALUES (
+  'instructor-applications',
+  'instructor-applications',
+  false,
+  5242880,
+  ARRAY[
+    'application/pdf',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+  ]
+)
+ON CONFLICT (id) DO UPDATE SET
+  name = EXCLUDED.name,
+  public = EXCLUDED.public,
+  file_size_limit = EXCLUDED.file_size_limit,
+  allowed_mime_types = EXCLUDED.allowed_mime_types;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM storage.buckets
+    WHERE id = 'instructor-applications'
