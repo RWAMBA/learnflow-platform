@@ -22,9 +22,8 @@ export const Route = createFileRoute("/api/public/health")({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        const { enforceRateLimit, PublicBoundaryError, jsonError, serviceClient } = await import(
-          "@/lib/public-site.server"
-        );
+        const { enforceRateLimit, PublicBoundaryError, jsonError, serviceClient } =
+          await import("@/lib/public-site.server");
 
         try {
           const header = process.env["TRUSTED_CLIENT_IP_HEADER"];

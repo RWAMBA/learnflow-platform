@@ -10,8 +10,18 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-const slugSchema = z.object({ slug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).max(120) });
-const pageSchema = z.object({ pageSlug: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/).max(64) });
+const slugSchema = z.object({
+  slug: z
+    .string()
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+    .max(120),
+});
+const pageSchema = z.object({
+  pageSlug: z
+    .string()
+    .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
+    .max(64),
+});
 
 export interface PublicContentBlock {
   id: string;
@@ -50,7 +60,9 @@ export const listGuideArticles = createServerFn({ method: "GET" }).handler(async
   const { publishableClient } = await import("./public-site.server");
   const { data, error } = await publishableClient()
     .from("guide_articles")
-    .select("id, slug, title, summary, category, tags, reading_minutes, published_at, display_order")
+    .select(
+      "id, slug, title, summary, category, tags, reading_minutes, published_at, display_order",
+    )
     .eq("status", "published")
     .order("display_order", { ascending: true })
     .order("published_at", { ascending: false })

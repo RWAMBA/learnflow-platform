@@ -23,7 +23,11 @@ import {
 } from "@/components/ui/dialog";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { CONSENT_STORAGE_KEY, CONSENT_TTL_DAYS, CONSENT_VERSION } from "@/lib/public-site.constants";
+import {
+  CONSENT_STORAGE_KEY,
+  CONSENT_TTL_DAYS,
+  CONSENT_VERSION,
+} from "@/lib/public-site.constants";
 
 export interface ConsentState {
   version: string;
@@ -62,7 +66,8 @@ function readConsent(): ConsentState | null {
 function clearOptionalStorage() {
   try {
     for (const key of Object.keys(localStorage)) {
-      if (key.startsWith("lf_pref_") || key.startsWith("lf_analytics_")) localStorage.removeItem(key);
+      if (key.startsWith("lf_pref_") || key.startsWith("lf_analytics_"))
+        localStorage.removeItem(key);
     }
     for (const cookie of document.cookie.split(";")) {
       const name = cookie.split("=")[0]?.trim();
@@ -221,4 +226,14 @@ export function useConsent(): ConsentContextValue {
   const ctx = useContext(ConsentContext);
   if (!ctx) throw new Error("useConsent must be used inside ConsentProvider");
   return ctx;
+}
+
+/** Re-opens the consent dialog so a decision can be changed at any time. */
+export function ConsentPreferencesButton() {
+  const { open } = useConsent();
+  return (
+    <Button variant="outline" className="min-h-11" onClick={open}>
+      Change cookie preferences
+    </Button>
+  );
 }

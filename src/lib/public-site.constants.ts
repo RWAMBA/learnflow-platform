@@ -71,7 +71,11 @@ export const UPLOAD_LIMITS = {
   /** SVG and HTML are refused outright in Stage 3. */
   allowed: [
     { extension: "pdf", mime: "application/pdf", magic: "%PDF-" },
-    { extension: "docx", mime: "application/vnd.openxmlformats-officedocument.wordprocessingml.document", magic: "PK\u0003\u0004" },
+    {
+      extension: "docx",
+      mime: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      magic: "PK\u0003\u0004",
+    },
   ],
 } as const;
 
@@ -83,15 +87,61 @@ export const CONSENT_TTL_DAYS = 180;
 export const PUBLIC_ROUTES = [
   { path: "/", label: "Home", nav: true, changefreq: "weekly", priority: 1.0 },
   { path: "/about", label: "About", nav: true, changefreq: "monthly", priority: 0.7 },
-  { path: "/why-choose-us", label: "Why choose us", nav: true, changefreq: "monthly", priority: 0.7 },
+  {
+    path: "/why-choose-us",
+    label: "Why choose us",
+    nav: true,
+    changefreq: "monthly",
+    priority: 0.7,
+  },
   { path: "/services", label: "Services", nav: true, changefreq: "monthly", priority: 0.8 },
   { path: "/guide", label: "Guide", nav: true, changefreq: "weekly", priority: 0.8 },
   { path: "/testimonials", label: "Testimonials", nav: true, changefreq: "monthly", priority: 0.5 },
   { path: "/faqs", label: "FAQs", nav: true, changefreq: "monthly", priority: 0.6 },
   { path: "/merchandise", label: "Merchandise", nav: true, changefreq: "weekly", priority: 0.6 },
   { path: "/contact", label: "Contact", nav: true, changefreq: "yearly", priority: 0.6 },
-  { path: "/consultation", label: "Book a consultation", nav: false, changefreq: "yearly", priority: 0.6 },
-  { path: "/instructors/apply", label: "Teach with us", nav: false, changefreq: "yearly", priority: 0.5 },
-  { path: "/privacy-policy", label: "Privacy Policy", nav: false, changefreq: "yearly", priority: 0.3 },
-  { path: "/cookie-policy", label: "Cookie Policy", nav: false, changefreq: "yearly", priority: 0.3 },
+  {
+    path: "/consultation",
+    label: "Book a consultation",
+    nav: false,
+    changefreq: "yearly",
+    priority: 0.6,
+  },
+  {
+    path: "/instructors/apply",
+    label: "Teach with us",
+    nav: false,
+    changefreq: "yearly",
+    priority: 0.5,
+  },
+  {
+    path: "/privacy-policy",
+    label: "Privacy Policy",
+    nav: false,
+    changefreq: "yearly",
+    priority: 0.3,
+  },
+  {
+    path: "/cookie-policy",
+    label: "Cookie Policy",
+    nav: false,
+    changefreq: "yearly",
+    priority: 0.3,
+  },
 ] as const;
+
+/**
+ * Money is stored in fixed-precision minor units with an explicit currency, so
+ * formatting never guesses. A missing price is shown as "on request" rather
+ * than as a zero we cannot substantiate.
+ */
+export function formatMoney(amountMinor: number | null, currency: string | null): string {
+  if (amountMinor == null || !currency) return "Price on request";
+  try {
+    return new Intl.NumberFormat(undefined, { style: "currency", currency }).format(
+      amountMinor / 100,
+    );
+  } catch {
+    return `${currency} ${(amountMinor / 100).toFixed(2)}`;
+  }
+}
