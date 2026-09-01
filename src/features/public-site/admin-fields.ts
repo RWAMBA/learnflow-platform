@@ -5,7 +5,7 @@
  * builder and the validation messages cannot drift apart, and no dynamic key
  * is ever forwarded to the server: the payload is assembled from this list.
  */
-import type { CmsTable } from "@/lib/public-site-admin.schemas";
+import type { CmsTable } from "@/lib/public-site.schemas";
 
 export interface CmsField {
   /** camelCase key sent to the server function. */
