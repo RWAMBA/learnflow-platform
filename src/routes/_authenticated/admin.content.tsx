@@ -96,13 +96,17 @@ function EntityPanel({ entity }: { entity: CmsEntity }) {
   });
 
   const setStatus = useMutation({
-    mutationFn: (input: { id: string; status: "draft" | "published" | "archived"; updatedAt: string }) =>
+    mutationFn: (input: {
+      id: string;
+      status: "draft" | "published" | "archived";
+      expectedVersion: number;
+    }) =>
       adminSetContentStatus({
         data: {
           table: entity.table,
           id: input.id,
           status: input.status,
-          expectedUpdatedAt: input.updatedAt,
+          expectedVersion: input.expectedVersion,
         },
       }),
     onSuccess: async () => {
@@ -113,8 +117,8 @@ function EntityPanel({ entity }: { entity: CmsEntity }) {
   });
 
   const reorder = useMutation({
-    mutationFn: (items: Array<{ id: string; displayOrder: number }>) =>
-      adminReorderContent({ data: { table: entity.table, items } }),
+    mutationFn: (order: Array<{ id: string; expectedVersion: number }>) =>
+      adminReorderContent({ data: { table: entity.table, order } }),
     onSuccess: async () => {
       setPendingOrder(null);
       await queryClient.invalidateQueries({ queryKey: key });
@@ -138,7 +142,12 @@ function EntityPanel({ entity }: { entity: CmsEntity }) {
     next[index] = b;
     next[target] = a;
     setPendingOrder(next);
-    reorder.mutate(next.map((row, i) => ({ id: String(row["id"]), displayOrder: i })));
+    reorder.mutate(
+      next.map((row) => ({
+        id: String(row["id"]),
+        expectedVersion: Number(row["content_version"] ?? 1),
+      })),
+    );
   }
 
   return (
@@ -321,7 +330,7 @@ function EntityEditor({
         data: {
           table: entity.table,
           id: row ? String(row["id"]) : null,
-          expectedUpdatedAt: row ? String(row["updated_at"]) : null,
+          ...(row ? { expectedVersion: Number(row["content_version"] ?? 1) } : {}),
           values: buildValues(entity, form),
         } as never,
       }),
