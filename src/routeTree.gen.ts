@@ -52,6 +52,7 @@ import { Route as AuthenticatedProgrammesProgrammeIdRouteImport } from './routes
 import { Route as AuthenticatedStudentsIndexRouteImport } from './routes/_authenticated/students.index'
 import { Route as AuthenticatedStudentsStudentIdRouteImport } from './routes/_authenticated/students.$studentId'
 import { Route as AuthenticatedStudentsNewRouteImport } from './routes/_authenticated/students.new'
+import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as AuthenticatedAssessmentsGradeSubmissionIdRouteImport } from './routes/_authenticated/assessments.grade.$submissionId'
 import { Route as AuthenticatedAssessmentsTakeSubmissionIdRouteImport } from './routes/_authenticated/assessments.take.$submissionId'
 import { Route as AuthenticatedCurriculumGradesGradeIdRouteImport } from './routes/_authenticated/curriculum.grades.$gradeId'
@@ -305,6 +306,11 @@ const AuthenticatedStudentsNewRoute =
     path: '/students/new',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
+  id: '/api/public/health',
+  path: '/api/public/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAssessmentsGradeSubmissionIdRoute =
   AuthenticatedAssessmentsGradeSubmissionIdRouteImport.update({
     id: '/assessments/grade/$submissionId',
@@ -372,6 +378,7 @@ export interface FileRoutesByFullPath {
   '/programmes/$programmeId': typeof AuthenticatedProgrammesProgrammeIdRoute
   '/students/$studentId': typeof AuthenticatedStudentsStudentIdRoute
   '/students/new': typeof AuthenticatedStudentsNewRoute
+  '/api/public/health': typeof ApiPublicHealthRoute
   '/assessments/': typeof AuthenticatedAssessmentsIndexRoute
   '/assignments/': typeof AuthenticatedAssignmentsIndexRoute
   '/curriculum/': typeof AuthenticatedCurriculumIndexRoute
@@ -421,6 +428,7 @@ export interface FileRoutesByTo {
   '/programmes/$programmeId': typeof AuthenticatedProgrammesProgrammeIdRoute
   '/students/$studentId': typeof AuthenticatedStudentsStudentIdRoute
   '/students/new': typeof AuthenticatedStudentsNewRoute
+  '/api/public/health': typeof ApiPublicHealthRoute
   '/assessments': typeof AuthenticatedAssessmentsIndexRoute
   '/assignments': typeof AuthenticatedAssignmentsIndexRoute
   '/curriculum': typeof AuthenticatedCurriculumIndexRoute
@@ -472,6 +480,7 @@ export interface FileRoutesById {
   '/_authenticated/programmes/$programmeId': typeof AuthenticatedProgrammesProgrammeIdRoute
   '/_authenticated/students/$studentId': typeof AuthenticatedStudentsStudentIdRoute
   '/_authenticated/students/new': typeof AuthenticatedStudentsNewRoute
+  '/api/public/health': typeof ApiPublicHealthRoute
   '/_authenticated/assessments/': typeof AuthenticatedAssessmentsIndexRoute
   '/_authenticated/assignments/': typeof AuthenticatedAssignmentsIndexRoute
   '/_authenticated/curriculum/': typeof AuthenticatedCurriculumIndexRoute
@@ -523,6 +532,7 @@ export interface FileRouteTypes {
     | '/programmes/$programmeId'
     | '/students/$studentId'
     | '/students/new'
+    | '/api/public/health'
     | '/assessments/'
     | '/assignments/'
     | '/curriculum/'
@@ -572,6 +582,7 @@ export interface FileRouteTypes {
     | '/programmes/$programmeId'
     | '/students/$studentId'
     | '/students/new'
+    | '/api/public/health'
     | '/assessments'
     | '/assignments'
     | '/curriculum'
@@ -622,6 +633,7 @@ export interface FileRouteTypes {
     | '/_authenticated/programmes/$programmeId'
     | '/_authenticated/students/$studentId'
     | '/_authenticated/students/new'
+    | '/api/public/health'
     | '/_authenticated/assessments/'
     | '/_authenticated/assignments/'
     | '/_authenticated/curriculum/'
@@ -647,6 +659,7 @@ export interface RootRouteChildren {
   ApiEnvPreflightRoute: typeof ApiEnvPreflightRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
+  ApiPublicHealthRoute: typeof ApiPublicHealthRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -952,6 +965,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStudentsNewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/health': {
+      id: '/api/public/health'
+      path: '/api/public/health'
+      fullPath: '/api/public/health'
+      preLoaderRoute: typeof ApiPublicHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/assessments/grade/$submissionId': {
       id: '/_authenticated/assessments/grade/$submissionId'
       path: '/assessments/grade/$submissionId'
@@ -1099,6 +1119,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiEnvPreflightRoute: ApiEnvPreflightRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
+  ApiPublicHealthRoute: ApiPublicHealthRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
