@@ -31,6 +31,7 @@ import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authentic
 import { Route as ApiEnvPreflightRouteImport } from './routes/api/env-preflight'
 import { Route as GuideIndexRouteImport } from './routes/guide.index'
 import { Route as GuideSlugRouteImport } from './routes/guide.$slug'
+import { Route as InstructorsApplyRouteImport } from './routes/instructors.apply'
 import { Route as MerchandiseIndexRouteImport } from './routes/merchandise.index'
 import { Route as MerchandiseSlugRouteImport } from './routes/merchandise.$slug'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
@@ -187,6 +188,11 @@ const GuideIndexRoute = GuideIndexRouteImport.update({
 const GuideSlugRoute = GuideSlugRouteImport.update({
   id: '/guide/$slug',
   path: '/guide/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InstructorsApplyRoute = InstructorsApplyRouteImport.update({
+  id: '/instructors/apply',
+  path: '/instructors/apply',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MerchandiseIndexRoute = MerchandiseIndexRouteImport.update({
@@ -474,6 +480,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/api/env-preflight': typeof ApiEnvPreflightRoute
   '/guide/$slug': typeof GuideSlugRoute
+  '/instructors/apply': typeof InstructorsApplyRoute
   '/merchandise/$slug': typeof MerchandiseSlugRoute
   '/guide/': typeof GuideIndexRoute
   '/merchandise/': typeof MerchandiseIndexRoute
@@ -542,6 +549,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/api/env-preflight': typeof ApiEnvPreflightRoute
   '/guide/$slug': typeof GuideSlugRoute
+  '/instructors/apply': typeof InstructorsApplyRoute
   '/merchandise/$slug': typeof MerchandiseSlugRoute
   '/guide': typeof GuideIndexRoute
   '/merchandise': typeof MerchandiseIndexRoute
@@ -612,6 +620,7 @@ export interface FileRoutesById {
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/api/env-preflight': typeof ApiEnvPreflightRoute
   '/guide/$slug': typeof GuideSlugRoute
+  '/instructors/apply': typeof InstructorsApplyRoute
   '/merchandise/$slug': typeof MerchandiseSlugRoute
   '/guide/': typeof GuideIndexRoute
   '/merchandise/': typeof MerchandiseIndexRoute
@@ -682,6 +691,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/api/env-preflight'
     | '/guide/$slug'
+    | '/instructors/apply'
     | '/merchandise/$slug'
     | '/guide/'
     | '/merchandise/'
@@ -750,6 +760,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/api/env-preflight'
     | '/guide/$slug'
+    | '/instructors/apply'
     | '/merchandise/$slug'
     | '/guide'
     | '/merchandise'
@@ -819,6 +830,7 @@ export interface FileRouteTypes {
     | '/_authenticated/onboarding'
     | '/api/env-preflight'
     | '/guide/$slug'
+    | '/instructors/apply'
     | '/merchandise/$slug'
     | '/guide/'
     | '/merchandise/'
@@ -886,6 +898,7 @@ export interface RootRouteChildren {
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   ApiEnvPreflightRoute: typeof ApiEnvPreflightRoute
   GuideSlugRoute: typeof GuideSlugRoute
+  InstructorsApplyRoute: typeof InstructorsApplyRoute
   MerchandiseSlugRoute: typeof MerchandiseSlugRoute
   GuideIndexRoute: typeof GuideIndexRoute
   MerchandiseIndexRoute: typeof MerchandiseIndexRoute
@@ -1053,6 +1066,13 @@ declare module '@tanstack/react-router' {
       path: '/guide/$slug'
       fullPath: '/guide/$slug'
       preLoaderRoute: typeof GuideSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/instructors/apply': {
+      id: '/instructors/apply'
+      path: '/instructors/apply'
+      fullPath: '/instructors/apply'
+      preLoaderRoute: typeof InstructorsApplyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/merchandise/': {
@@ -1490,6 +1510,7 @@ const rootRouteChildren: RootRouteChildren = {
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
   ApiEnvPreflightRoute: ApiEnvPreflightRoute,
   GuideSlugRoute: GuideSlugRoute,
+  InstructorsApplyRoute: InstructorsApplyRoute,
   MerchandiseSlugRoute: MerchandiseSlugRoute,
   GuideIndexRoute: GuideIndexRoute,
   MerchandiseIndexRoute: MerchandiseIndexRoute,
