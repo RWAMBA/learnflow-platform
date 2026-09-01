@@ -124,6 +124,7 @@ function Footer() {
           </p>
         </div>
 
+
         <nav aria-label="Explore">
           <h2 className="text-sm font-semibold">Explore</h2>
           <ul className="mt-3 space-y-1 text-sm">
