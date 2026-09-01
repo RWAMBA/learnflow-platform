@@ -7,17 +7,24 @@
  */
 import { createFileRoute } from "@tanstack/react-router";
 
+function healthResponse(body: unknown, status: number): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-store",
+      "x-content-type-options": "nosniff",
+    },
+  });
+}
+
 export const Route = createFileRoute("/api/public/health")({
   server: {
     handlers: {
       GET: async ({ request }) => {
-        const {
-          enforceRateLimit,
-          PublicBoundaryError,
-          jsonError,
-          serviceClient,
-          rateLimitBucket,
-        } = await import("@/lib/public-site.server");
+        const { enforceRateLimit, PublicBoundaryError, jsonError, serviceClient } = await import(
+          "@/lib/public-site.server"
+        );
 
         try {
           const header = process.env["TRUSTED_CLIENT_IP_HEADER"];
@@ -32,34 +39,18 @@ export const Route = createFileRoute("/api/public/health")({
             .limit(1);
           const backend = error ? "degraded" : "ok";
 
-          return new Response(
-            JSON.stringify({
+          return healthResponse(
+            {
               status: backend,
               checkedAt: new Date().toISOString(),
               latencyMs: Math.min(Date.now() - started, 60000),
-            }),
-            {
-              status: backend === "ok" ? 200 : 503,
-              headers: {
-                "content-type": "application/json; charset=utf-8",
-                "cache-control": "no-store",
-                "x-content-type-options": "nosniff",
-              },
             },
+            backend === "ok" ? 200 : 503,
           );
         } catch (error) {
           if (error instanceof PublicBoundaryError) return jsonError(error);
-          return new Response(JSON.stringify({ status: "degraded" }), {
-            status: 503,
-            headers: {
-              "content-type": "application/json; charset=utf-8",
-              "cache-control": "no-store",
-              "x-content-type-options": "nosniff",
-            },
-          });
+          return healthResponse({ status: "degraded" }, 503);
         }
-        // Note: rateLimitBucket is imported for parity with other handlers.
-        void rateLimitBucket;
       },
     },
   },
