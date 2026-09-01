@@ -222,3 +222,14 @@ export function useConsent(): ConsentContextValue {
   if (!ctx) throw new Error("useConsent must be used inside ConsentProvider");
   return ctx;
 }
+
+/** Re-opens the consent dialog so a decision can be changed at any time. */
+export function ConsentPreferencesButton() {
+  const { open } = useConsent();
+  return (
+    <Button variant="outline" className="min-h-11" onClick={open}>
+      Change cookie preferences
+    </Button>
+  );
+}
+
