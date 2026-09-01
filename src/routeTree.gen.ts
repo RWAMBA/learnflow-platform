@@ -53,6 +53,7 @@ import { Route as AuthenticatedStudentsIndexRouteImport } from './routes/_authen
 import { Route as AuthenticatedStudentsStudentIdRouteImport } from './routes/_authenticated/students.$studentId'
 import { Route as AuthenticatedStudentsNewRouteImport } from './routes/_authenticated/students.new'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
+import { Route as ApiPublicInquiriesRouteImport } from './routes/api/public/inquiries'
 import { Route as AuthenticatedAssessmentsGradeSubmissionIdRouteImport } from './routes/_authenticated/assessments.grade.$submissionId'
 import { Route as AuthenticatedAssessmentsTakeSubmissionIdRouteImport } from './routes/_authenticated/assessments.take.$submissionId'
 import { Route as AuthenticatedCurriculumGradesGradeIdRouteImport } from './routes/_authenticated/curriculum.grades.$gradeId'
@@ -311,6 +312,11 @@ const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
   path: '/api/public/health',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicInquiriesRoute = ApiPublicInquiriesRouteImport.update({
+  id: '/api/public/inquiries',
+  path: '/api/public/inquiries',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAssessmentsGradeSubmissionIdRoute =
   AuthenticatedAssessmentsGradeSubmissionIdRouteImport.update({
     id: '/assessments/grade/$submissionId',
@@ -379,6 +385,7 @@ export interface FileRoutesByFullPath {
   '/students/$studentId': typeof AuthenticatedStudentsStudentIdRoute
   '/students/new': typeof AuthenticatedStudentsNewRoute
   '/api/public/health': typeof ApiPublicHealthRoute
+  '/api/public/inquiries': typeof ApiPublicInquiriesRoute
   '/assessments/': typeof AuthenticatedAssessmentsIndexRoute
   '/assignments/': typeof AuthenticatedAssignmentsIndexRoute
   '/curriculum/': typeof AuthenticatedCurriculumIndexRoute
@@ -429,6 +436,7 @@ export interface FileRoutesByTo {
   '/students/$studentId': typeof AuthenticatedStudentsStudentIdRoute
   '/students/new': typeof AuthenticatedStudentsNewRoute
   '/api/public/health': typeof ApiPublicHealthRoute
+  '/api/public/inquiries': typeof ApiPublicInquiriesRoute
   '/assessments': typeof AuthenticatedAssessmentsIndexRoute
   '/assignments': typeof AuthenticatedAssignmentsIndexRoute
   '/curriculum': typeof AuthenticatedCurriculumIndexRoute
@@ -481,6 +489,7 @@ export interface FileRoutesById {
   '/_authenticated/students/$studentId': typeof AuthenticatedStudentsStudentIdRoute
   '/_authenticated/students/new': typeof AuthenticatedStudentsNewRoute
   '/api/public/health': typeof ApiPublicHealthRoute
+  '/api/public/inquiries': typeof ApiPublicInquiriesRoute
   '/_authenticated/assessments/': typeof AuthenticatedAssessmentsIndexRoute
   '/_authenticated/assignments/': typeof AuthenticatedAssignmentsIndexRoute
   '/_authenticated/curriculum/': typeof AuthenticatedCurriculumIndexRoute
@@ -533,6 +542,7 @@ export interface FileRouteTypes {
     | '/students/$studentId'
     | '/students/new'
     | '/api/public/health'
+    | '/api/public/inquiries'
     | '/assessments/'
     | '/assignments/'
     | '/curriculum/'
@@ -583,6 +593,7 @@ export interface FileRouteTypes {
     | '/students/$studentId'
     | '/students/new'
     | '/api/public/health'
+    | '/api/public/inquiries'
     | '/assessments'
     | '/assignments'
     | '/curriculum'
@@ -634,6 +645,7 @@ export interface FileRouteTypes {
     | '/_authenticated/students/$studentId'
     | '/_authenticated/students/new'
     | '/api/public/health'
+    | '/api/public/inquiries'
     | '/_authenticated/assessments/'
     | '/_authenticated/assignments/'
     | '/_authenticated/curriculum/'
@@ -660,6 +672,7 @@ export interface RootRouteChildren {
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
+  ApiPublicInquiriesRoute: typeof ApiPublicInquiriesRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -972,6 +985,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicHealthRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/inquiries': {
+      id: '/api/public/inquiries'
+      path: '/api/public/inquiries'
+      fullPath: '/api/public/inquiries'
+      preLoaderRoute: typeof ApiPublicInquiriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/assessments/grade/$submissionId': {
       id: '/_authenticated/assessments/grade/$submissionId'
       path: '/assessments/grade/$submissionId'
@@ -1120,6 +1140,7 @@ const rootRouteChildren: RootRouteChildren = {
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicHealthRoute: ApiPublicHealthRoute,
+  ApiPublicInquiriesRoute: ApiPublicInquiriesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
