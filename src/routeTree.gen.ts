@@ -59,6 +59,7 @@ import { Route as AuthenticatedAssessmentsTakeSubmissionIdRouteImport } from './
 import { Route as AuthenticatedCurriculumGradesGradeIdRouteImport } from './routes/_authenticated/curriculum.grades.$gradeId'
 import { Route as AuthenticatedCurriculumLessonsLessonIdRouteImport } from './routes/_authenticated/curriculum.lessons.$lessonId'
 import { Route as AuthenticatedCurriculumSubjectsSubjectIdRouteImport } from './routes/_authenticated/curriculum.subjects.$subjectId'
+import { Route as ApiPublicNewsletterConfirmRouteImport } from './routes/api/public/newsletter.confirm'
 import { Route as ApiPublicNewsletterSubscribeRouteImport } from './routes/api/public/newsletter.subscribe'
 
 const IndexRoute = IndexRouteImport.update({
@@ -348,6 +349,12 @@ const AuthenticatedCurriculumSubjectsSubjectIdRoute =
     path: '/curriculum/subjects/$subjectId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicNewsletterConfirmRoute =
+  ApiPublicNewsletterConfirmRouteImport.update({
+    id: '/api/public/newsletter/confirm',
+    path: '/api/public/newsletter/confirm',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicNewsletterSubscribeRoute =
   ApiPublicNewsletterSubscribeRouteImport.update({
     id: '/api/public/newsletter/subscribe',
@@ -405,6 +412,7 @@ export interface FileRoutesByFullPath {
   '/curriculum/grades/$gradeId': typeof AuthenticatedCurriculumGradesGradeIdRoute
   '/curriculum/lessons/$lessonId': typeof AuthenticatedCurriculumLessonsLessonIdRoute
   '/curriculum/subjects/$subjectId': typeof AuthenticatedCurriculumSubjectsSubjectIdRoute
+  '/api/public/newsletter/confirm': typeof ApiPublicNewsletterConfirmRoute
   '/api/public/newsletter/subscribe': typeof ApiPublicNewsletterSubscribeRoute
 }
 export interface FileRoutesByTo {
@@ -457,6 +465,7 @@ export interface FileRoutesByTo {
   '/curriculum/grades/$gradeId': typeof AuthenticatedCurriculumGradesGradeIdRoute
   '/curriculum/lessons/$lessonId': typeof AuthenticatedCurriculumLessonsLessonIdRoute
   '/curriculum/subjects/$subjectId': typeof AuthenticatedCurriculumSubjectsSubjectIdRoute
+  '/api/public/newsletter/confirm': typeof ApiPublicNewsletterConfirmRoute
   '/api/public/newsletter/subscribe': typeof ApiPublicNewsletterSubscribeRoute
 }
 export interface FileRoutesById {
@@ -511,6 +520,7 @@ export interface FileRoutesById {
   '/_authenticated/curriculum/grades/$gradeId': typeof AuthenticatedCurriculumGradesGradeIdRoute
   '/_authenticated/curriculum/lessons/$lessonId': typeof AuthenticatedCurriculumLessonsLessonIdRoute
   '/_authenticated/curriculum/subjects/$subjectId': typeof AuthenticatedCurriculumSubjectsSubjectIdRoute
+  '/api/public/newsletter/confirm': typeof ApiPublicNewsletterConfirmRoute
   '/api/public/newsletter/subscribe': typeof ApiPublicNewsletterSubscribeRoute
 }
 export interface FileRouteTypes {
@@ -565,6 +575,7 @@ export interface FileRouteTypes {
     | '/curriculum/grades/$gradeId'
     | '/curriculum/lessons/$lessonId'
     | '/curriculum/subjects/$subjectId'
+    | '/api/public/newsletter/confirm'
     | '/api/public/newsletter/subscribe'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -617,6 +628,7 @@ export interface FileRouteTypes {
     | '/curriculum/grades/$gradeId'
     | '/curriculum/lessons/$lessonId'
     | '/curriculum/subjects/$subjectId'
+    | '/api/public/newsletter/confirm'
     | '/api/public/newsletter/subscribe'
   id:
     | '__root__'
@@ -670,6 +682,7 @@ export interface FileRouteTypes {
     | '/_authenticated/curriculum/grades/$gradeId'
     | '/_authenticated/curriculum/lessons/$lessonId'
     | '/_authenticated/curriculum/subjects/$subjectId'
+    | '/api/public/newsletter/confirm'
     | '/api/public/newsletter/subscribe'
   fileRoutesById: FileRoutesById
 }
@@ -686,6 +699,7 @@ export interface RootRouteChildren {
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
   ApiPublicInquiriesRoute: typeof ApiPublicInquiriesRoute
+  ApiPublicNewsletterConfirmRoute: typeof ApiPublicNewsletterConfirmRoute
   ApiPublicNewsletterSubscribeRoute: typeof ApiPublicNewsletterSubscribeRoute
 }
 
@@ -1041,6 +1055,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCurriculumSubjectsSubjectIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/newsletter/confirm': {
+      id: '/api/public/newsletter/confirm'
+      path: '/api/public/newsletter/confirm'
+      fullPath: '/api/public/newsletter/confirm'
+      preLoaderRoute: typeof ApiPublicNewsletterConfirmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/newsletter/subscribe': {
       id: '/api/public/newsletter/subscribe'
       path: '/api/public/newsletter/subscribe'
@@ -1162,6 +1183,7 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicHealthRoute: ApiPublicHealthRoute,
   ApiPublicInquiriesRoute: ApiPublicInquiriesRoute,
+  ApiPublicNewsletterConfirmRoute: ApiPublicNewsletterConfirmRoute,
   ApiPublicNewsletterSubscribeRoute: ApiPublicNewsletterSubscribeRoute,
 }
 export const routeTree = rootRouteImport
