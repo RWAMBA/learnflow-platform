@@ -28,6 +28,7 @@ import { Route as ApiEnvPreflightRouteImport } from './routes/api/env-preflight'
 import { Route as GuideIndexRouteImport } from './routes/guide.index'
 import { Route as GuideSlugRouteImport } from './routes/guide.$slug'
 import { Route as MerchandiseIndexRouteImport } from './routes/merchandise.index'
+import { Route as MerchandiseSlugRouteImport } from './routes/merchandise.$slug'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as AuthenticatedAccountMfaRouteImport } from './routes/_authenticated/account.mfa'
@@ -166,6 +167,11 @@ const GuideSlugRoute = GuideSlugRouteImport.update({
 const MerchandiseIndexRoute = MerchandiseIndexRouteImport.update({
   id: '/merchandise/',
   path: '/merchandise/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MerchandiseSlugRoute = MerchandiseSlugRouteImport.update({
+  id: '/merchandise/$slug',
+  path: '/merchandise/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
@@ -434,6 +440,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/api/env-preflight': typeof ApiEnvPreflightRoute
   '/guide/$slug': typeof GuideSlugRoute
+  '/merchandise/$slug': typeof MerchandiseSlugRoute
   '/guide/': typeof GuideIndexRoute
   '/merchandise/': typeof MerchandiseIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -496,6 +503,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/api/env-preflight': typeof ApiEnvPreflightRoute
   '/guide/$slug': typeof GuideSlugRoute
+  '/merchandise/$slug': typeof MerchandiseSlugRoute
   '/guide': typeof GuideIndexRoute
   '/merchandise': typeof MerchandiseIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -560,6 +568,7 @@ export interface FileRoutesById {
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/api/env-preflight': typeof ApiEnvPreflightRoute
   '/guide/$slug': typeof GuideSlugRoute
+  '/merchandise/$slug': typeof MerchandiseSlugRoute
   '/guide/': typeof GuideIndexRoute
   '/merchandise/': typeof MerchandiseIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -624,6 +633,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/api/env-preflight'
     | '/guide/$slug'
+    | '/merchandise/$slug'
     | '/guide/'
     | '/merchandise/'
     | '/.lovable/oauth/consent'
@@ -686,6 +696,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/api/env-preflight'
     | '/guide/$slug'
+    | '/merchandise/$slug'
     | '/guide'
     | '/merchandise'
     | '/.lovable/oauth/consent'
@@ -749,6 +760,7 @@ export interface FileRouteTypes {
     | '/_authenticated/onboarding'
     | '/api/env-preflight'
     | '/guide/$slug'
+    | '/merchandise/$slug'
     | '/guide/'
     | '/merchandise/'
     | '/.lovable/oauth/consent'
@@ -810,6 +822,7 @@ export interface RootRouteChildren {
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   ApiEnvPreflightRoute: typeof ApiEnvPreflightRoute
   GuideSlugRoute: typeof GuideSlugRoute
+  MerchandiseSlugRoute: typeof MerchandiseSlugRoute
   GuideIndexRoute: typeof GuideIndexRoute
   MerchandiseIndexRoute: typeof MerchandiseIndexRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
@@ -954,6 +967,13 @@ declare module '@tanstack/react-router' {
       path: '/merchandise'
       fullPath: '/merchandise/'
       preLoaderRoute: typeof MerchandiseIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/merchandise/$slug': {
+      id: '/merchandise/$slug'
+      path: '/merchandise/$slug'
+      fullPath: '/merchandise/$slug'
+      preLoaderRoute: typeof MerchandiseSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/.lovable/oauth/consent': {
@@ -1366,6 +1386,7 @@ const rootRouteChildren: RootRouteChildren = {
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
   ApiEnvPreflightRoute: ApiEnvPreflightRoute,
   GuideSlugRoute: GuideSlugRoute,
+  MerchandiseSlugRoute: MerchandiseSlugRoute,
   GuideIndexRoute: GuideIndexRoute,
   MerchandiseIndexRoute: MerchandiseIndexRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
