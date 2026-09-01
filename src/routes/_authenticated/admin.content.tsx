@@ -180,6 +180,7 @@ function EntityPanel({ entity }: { entity: CmsEntity }) {
             {rows.map((row, index) => {
               const status = String(row["status"] ?? "draft");
               const updatedAt = String(row["updated_at"] ?? "");
+              const expectedVersion = Number(row["content_version"] ?? 1);
               return (
                 <li key={String(row["id"])}>
                   <Card>
@@ -232,7 +233,7 @@ function EntityPanel({ entity }: { entity: CmsEntity }) {
                               setStatus.mutate({
                                 id: String(row["id"]),
                                 status: "published",
-                                updatedAt,
+                                expectedVersion,
                               })
                             }
                           >
@@ -248,7 +249,7 @@ function EntityPanel({ entity }: { entity: CmsEntity }) {
                               setStatus.mutate({
                                 id: String(row["id"]),
                                 status: "draft",
-                                updatedAt,
+                                expectedVersion,
                               })
                             }
                           >
@@ -265,7 +266,7 @@ function EntityPanel({ entity }: { entity: CmsEntity }) {
                               setStatus.mutate({
                                 id: String(row["id"]),
                                 status: "archived",
-                                updatedAt,
+                                expectedVersion,
                               })
                             }
                           >
