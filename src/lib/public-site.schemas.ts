@@ -31,7 +31,9 @@ export const emailSchema = z
   .transform((v) => normalizeText(v).toLowerCase())
   .refine((v) => v.length <= 254, { message: "Email is too long" })
   .refine((v) => !/[\r\n]/.test(v), { message: "Email is not valid" })
-  .refine((v) => /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(v), { message: "Enter a valid email address" });
+  .refine((v) => /^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(v), {
+    message: "Enter a valid email address",
+  });
 
 /** E.164 only: a leading +, a non-zero country digit, 8–15 digits total. */
 export const phoneSchema = z
@@ -44,13 +46,16 @@ export const phoneSchema = z
 export const httpsUrlSchema = z
   .string()
   .transform(normalizeText)
-  .refine((v) => {
-    try {
-      return new URL(v).protocol === "https:";
-    } catch {
-      return false;
-    }
-  }, { message: "Enter a valid https:// address" });
+  .refine(
+    (v) => {
+      try {
+        return new URL(v).protocol === "https:";
+      } catch {
+        return false;
+      }
+    },
+    { message: "Enter a valid https:// address" },
+  );
 
 /** Anti-automation envelope carried by every public form. */
 const botShield = {
@@ -135,7 +140,11 @@ export const uploadTicketSchema = z
       "application/pdf",
       "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
     ]),
-    sizeBytes: z.number().int().min(1).max(5 * 1024 * 1024),
+    sizeBytes: z
+      .number()
+      .int()
+      .min(1)
+      .max(5 * 1024 * 1024),
     turnstileToken: z.string().min(1).max(4096),
   })
   .strict();

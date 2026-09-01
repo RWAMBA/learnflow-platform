@@ -98,7 +98,11 @@ export function FormField({
   hint?: string;
   error?: string;
   required?: boolean;
-  children: (props: { id: string; "aria-describedby"?: string; "aria-invalid"?: boolean }) => React.ReactNode;
+  children: (props: {
+    id: string;
+    "aria-describedby"?: string;
+    "aria-invalid"?: boolean;
+  }) => React.ReactNode;
 }) {
   const hintId = hint ? `${id}-hint` : undefined;
   const errorId = error ? `${id}-error` : undefined;
@@ -135,13 +139,7 @@ export function FormField({
 }
 
 /** Honeypot: visually hidden, never announced, and rejected server-side if filled. */
-export function Honeypot({
-  value,
-  onChange,
-}: {
-  value: string;
-  onChange: (v: string) => void;
-}) {
+export function Honeypot({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   return (
     <div aria-hidden="true" className="absolute left-[-9999px] top-auto h-px w-px overflow-hidden">
       <label htmlFor="website">Leave this field empty</label>

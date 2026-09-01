@@ -55,7 +55,10 @@ export const Route = createFileRoute("/api/public/sitemap.xml")({
           ]);
 
           for (const row of guides.data ?? []) {
-            entries.push({ loc: `${origin}/guide/${row.slug}`, lastmod: row.updated_at ?? undefined });
+            entries.push({
+              loc: `${origin}/guide/${row.slug}`,
+              lastmod: row.updated_at ?? undefined,
+            });
           }
           for (const row of merch.data ?? []) {
             entries.push({

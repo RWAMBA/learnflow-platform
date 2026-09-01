@@ -13,7 +13,6 @@ import { AppStatusBar } from "./app-status-bar";
 import { ConsentProvider, useConsent } from "./consent";
 import { NewsletterSignup } from "./newsletter-signup";
 
-
 const NAV = [
   { to: "/", label: "Home" },
   { to: "/about", label: "About" },
@@ -77,7 +76,11 @@ function Header() {
             aria-controls="public-mobile-nav"
             onClick={() => setOpen((v) => !v)}
           >
-            {open ? <X className="size-4" aria-hidden="true" /> : <Menu className="size-4" aria-hidden="true" />}
+            {open ? (
+              <X className="size-4" aria-hidden="true" />
+            ) : (
+              <Menu className="size-4" aria-hidden="true" />
+            )}
             <span className="sr-only">{open ? "Close menu" : "Open menu"}</span>
           </Button>
         </div>
@@ -126,7 +129,6 @@ function Footer() {
           </p>
         </div>
 
-
         <nav aria-label="Explore">
           <h2 className="text-sm font-semibold">Explore</h2>
           <ul className="mt-3 space-y-1 text-sm">
@@ -144,12 +146,18 @@ function Footer() {
           <h2 className="text-sm font-semibold">Get involved</h2>
           <ul className="mt-3 space-y-1 text-sm">
             <li>
-              <Link to="/consultation" className="inline-flex min-h-11 items-center hover:underline">
+              <Link
+                to="/consultation"
+                className="inline-flex min-h-11 items-center hover:underline"
+              >
                 Book a consultation
               </Link>
             </li>
             <li>
-              <Link to="/instructors/apply" className="inline-flex min-h-11 items-center hover:underline">
+              <Link
+                to="/instructors/apply"
+                className="inline-flex min-h-11 items-center hover:underline"
+              >
                 Teach with us
               </Link>
             </li>
@@ -165,12 +173,18 @@ function Footer() {
           <h2 className="text-sm font-semibold">Legal</h2>
           <ul className="mt-3 space-y-1 text-sm">
             <li>
-              <Link to="/privacy-policy" className="inline-flex min-h-11 items-center hover:underline">
+              <Link
+                to="/privacy-policy"
+                className="inline-flex min-h-11 items-center hover:underline"
+              >
                 Privacy Policy
               </Link>
             </li>
             <li>
-              <Link to="/cookie-policy" className="inline-flex min-h-11 items-center hover:underline">
+              <Link
+                to="/cookie-policy"
+                className="inline-flex min-h-11 items-center hover:underline"
+              >
                 Cookie Policy
               </Link>
             </li>
@@ -182,13 +196,16 @@ function Footer() {
       </div>
 
       <div className="border-t">
-        <section className="mx-auto w-full max-w-6xl px-4 py-10" aria-labelledby="newsletter-heading">
+        <section
+          className="mx-auto w-full max-w-6xl px-4 py-10"
+          aria-labelledby="newsletter-heading"
+        >
           <h2 id="newsletter-heading" className="text-sm font-semibold">
             LearnFlow updates
           </h2>
           <p className="mt-2 max-w-prose text-sm text-muted-foreground">
-            Occasional email about curriculum changes, new features and homeschooling guidance. Double
-            opt-in, and you can withdraw at any time.
+            Occasional email about curriculum changes, new features and homeschooling guidance.
+            Double opt-in, and you can withdraw at any time.
           </p>
           <div className="mt-4 max-w-md">
             <NewsletterSignup />
@@ -196,7 +213,6 @@ function Footer() {
         </section>
       </div>
     </footer>
-
   );
 }
 
@@ -235,7 +251,9 @@ export function PublicPageHeader({
     <div className="border-b bg-muted/20">
       <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:py-14">
         {eyebrow ? (
-          <p className="text-sm font-medium uppercase tracking-wide text-muted-foreground">{eyebrow}</p>
+          <p className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
+            {eyebrow}
+          </p>
         ) : null}
         <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">{title}</h1>
         {intro ? <p className="mt-3 max-w-2xl text-base text-muted-foreground">{intro}</p> : null}

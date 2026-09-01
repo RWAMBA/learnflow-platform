@@ -22,7 +22,13 @@ export function MerchandiseInquiryForm({ itemId, itemName }: { itemId: string; i
   const { state, submit } = usePublicSubmission<{ reference?: string }>("/api/public/inquiries");
   const [token, setToken] = useState<string | null>(null);
   const [honeypot, setHoneypot] = useState("");
-  const [form, setForm] = useState({ fullName: "", email: "", phone: "", quantity: "1", message: "" });
+  const [form, setForm] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+    quantity: "1",
+    message: "",
+  });
 
   const fieldErrors = state.kind === "error" ? (state.fieldErrors ?? {}) : {};
 

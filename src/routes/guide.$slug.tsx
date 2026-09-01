@@ -13,7 +13,10 @@ export const Route = createFileRoute("/guide/$slug")({
   head: ({ loaderData }) => {
     if (!loaderData?.article) {
       return {
-        meta: [{ title: "Article unavailable — LearnFlow Guide" }, { name: "robots", content: "noindex" }],
+        meta: [
+          { title: "Article unavailable — LearnFlow Guide" },
+          { name: "robots", content: "noindex" },
+        ],
       };
     }
     const { title, summary, seo_description } = loaderData.article;
@@ -81,7 +84,10 @@ function GuideArticlePage() {
             About {article.reading_minutes} min read
           </p>
         ) : null}
-        <SafeMarkdown source={article.body_markdown} className="mt-8 space-y-5 text-lg leading-relaxed" />
+        <SafeMarkdown
+          source={article.body_markdown}
+          className="mt-8 space-y-5 text-lg leading-relaxed"
+        />
         <p className="mt-10 text-xs text-muted-foreground">
           Loaded {new Date(fetchedAt).toLocaleString()}.
         </p>

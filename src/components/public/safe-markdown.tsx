@@ -13,7 +13,8 @@ const SAFE_LINK = /^(https:\/\/|mailto:|\/)/i;
 function renderInline(text: string, keyPrefix: string): ReactNode[] {
   const nodes: ReactNode[] = [];
   // Order matters: links, then code, then bold, then italic.
-  const pattern = /\[([^\]\n]{1,200})\]\(([^)\s]{1,500})\)|`([^`\n]{1,300})`|\*\*([^*\n]{1,300})\*\*|_([^_\n]{1,300})_/g;
+  const pattern =
+    /\[([^\]\n]{1,200})\]\(([^)\s]{1,500})\)|`([^`\n]{1,300})`|\*\*([^*\n]{1,300})\*\*|_([^_\n]{1,300})_/g;
   let last = 0;
   let match: RegExpExecArray | null;
   let index = 0;
@@ -97,7 +98,11 @@ export function SafeMarkdown({ source, className }: { source: string; className?
       const level = heading[1]!.length;
       const text = heading[2]!;
       const cls =
-        level === 2 ? "text-xl font-semibold" : level === 3 ? "text-lg font-semibold" : "text-base font-semibold";
+        level === 2
+          ? "text-xl font-semibold"
+          : level === 3
+            ? "text-lg font-semibold"
+            : "text-base font-semibold";
       blocks.push(
         <Fragment key={key}>
           {level === 2 ? (

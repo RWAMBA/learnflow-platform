@@ -12,7 +12,8 @@ export const Route = createFileRoute("/newsletter/unsubscribe")({
       { title: "Unsubscribe from the LearnFlow newsletter" },
       {
         name: "description",
-        content: "Stop receiving LearnFlow newsletter emails. Your withdrawal is recorded immediately.",
+        content:
+          "Stop receiving LearnFlow newsletter emails. Your withdrawal is recorded immediately.",
       },
       { property: "og:title", content: "Unsubscribe from LearnFlow updates" },
       { property: "og:description", content: "Stop receiving LearnFlow newsletter emails." },

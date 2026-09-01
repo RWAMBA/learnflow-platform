@@ -14,7 +14,10 @@ export const Route = createFileRoute("/merchandise/")({
           "Browse LearnFlow learning materials and branded items. Enquire directly — there is no online checkout.",
       },
       { property: "og:title", content: "LearnFlow merchandise" },
-      { property: "og:description", content: "Browse LearnFlow learning materials and enquire directly." },
+      {
+        property: "og:description",
+        content: "Browse LearnFlow learning materials and enquire directly.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
@@ -52,7 +55,11 @@ function MerchandiseIndexPage() {
               <li key={item.id}>
                 <article className="flex h-full flex-col rounded-lg border p-5">
                   <h2 className="text-lg font-semibold">
-                    <Link to="/merchandise/$slug" params={{ slug: item.slug }} className="hover:underline">
+                    <Link
+                      to="/merchandise/$slug"
+                      params={{ slug: item.slug }}
+                      className="hover:underline"
+                    >
                       {item.name}
                     </Link>
                   </h2>

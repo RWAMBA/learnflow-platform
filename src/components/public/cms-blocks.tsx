@@ -21,7 +21,10 @@ export function StaleNotice({ fetchedAt }: { fetchedAt: string | null }) {
 
 export function SectionError({ message }: { message?: string }) {
   return (
-    <div role="alert" className="flex items-start gap-3 rounded-lg border border-destructive/40 bg-destructive/5 p-4">
+    <div
+      role="alert"
+      className="flex items-start gap-3 rounded-lg border border-destructive/40 bg-destructive/5 p-4"
+    >
       <AlertTriangle className="mt-0.5 size-5 shrink-0 text-destructive" aria-hidden="true" />
       <div>
         <p className="text-sm font-medium">This section could not be loaded</p>

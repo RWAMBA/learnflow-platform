@@ -16,7 +16,8 @@ export const Route = createFileRoute("/services")({
       { property: "og:title", content: "LearnFlow services" },
       {
         property: "og:description",
-        content: "Full-time homeschooling, part-time tuition and extracurricular programme management.",
+        content:
+          "Full-time homeschooling, part-time tuition and extracurricular programme management.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -48,7 +49,8 @@ function ServicesPage() {
             Not sure which fits your family or school?
           </h2>
           <p className="mt-2 text-sm text-muted-foreground">
-            Book a consultation and we will talk through your situation before you commit to anything.
+            Book a consultation and we will talk through your situation before you commit to
+            anything.
           </p>
           <Button asChild className="mt-4 min-h-11">
             <Link to="/consultation">Book a consultation</Link>

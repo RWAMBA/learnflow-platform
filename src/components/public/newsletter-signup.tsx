@@ -32,8 +32,8 @@ export function NewsletterSignup() {
   if (state.kind === "success") {
     return (
       <p className="text-sm" role="status">
-        If that address can receive our updates, a confirmation email is on its way. Please click the
-        link in it to complete your subscription.
+        If that address can receive our updates, a confirmation email is on its way. Please click
+        the link in it to complete your subscription.
       </p>
     );
   }
@@ -75,7 +75,8 @@ export function NewsletterSignup() {
           onCheckedChange={(v) => setConsent(v === true)}
         />
         <Label htmlFor="newsletter-consent" className="text-sm font-normal leading-snug">
-          I agree to receive LearnFlow updates by email and understand I can unsubscribe at any time.
+          I agree to receive LearnFlow updates by email and understand I can unsubscribe at any
+          time.
         </Label>
       </div>
 

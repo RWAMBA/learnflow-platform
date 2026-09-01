@@ -128,8 +128,6 @@ export const Route = createFileRoute("/api/public/inquiries")({
             rpcArgs as never,
           );
 
-
-
           if (error) {
             // Never surface a raw database message to an anonymous caller.
             throw new PublicBoundaryError(

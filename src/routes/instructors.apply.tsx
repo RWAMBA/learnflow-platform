@@ -273,7 +273,12 @@ function InstructorApplyPage() {
               )}
             </FormField>
 
-            <FormField id="apply-message" label="Why LearnFlow?" required error={fieldErrors["message"]}>
+            <FormField
+              id="apply-message"
+              label="Why LearnFlow?"
+              required
+              error={fieldErrors["message"]}
+            >
               {(props) => (
                 <Textarea
                   {...props}

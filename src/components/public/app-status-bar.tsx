@@ -96,7 +96,9 @@ export function AppStatusBar() {
             {status === "offline" ? (
               <>
                 <WifiOff className="size-4 shrink-0" aria-hidden="true" />
-                <span>You are offline. Pages already loaded stay available; sending is paused.</span>
+                <span>
+                  You are offline. Pages already loaded stay available; sending is paused.
+                </span>
               </>
             ) : status === "degraded" ? (
               <>
@@ -121,7 +123,10 @@ export function AppStatusBar() {
                 onClick={() => void check()}
                 disabled={checking}
               >
-                <RefreshCw className={checking ? "size-4 animate-spin" : "size-4"} aria-hidden="true" />
+                <RefreshCw
+                  className={checking ? "size-4 animate-spin" : "size-4"}
+                  aria-hidden="true"
+                />
                 {checking ? "Checking…" : "Try again"}
               </Button>
             ) : null}

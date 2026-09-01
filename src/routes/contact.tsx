@@ -36,7 +36,13 @@ function ContactPage() {
   const { state, submit } = usePublicSubmission<{ reference?: string }>("/api/public/inquiries");
   const [token, setToken] = useState<string | null>(null);
   const [honeypot, setHoneypot] = useState("");
-  const [form, setForm] = useState({ fullName: "", email: "", phone: "", subject: "", message: "" });
+  const [form, setForm] = useState({
+    fullName: "",
+    email: "",
+    phone: "",
+    subject: "",
+    message: "",
+  });
   const fieldErrors = state.kind === "error" ? (state.fieldErrors ?? {}) : {};
 
   return (
@@ -87,7 +93,12 @@ function ContactPage() {
               )}
             </FormField>
 
-            <FormField id="contact-email" label="Email address" required error={fieldErrors["email"]}>
+            <FormField
+              id="contact-email"
+              label="Email address"
+              required
+              error={fieldErrors["email"]}
+            >
               {(props) => (
                 <Input
                   {...props}

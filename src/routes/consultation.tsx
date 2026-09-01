@@ -197,7 +197,12 @@ function ConsultationPage() {
               </RadioGroup>
             </fieldset>
 
-            <FormField id="cons-message" label="Tell us more" required error={fieldErrors["message"]}>
+            <FormField
+              id="cons-message"
+              label="Tell us more"
+              required
+              error={fieldErrors["message"]}
+            >
               {(props) => (
                 <Textarea
                   {...props}

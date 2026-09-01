@@ -15,7 +15,8 @@ export const Route = createFileRoute("/about")({
       { property: "og:title", content: "About LearnFlow" },
       {
         property: "og:description",
-        content: "Why LearnFlow exists and who it serves across homeschooling and school-level education.",
+        content:
+          "Why LearnFlow exists and who it serves across homeschooling and school-level education.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },

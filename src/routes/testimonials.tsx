@@ -12,7 +12,10 @@ export const Route = createFileRoute("/testimonials")({
         content: "Published feedback from families, tutors and schools using LearnFlow.",
       },
       { property: "og:title", content: "LearnFlow testimonials" },
-      { property: "og:description", content: "Published feedback from LearnFlow families and schools." },
+      {
+        property: "og:description",
+        content: "Published feedback from LearnFlow families and schools.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
     ],
