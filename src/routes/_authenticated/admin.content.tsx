@@ -633,7 +633,7 @@ function AuditPanel() {
                 {row.entity_type} · {row.action}
               </span>
               <span className="text-xs text-muted-foreground">
-                {formatDateTime(row.occurred_at)}
+                {formatDateTime(row.created_at)}
               </span>
             </li>
           ))}

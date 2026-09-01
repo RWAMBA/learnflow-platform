@@ -310,8 +310,8 @@ export const adminListSiteAudit = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const { data, error } = await context.supabase
       .from("public_site_audit_log")
-      .select("id, entity_type, entity_id, action, actor_id, occurred_at")
-      .order("occurred_at", { ascending: false })
+      .select("id, entity_type, entity_id, action, actor_id, created_at")
+      .order("created_at", { ascending: false })
       .limit(200);
     if (error) throw new Error("Audit history could not be loaded.");
     return { rows: data ?? [] };
