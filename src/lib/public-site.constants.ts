@@ -95,3 +95,17 @@ export const PUBLIC_ROUTES = [
   { path: "/privacy-policy", label: "Privacy Policy", nav: false, changefreq: "yearly", priority: 0.3 },
   { path: "/cookie-policy", label: "Cookie Policy", nav: false, changefreq: "yearly", priority: 0.3 },
 ] as const;
+
+/**
+ * Money is stored in fixed-precision minor units with an explicit currency, so
+ * formatting never guesses. A missing price is shown as "on request" rather
+ * than as a zero we cannot substantiate.
+ */
+export function formatMoney(amountMinor: number | null, currency: string | null): string {
+  if (amountMinor == null || !currency) return "Price on request";
+  try {
+    return new Intl.NumberFormat(undefined, { style: "currency", currency }).format(amountMinor / 100);
+  } catch {
+    return `${currency} ${(amountMinor / 100).toFixed(2)}`;
+  }
+}
