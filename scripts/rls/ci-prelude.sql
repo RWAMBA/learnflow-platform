@@ -99,3 +99,15 @@ BEGIN
     SELECT 1
     FROM storage.buckets
     WHERE id = 'instructor-applications'
+      AND name = 'instructor-applications'
+      AND public IS FALSE
+      AND file_size_limit = 5242880
+      AND allowed_mime_types = ARRAY[
+        'application/pdf',
+        'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+      ]::text[]
+  ) THEN
+    RAISE EXCEPTION 'CI PRECONDITION: instructor-applications bucket configuration differs';
+  END IF;
+END
+$$;
