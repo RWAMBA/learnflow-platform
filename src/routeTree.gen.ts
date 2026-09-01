@@ -15,6 +15,7 @@ import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as ConsultationRouteImport } from './routes/consultation'
 import { Route as ContactRouteImport } from './routes/contact'
+import { Route as CookiePolicyRouteImport } from './routes/cookie-policy'
 import { Route as FaqsRouteImport } from './routes/faqs'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
@@ -102,6 +103,11 @@ const ConsultationRoute = ConsultationRouteImport.update({
 const ContactRoute = ContactRouteImport.update({
   id: '/contact',
   path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CookiePolicyRoute = CookiePolicyRouteImport.update({
+  id: '/cookie-policy',
+  path: '/cookie-policy',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FaqsRoute = FaqsRouteImport.update({
@@ -447,6 +453,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/consultation': typeof ConsultationRoute
   '/contact': typeof ContactRoute
+  '/cookie-policy': typeof CookiePolicyRoute
   '/faqs': typeof FaqsRoute
   '/mcp': typeof McpRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
@@ -513,6 +520,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/consultation': typeof ConsultationRoute
   '/contact': typeof ContactRoute
+  '/cookie-policy': typeof CookiePolicyRoute
   '/faqs': typeof FaqsRoute
   '/mcp': typeof McpRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
@@ -581,6 +589,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/consultation': typeof ConsultationRoute
   '/contact': typeof ContactRoute
+  '/cookie-policy': typeof CookiePolicyRoute
   '/faqs': typeof FaqsRoute
   '/mcp': typeof McpRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
@@ -649,6 +658,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/consultation'
     | '/contact'
+    | '/cookie-policy'
     | '/faqs'
     | '/mcp'
     | '/privacy-policy'
@@ -715,6 +725,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/consultation'
     | '/contact'
+    | '/cookie-policy'
     | '/faqs'
     | '/mcp'
     | '/privacy-policy'
@@ -782,6 +793,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/consultation'
     | '/contact'
+    | '/cookie-policy'
     | '/faqs'
     | '/mcp'
     | '/privacy-policy'
@@ -850,6 +862,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   ConsultationRoute: typeof ConsultationRoute
   ContactRoute: typeof ContactRoute
+  CookiePolicyRoute: typeof CookiePolicyRoute
   FaqsRoute: typeof FaqsRoute
   McpRoute: typeof McpRoute
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
@@ -915,6 +928,13 @@ declare module '@tanstack/react-router' {
       path: '/contact'
       fullPath: '/contact'
       preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cookie-policy': {
+      id: '/cookie-policy'
+      path: '/cookie-policy'
+      fullPath: '/cookie-policy'
+      preLoaderRoute: typeof CookiePolicyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/faqs': {
@@ -1437,6 +1457,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   ConsultationRoute: ConsultationRoute,
   ContactRoute: ContactRoute,
+  CookiePolicyRoute: CookiePolicyRoute,
   FaqsRoute: FaqsRoute,
   McpRoute: McpRoute,
   PrivacyPolicyRoute: PrivacyPolicyRoute,
