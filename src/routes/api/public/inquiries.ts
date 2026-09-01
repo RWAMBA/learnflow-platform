@@ -107,7 +107,7 @@ export const Route = createFileRoute("/api/public/inquiries")({
 
           // The generated RPC argument type models every parameter as
           // non-nullable; the SQL signature accepts NULL for the optional ones.
-          const rpcArgs = {
+          const rpcArgs: Record<string, unknown> = {
             p_inquiry_type: type,
             p_full_name: payload.fullName,
             p_email: payload.email,
@@ -121,11 +121,13 @@ export const Route = createFileRoute("/api/public/inquiries")({
             p_user_agent_family: identity.userAgentFamily,
             p_retention_days: RETENTION_DAYS.inquiry,
             p_instructor: instructor,
-          } as unknown as Parameters<
-            ReturnType<typeof serviceClient>["rpc"]<"submit_public_inquiry">
-          >[1];
+          };
 
-          const { data, error } = await serviceClient().rpc("submit_public_inquiry", rpcArgs);
+          const { data, error } = await serviceClient().rpc(
+            "submit_public_inquiry",
+            rpcArgs as never,
+          );
+
 
 
           if (error) {
