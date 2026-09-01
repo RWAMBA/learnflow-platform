@@ -178,7 +178,23 @@ function Footer() {
           </ul>
         </nav>
       </div>
+
+      <div className="border-t">
+        <section className="mx-auto w-full max-w-6xl px-4 py-10" aria-labelledby="newsletter-heading">
+          <h2 id="newsletter-heading" className="text-sm font-semibold">
+            LearnFlow updates
+          </h2>
+          <p className="mt-2 max-w-prose text-sm text-muted-foreground">
+            Occasional email about curriculum changes, new features and homeschooling guidance. Double
+            opt-in, and you can withdraw at any time.
+          </p>
+          <div className="mt-4 max-w-md">
+            <NewsletterSignup />
+          </div>
+        </section>
+      </div>
     </footer>
+
   );
 }
 
