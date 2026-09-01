@@ -35,6 +35,7 @@ import { Route as InstructorsApplyRouteImport } from './routes/instructors.apply
 import { Route as MerchandiseIndexRouteImport } from './routes/merchandise.index'
 import { Route as MerchandiseSlugRouteImport } from './routes/merchandise.$slug'
 import { Route as NewsletterConfirmRouteImport } from './routes/newsletter.confirm'
+import { Route as NewsletterUnsubscribeRouteImport } from './routes/newsletter.unsubscribe'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as AuthenticatedAccountMfaRouteImport } from './routes/_authenticated/account.mfa'
@@ -209,6 +210,11 @@ const MerchandiseSlugRoute = MerchandiseSlugRouteImport.update({
 const NewsletterConfirmRoute = NewsletterConfirmRouteImport.update({
   id: '/newsletter/confirm',
   path: '/newsletter/confirm',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NewsletterUnsubscribeRoute = NewsletterUnsubscribeRouteImport.update({
+  id: '/newsletter/unsubscribe',
+  path: '/newsletter/unsubscribe',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
@@ -489,6 +495,7 @@ export interface FileRoutesByFullPath {
   '/instructors/apply': typeof InstructorsApplyRoute
   '/merchandise/$slug': typeof MerchandiseSlugRoute
   '/newsletter/confirm': typeof NewsletterConfirmRoute
+  '/newsletter/unsubscribe': typeof NewsletterUnsubscribeRoute
   '/guide/': typeof GuideIndexRoute
   '/merchandise/': typeof MerchandiseIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -559,6 +566,7 @@ export interface FileRoutesByTo {
   '/instructors/apply': typeof InstructorsApplyRoute
   '/merchandise/$slug': typeof MerchandiseSlugRoute
   '/newsletter/confirm': typeof NewsletterConfirmRoute
+  '/newsletter/unsubscribe': typeof NewsletterUnsubscribeRoute
   '/guide': typeof GuideIndexRoute
   '/merchandise': typeof MerchandiseIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -631,6 +639,7 @@ export interface FileRoutesById {
   '/instructors/apply': typeof InstructorsApplyRoute
   '/merchandise/$slug': typeof MerchandiseSlugRoute
   '/newsletter/confirm': typeof NewsletterConfirmRoute
+  '/newsletter/unsubscribe': typeof NewsletterUnsubscribeRoute
   '/guide/': typeof GuideIndexRoute
   '/merchandise/': typeof MerchandiseIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
@@ -703,6 +712,7 @@ export interface FileRouteTypes {
     | '/instructors/apply'
     | '/merchandise/$slug'
     | '/newsletter/confirm'
+    | '/newsletter/unsubscribe'
     | '/guide/'
     | '/merchandise/'
     | '/.lovable/oauth/consent'
@@ -773,6 +783,7 @@ export interface FileRouteTypes {
     | '/instructors/apply'
     | '/merchandise/$slug'
     | '/newsletter/confirm'
+    | '/newsletter/unsubscribe'
     | '/guide'
     | '/merchandise'
     | '/.lovable/oauth/consent'
@@ -844,6 +855,7 @@ export interface FileRouteTypes {
     | '/instructors/apply'
     | '/merchandise/$slug'
     | '/newsletter/confirm'
+    | '/newsletter/unsubscribe'
     | '/guide/'
     | '/merchandise/'
     | '/.lovable/oauth/consent'
@@ -913,6 +925,7 @@ export interface RootRouteChildren {
   InstructorsApplyRoute: typeof InstructorsApplyRoute
   MerchandiseSlugRoute: typeof MerchandiseSlugRoute
   NewsletterConfirmRoute: typeof NewsletterConfirmRoute
+  NewsletterUnsubscribeRoute: typeof NewsletterUnsubscribeRoute
   GuideIndexRoute: typeof GuideIndexRoute
   MerchandiseIndexRoute: typeof MerchandiseIndexRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
@@ -1107,6 +1120,13 @@ declare module '@tanstack/react-router' {
       path: '/newsletter/confirm'
       fullPath: '/newsletter/confirm'
       preLoaderRoute: typeof NewsletterConfirmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/newsletter/unsubscribe': {
+      id: '/newsletter/unsubscribe'
+      path: '/newsletter/unsubscribe'
+      fullPath: '/newsletter/unsubscribe'
+      preLoaderRoute: typeof NewsletterUnsubscribeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/.lovable/oauth/consent': {
@@ -1533,6 +1553,7 @@ const rootRouteChildren: RootRouteChildren = {
   InstructorsApplyRoute: InstructorsApplyRoute,
   MerchandiseSlugRoute: MerchandiseSlugRoute,
   NewsletterConfirmRoute: NewsletterConfirmRoute,
+  NewsletterUnsubscribeRoute: NewsletterUnsubscribeRoute,
   GuideIndexRoute: GuideIndexRoute,
   MerchandiseIndexRoute: MerchandiseIndexRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
