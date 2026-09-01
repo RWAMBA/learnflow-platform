@@ -142,3 +142,31 @@ Two-layer Internal API:
 ---
 
 The master architecture and planning phase is complete. Two approved follow-on items are ready whenever you have them: an architectural review of Lovable's generated output against this manifest and the phase documents, and a Cursor continuation brief. Both need Lovable's actual output as a starting point — share it when ready.
+
+---
+
+## 12. Stage 3 Binding Scope Decisions (2 September 2026)
+
+Recorded in `phase-10/2026-09-02-stage-3-scope-decision-record.md` (PR #8,
+branch `feature/phase10-stage3-public-website`, starting SHA
+`4719945843ba45db9d8ca7381174d1ee3458539e`, tree
+`5a229817856dd27837992494c4b238dbe191f4f4`):
+
+1. **Instructor documents — CV/document journey only.** Private
+   `instructor-applications` bucket, max 5242880 bytes, `application/pdf` and
+   `application/vnd.openxmlformats-officedocument.wordprocessingml.document`
+   (`.pdf`, `.docx`). Certificates, passport photographs/headshots, JPEG/PNG and
+   the earlier 10,485,760-byte proposal are **superseded** and out of Stage 3
+   scope — deliberate data minimization. Server-issued upload tickets,
+   quarantine controls and Platform-Administrator-only download remain binding.
+2. **Merchandise is text-first.** No Storage bucket, no media upload journey, no
+   external-image URL workflow. `merchandise_items.media_path` is a reserved,
+   nullable, non-functional field; the CMS must not claim merchandise images can
+   be uploaded or managed.
+
+Neither decision changes any applied database migration. The GitHub Advanced
+Security agentic-review failure is non-blocking (it failed at `session.create`
+before analysis began); CodeQL checks remain separate valid evidence. Public
+deployment remains deferred, and Stage 4 cannot start until PR #8 is approved
+and merged. Expanding either capability requires a separate additive
+implementation with architecture approval and security review.

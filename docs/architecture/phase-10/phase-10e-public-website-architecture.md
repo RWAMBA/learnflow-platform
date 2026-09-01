@@ -4,6 +4,25 @@
 **Status:** Approved, with refinements applied in this revision (Guide as a knowledge hub, instructor-application detail table + recruitment lifecycle, a public Events stub, explicit CMS/SEO framing). See Section 0.
 **Builds on:** Phases 1–9 and Phase 10A–10D — approved.
 
+> **SUPERSEDED IN PART — Stage 3 binding decisions, 2 September 2026.** See
+> [`2026-09-02-stage-3-scope-decision-record.md`](./2026-09-02-stage-3-scope-decision-record.md).
+>
+> - **Instructor documents (Sections 3–4):** Stage 3 ships the CV/document journey
+>   only, into the private `instructor-applications` bucket, max 5242880 bytes,
+>   `application/pdf` and `application/vnd.openxmlformats-officedocument.wordprocessingml.document`
+>   (`.pdf`, `.docx`). Certificate uploads, passport photographs/headshots, JPEG/PNG,
+>   and the earlier 10,485,760-byte limit are **superseded and out of Stage 3 scope**.
+>   `certificate_storage_paths` and `photo_storage_path` remain reserved, unused
+>   fields. This is deliberate data minimization, not an omission.
+> - **Merchandise media (Sections 3 and 6):** Stage 3 merchandise is a text-first
+>   catalogue and inquiry feature. No `merchandise-images` bucket, no media upload
+>   journey, and no external-image URL workflow are approved.
+>   `merchandise_items.media_path` is a reserved, nullable forward-compatibility
+>   field and is **not** a supported capability.
+>
+> Historical text below is retained for provenance. Expanding either capability
+> requires a new architecture decision and security review.
+
 ---
 
 ## 0. Carry-Forward from Phase 10D
