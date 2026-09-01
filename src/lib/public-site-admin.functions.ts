@@ -115,7 +115,7 @@ export const adminListContent = createServerFn({ method: "GET" })
       .order("updated_at", { ascending: false })
       .limit(500);
     if (error) throw new Error("Content could not be loaded.");
-    return { rows: (rows ?? []) as unknown as Array<Record<string, unknown>> };
+    return { rows: (rows ?? []) as unknown as CmsRow[] };
   });
 
 export const adminSaveContent = createServerFn({ method: "POST" })
