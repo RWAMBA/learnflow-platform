@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ConsultationRouteImport } from './routes/consultation'
 import { Route as ContactRouteImport } from './routes/contact'
 import { Route as FaqsRouteImport } from './routes/faqs'
 import { Route as McpRouteImport } from './routes/mcp'
@@ -90,6 +91,11 @@ const AboutRoute = AboutRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConsultationRoute = ConsultationRouteImport.update({
+  id: '/consultation',
+  path: '/consultation',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ContactRoute = ContactRouteImport.update({
@@ -433,6 +439,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
+  '/consultation': typeof ConsultationRoute
   '/contact': typeof ContactRoute
   '/faqs': typeof FaqsRoute
   '/mcp': typeof McpRoute
@@ -497,6 +504,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
+  '/consultation': typeof ConsultationRoute
   '/contact': typeof ContactRoute
   '/faqs': typeof FaqsRoute
   '/mcp': typeof McpRoute
@@ -563,6 +571,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
+  '/consultation': typeof ConsultationRoute
   '/contact': typeof ContactRoute
   '/faqs': typeof FaqsRoute
   '/mcp': typeof McpRoute
@@ -629,6 +638,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/auth'
+    | '/consultation'
     | '/contact'
     | '/faqs'
     | '/mcp'
@@ -693,6 +703,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/auth'
+    | '/consultation'
     | '/contact'
     | '/faqs'
     | '/mcp'
@@ -758,6 +769,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/about'
     | '/auth'
+    | '/consultation'
     | '/contact'
     | '/faqs'
     | '/mcp'
@@ -824,6 +836,7 @@ export interface RootRouteChildren {
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AboutRoute: typeof AboutRoute
   AuthRoute: typeof AuthRoute
+  ConsultationRoute: typeof ConsultationRoute
   ContactRoute: typeof ContactRoute
   FaqsRoute: typeof FaqsRoute
   McpRoute: typeof McpRoute
@@ -875,6 +888,13 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/consultation': {
+      id: '/consultation'
+      path: '/consultation'
+      fullPath: '/consultation'
+      preLoaderRoute: typeof ConsultationRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/contact': {
@@ -1395,6 +1415,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AboutRoute: AboutRoute,
   AuthRoute: AuthRoute,
+  ConsultationRoute: ConsultationRoute,
   ContactRoute: ContactRoute,
   FaqsRoute: FaqsRoute,
   McpRoute: McpRoute,
