@@ -25,6 +25,9 @@ import {
   type SaveContentInput,
 } from "./public-site-admin.schemas";
 
+/** Serializable shape of a CMS row crossing the server boundary. */
+export type CmsRow = Record<string, string | number | boolean | null | string[]>;
+
 export class ContentConflictError extends Error {
   readonly code = "VERSION_CONFLICT";
   constructor() {
