@@ -75,8 +75,9 @@ export const Route = createFileRoute("/api/public/upload-ticket")({
 
           return jsonOk({ path: data.path, token: data.token, signedUrl: data.signedUrl });
         } catch (error) {
-
+          if (error instanceof PublicBoundaryError) return jsonError(error);
           console.error("[public/upload-ticket]", error);
+
           return jsonError(
             new PublicBoundaryError(
               PUBLIC_ERROR.unavailable,
