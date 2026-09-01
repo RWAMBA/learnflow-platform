@@ -5,6 +5,7 @@ import {
   ClipboardList,
   LayoutDashboard,
   MessagesSquare,
+  Globe,
   Shield,
   Sparkles,
   Users,
