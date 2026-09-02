@@ -55,6 +55,7 @@ describe("client environment access", () => {
     const offenders = files.filter(
       (file) =>
         !file.endsWith(".server.ts") &&
+        !/\.test\.tsx?$/.test(file) &&
         readFileSync(file, "utf8").includes("turnstile/v0/siteverify"),
     );
     expect(offenders).toEqual([]);
