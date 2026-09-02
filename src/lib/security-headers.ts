@@ -75,7 +75,7 @@ export function buildSecurityHeaders(input: { url: string }): Record<string, str
     secure,
     enforceScriptPolicy: false,
     connectOrigins: supabaseConnectOrigins(
-      import.meta.env["VITE_SUPABASE_URL"] as string | undefined,
+      import.meta.env.VITE_SUPABASE_URL as string | undefined,
     ),
   });
   if (!preview) headers["x-frame-options"] = "DENY";

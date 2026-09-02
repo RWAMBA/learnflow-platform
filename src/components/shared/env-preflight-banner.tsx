@@ -41,7 +41,7 @@ async function fetchPreflight(): Promise<PreflightResult> {
   return (await response.json()) as PreflightResult;
 }
 
-const PROJECT_REF = import.meta.env["VITE_SUPABASE_PROJECT_ID"] as string | undefined;
+const PROJECT_REF = import.meta.env.VITE_SUPABASE_PROJECT_ID as string | undefined;
 
 const SETUP_URL = PROJECT_REF
   ? `https://supabase.com/dashboard/project/${PROJECT_REF}/settings/api-keys`
