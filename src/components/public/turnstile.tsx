@@ -32,7 +32,7 @@ declare global {
 const SCRIPT_SRC = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
 
 export function useTurnstileConfigured(): boolean {
-  return Boolean(import.meta.env["VITE_TURNSTILE_SITE_KEY"]);
+  return Boolean(import.meta.env.VITE_TURNSTILE_SITE_KEY);
 }
 
 export function Turnstile({
@@ -42,7 +42,7 @@ export function Turnstile({
   onToken: (token: string | null) => void;
   className?: string;
 }) {
-  const siteKey = import.meta.env["VITE_TURNSTILE_SITE_KEY"] as string | undefined;
+  const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY as string | undefined;
   const containerRef = useRef<HTMLDivElement | null>(null);
   const widgetId = useRef<string | null>(null);
   const [failed, setFailed] = useState(false);
