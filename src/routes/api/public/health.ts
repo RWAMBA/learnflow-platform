@@ -28,8 +28,20 @@ export const Route = createFileRoute("/api/public/health")({
         try {
           const header = process.env["TRUSTED_CLIENT_IP_HEADER"];
           const ip = header ? (request.headers.get(header)?.split(",")[0]?.trim() ?? "") : "";
-          // Without a trusted network identifier every caller shares one bucket.
-          await enforceRateLimit("health", ip || "shared");
+          try {
+            // Without a trusted network identifier every caller shares one bucket.
+            await enforceRateLimit("health", ip || "shared");
+          } catch (limitError) {
+            // Throttling depends on server-only salts. Health is a read-only
+            // status probe with no side effects, so missing throttle
+            // configuration must not make the endpoint itself unavailable.
+            if (
+              !(limitError instanceof PublicBoundaryError) ||
+              limitError.code !== "NOT_CONFIGURED"
+            ) {
+              throw limitError;
+            }
+          }
 
           const started = Date.now();
           const { error } = await serviceClient()
@@ -37,6 +49,7 @@ export const Route = createFileRoute("/api/public/health")({
             .select("id", { head: true, count: "exact" })
             .limit(1);
           const backend = error ? "degraded" : "ok";
+
 
           return healthResponse(
             {
