@@ -506,3 +506,25 @@ and unfinished Phase 1–9 work. Private instructor-document controls and the
 `20260817113059_d492f8e7-f567-441a-a6ce-4b642a990c02.sql` before draft PR #5 is
 marked ready or merged to `main`. Stage-two SEC-006 application and MFA
 enforcement activation remain separately gated.**
+
+## Stage 3 Binding Scope Decisions (2 September 2026)
+
+See `docs/architecture/phase-10/2026-09-02-stage-3-scope-decision-record.md`
+(PR #8, branch `feature/phase10-stage3-public-website`, starting SHA
+`4719945843ba45db9d8ca7381174d1ee3458539e`, tree
+`5a229817856dd27837992494c4b238dbe191f4f4`, ledger 42/42, tail
+`20260901192243`).
+
+- **Instructor documents:** Stage 3 supports the CV/document upload journey only
+  — private `instructor-applications` bucket, 5242880-byte maximum, PDF and DOCX
+  only. Certificates, passport photographs, JPEG/PNG and the earlier
+  10,485,760-byte proposal are superseded; the narrower contract is deliberate
+  privacy-minimizing data minimization. Do not widen the bucket configuration,
+  application validation or CI prelude to restore the superseded proposal.
+- **Merchandise media:** text-first catalogue and inquiry only. No bucket, no
+  upload journey, no external-image URL workflow. `merchandise_items.media_path`
+  is reserved and non-functional; documentation and CMS must not imply
+  otherwise.
+
+Neither decision alters applied migrations. Public deployment stays deferred.
+Stage 4 cannot start until PR #8 receives final approval and is merged.

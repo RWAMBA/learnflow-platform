@@ -5,6 +5,7 @@ import {
   ClipboardList,
   LayoutDashboard,
   MessagesSquare,
+  Globe,
   Shield,
   Sparkles,
   Users,
@@ -38,6 +39,7 @@ export function MainNav({
     { to: "/programmes", label: "Programmes", icon: Sparkles, visible: true },
     { to: "/messages", label: "Messages", icon: MessagesSquare, visible: true },
     { to: "/admin/tenants", label: "Platform", icon: Shield, visible: viewer.isPlatformAdmin },
+    { to: "/admin/content", label: "Website", icon: Globe, visible: viewer.isPlatformAdmin },
   ] as const;
 
   return (

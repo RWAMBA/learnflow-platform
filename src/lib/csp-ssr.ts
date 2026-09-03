@@ -44,7 +44,7 @@ export function installDocumentCsp(): string | undefined {
         secure: url.protocol === "https:",
         enforceScriptPolicy: ENFORCE_SCRIPT_POLICY,
         connectOrigins: supabaseConnectOrigins(
-          import.meta.env["VITE_SUPABASE_URL"] as string | undefined,
+          import.meta.env.VITE_SUPABASE_URL as string | undefined,
         ),
       }),
     );

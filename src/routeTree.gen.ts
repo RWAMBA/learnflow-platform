@@ -11,20 +11,37 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ConsultationRouteImport } from './routes/consultation'
+import { Route as ContactRouteImport } from './routes/contact'
+import { Route as CookiePolicyRouteImport } from './routes/cookie-policy'
+import { Route as FaqsRouteImport } from './routes/faqs'
 import { Route as McpRouteImport } from './routes/mcp'
+import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as ServicesRouteImport } from './routes/services'
+import { Route as TestimonialsRouteImport } from './routes/testimonials'
+import { Route as WhyChooseUsRouteImport } from './routes/why-choose-us'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
 import { Route as Char91DotwellKnownChar93OauthProtectedResourceRouteImport } from './routes/[.well-known]/oauth-protected-resource'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated/notifications'
 import { Route as AuthenticatedOnboardingRouteImport } from './routes/_authenticated/onboarding'
 import { Route as ApiEnvPreflightRouteImport } from './routes/api/env-preflight'
+import { Route as GuideIndexRouteImport } from './routes/guide.index'
+import { Route as GuideSlugRouteImport } from './routes/guide.$slug'
+import { Route as InstructorsApplyRouteImport } from './routes/instructors.apply'
+import { Route as MerchandiseIndexRouteImport } from './routes/merchandise.index'
+import { Route as MerchandiseSlugRouteImport } from './routes/merchandise.$slug'
+import { Route as NewsletterConfirmRouteImport } from './routes/newsletter.confirm'
+import { Route as NewsletterUnsubscribeRouteImport } from './routes/newsletter.unsubscribe'
 import { Route as DotlovableOauthConsentRouteImport } from './routes/[.]lovable.oauth.consent'
 import { Route as Char91DotmcpChar93InvokeToolToolRouteImport } from './routes/[.mcp]/invoke-tool/$tool'
 import { Route as AuthenticatedAccountMfaRouteImport } from './routes/_authenticated/account.mfa'
 import { Route as AuthenticatedAccountSecurityRouteImport } from './routes/_authenticated/account.security'
 import { Route as AuthenticatedAccountSecurityChecklistRouteImport } from './routes/_authenticated/account.security-checklist'
+import { Route as AuthenticatedAdminContentRouteImport } from './routes/_authenticated/admin.content'
 import { Route as AuthenticatedAdminTenantsRouteImport } from './routes/_authenticated/admin.tenants'
 import { Route as AuthenticatedAssessmentsIndexRouteImport } from './routes/_authenticated/assessments.index'
 import { Route as AuthenticatedAssessmentsAssessmentIdRouteImport } from './routes/_authenticated/assessments.$assessmentId'
@@ -52,11 +69,18 @@ import { Route as AuthenticatedProgrammesProgrammeIdRouteImport } from './routes
 import { Route as AuthenticatedStudentsIndexRouteImport } from './routes/_authenticated/students.index'
 import { Route as AuthenticatedStudentsStudentIdRouteImport } from './routes/_authenticated/students.$studentId'
 import { Route as AuthenticatedStudentsNewRouteImport } from './routes/_authenticated/students.new'
+import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
+import { Route as ApiPublicInquiriesRouteImport } from './routes/api/public/inquiries'
+import { Route as ApiPublicSitemapDotxmlRouteImport } from './routes/api/public/sitemap[.]xml'
+import { Route as ApiPublicUploadTicketRouteImport } from './routes/api/public/upload-ticket'
 import { Route as AuthenticatedAssessmentsGradeSubmissionIdRouteImport } from './routes/_authenticated/assessments.grade.$submissionId'
 import { Route as AuthenticatedAssessmentsTakeSubmissionIdRouteImport } from './routes/_authenticated/assessments.take.$submissionId'
 import { Route as AuthenticatedCurriculumGradesGradeIdRouteImport } from './routes/_authenticated/curriculum.grades.$gradeId'
 import { Route as AuthenticatedCurriculumLessonsLessonIdRouteImport } from './routes/_authenticated/curriculum.lessons.$lessonId'
 import { Route as AuthenticatedCurriculumSubjectsSubjectIdRouteImport } from './routes/_authenticated/curriculum.subjects.$subjectId'
+import { Route as ApiPublicNewsletterConfirmRouteImport } from './routes/api/public/newsletter.confirm'
+import { Route as ApiPublicNewsletterSubscribeRouteImport } from './routes/api/public/newsletter.subscribe'
+import { Route as ApiPublicNewsletterUnsubscribeRouteImport } from './routes/api/public/newsletter.unsubscribe'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -67,9 +91,34 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
   id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ConsultationRoute = ConsultationRouteImport.update({
+  id: '/consultation',
+  path: '/consultation',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ContactRoute = ContactRouteImport.update({
+  id: '/contact',
+  path: '/contact',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CookiePolicyRoute = CookiePolicyRouteImport.update({
+  id: '/cookie-policy',
+  path: '/cookie-policy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FaqsRoute = FaqsRouteImport.update({
+  id: '/faqs',
+  path: '/faqs',
   getParentRoute: () => rootRouteImport,
 } as any)
 const McpRoute = McpRouteImport.update({
@@ -77,9 +126,29 @@ const McpRoute = McpRouteImport.update({
   path: '/mcp',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
+  id: '/privacy-policy',
+  path: '/privacy-policy',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
   path: '/reset-password',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ServicesRoute = ServicesRouteImport.update({
+  id: '/services',
+  path: '/services',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TestimonialsRoute = TestimonialsRouteImport.update({
+  id: '/testimonials',
+  path: '/testimonials',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const WhyChooseUsRoute = WhyChooseUsRouteImport.update({
+  id: '/why-choose-us',
+  path: '/why-choose-us',
   getParentRoute: () => rootRouteImport,
 } as any)
 const Char91DotmcpChar93ListToolsRoute =
@@ -115,6 +184,41 @@ const ApiEnvPreflightRoute = ApiEnvPreflightRouteImport.update({
   path: '/api/env-preflight',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GuideIndexRoute = GuideIndexRouteImport.update({
+  id: '/guide/',
+  path: '/guide/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuideSlugRoute = GuideSlugRouteImport.update({
+  id: '/guide/$slug',
+  path: '/guide/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InstructorsApplyRoute = InstructorsApplyRouteImport.update({
+  id: '/instructors/apply',
+  path: '/instructors/apply',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MerchandiseIndexRoute = MerchandiseIndexRouteImport.update({
+  id: '/merchandise/',
+  path: '/merchandise/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MerchandiseSlugRoute = MerchandiseSlugRouteImport.update({
+  id: '/merchandise/$slug',
+  path: '/merchandise/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NewsletterConfirmRoute = NewsletterConfirmRouteImport.update({
+  id: '/newsletter/confirm',
+  path: '/newsletter/confirm',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NewsletterUnsubscribeRoute = NewsletterUnsubscribeRouteImport.update({
+  id: '/newsletter/unsubscribe',
+  path: '/newsletter/unsubscribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DotlovableOauthConsentRoute = DotlovableOauthConsentRouteImport.update({
   id: '/.lovable/oauth/consent',
   path: '/.lovable/oauth/consent',
@@ -141,6 +245,12 @@ const AuthenticatedAccountSecurityChecklistRoute =
   AuthenticatedAccountSecurityChecklistRouteImport.update({
     id: '/account/security-checklist',
     path: '/account/security-checklist',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
+const AuthenticatedAdminContentRoute =
+  AuthenticatedAdminContentRouteImport.update({
+    id: '/admin/content',
+    path: '/admin/content',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
 const AuthenticatedAdminTenantsRoute =
@@ -305,6 +415,26 @@ const AuthenticatedStudentsNewRoute =
     path: '/students/new',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
+  id: '/api/public/health',
+  path: '/api/public/health',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicInquiriesRoute = ApiPublicInquiriesRouteImport.update({
+  id: '/api/public/inquiries',
+  path: '/api/public/inquiries',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicSitemapDotxmlRoute = ApiPublicSitemapDotxmlRouteImport.update({
+  id: '/api/public/sitemap.xml',
+  path: '/api/public/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPublicUploadTicketRoute = ApiPublicUploadTicketRouteImport.update({
+  id: '/api/public/upload-ticket',
+  path: '/api/public/upload-ticket',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAssessmentsGradeSubmissionIdRoute =
   AuthenticatedAssessmentsGradeSubmissionIdRouteImport.update({
     id: '/assessments/grade/$submissionId',
@@ -335,23 +465,58 @@ const AuthenticatedCurriculumSubjectsSubjectIdRoute =
     path: '/curriculum/subjects/$subjectId',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiPublicNewsletterConfirmRoute =
+  ApiPublicNewsletterConfirmRouteImport.update({
+    id: '/api/public/newsletter/confirm',
+    path: '/api/public/newsletter/confirm',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicNewsletterSubscribeRoute =
+  ApiPublicNewsletterSubscribeRouteImport.update({
+    id: '/api/public/newsletter/subscribe',
+    path: '/api/public/newsletter/subscribe',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicNewsletterUnsubscribeRoute =
+  ApiPublicNewsletterUnsubscribeRouteImport.update({
+    id: '/api/public/newsletter/unsubscribe',
+    path: '/api/public/newsletter/unsubscribe',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
+  '/consultation': typeof ConsultationRoute
+  '/contact': typeof ContactRoute
+  '/cookie-policy': typeof CookiePolicyRoute
+  '/faqs': typeof FaqsRoute
   '/mcp': typeof McpRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/services': typeof ServicesRoute
+  '/testimonials': typeof TestimonialsRoute
+  '/why-choose-us': typeof WhyChooseUsRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/api/env-preflight': typeof ApiEnvPreflightRoute
+  '/guide/$slug': typeof GuideSlugRoute
+  '/instructors/apply': typeof InstructorsApplyRoute
+  '/merchandise/$slug': typeof MerchandiseSlugRoute
+  '/newsletter/confirm': typeof NewsletterConfirmRoute
+  '/newsletter/unsubscribe': typeof NewsletterUnsubscribeRoute
+  '/guide/': typeof GuideIndexRoute
+  '/merchandise/': typeof MerchandiseIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/account/mfa': typeof AuthenticatedAccountMfaRoute
   '/account/security': typeof AuthenticatedAccountSecurityRoute
   '/account/security-checklist': typeof AuthenticatedAccountSecurityChecklistRoute
+  '/admin/content': typeof AuthenticatedAdminContentRoute
   '/admin/tenants': typeof AuthenticatedAdminTenantsRoute
   '/assessments/$assessmentId': typeof AuthenticatedAssessmentsAssessmentIdRoute
   '/assessments/analytics': typeof AuthenticatedAssessmentsAnalyticsRoute
@@ -372,6 +537,10 @@ export interface FileRoutesByFullPath {
   '/programmes/$programmeId': typeof AuthenticatedProgrammesProgrammeIdRoute
   '/students/$studentId': typeof AuthenticatedStudentsStudentIdRoute
   '/students/new': typeof AuthenticatedStudentsNewRoute
+  '/api/public/health': typeof ApiPublicHealthRoute
+  '/api/public/inquiries': typeof ApiPublicInquiriesRoute
+  '/api/public/sitemap.xml': typeof ApiPublicSitemapDotxmlRoute
+  '/api/public/upload-ticket': typeof ApiPublicUploadTicketRoute
   '/assessments/': typeof AuthenticatedAssessmentsIndexRoute
   '/assignments/': typeof AuthenticatedAssignmentsIndexRoute
   '/curriculum/': typeof AuthenticatedCurriculumIndexRoute
@@ -384,23 +553,43 @@ export interface FileRoutesByFullPath {
   '/curriculum/grades/$gradeId': typeof AuthenticatedCurriculumGradesGradeIdRoute
   '/curriculum/lessons/$lessonId': typeof AuthenticatedCurriculumLessonsLessonIdRoute
   '/curriculum/subjects/$subjectId': typeof AuthenticatedCurriculumSubjectsSubjectIdRoute
+  '/api/public/newsletter/confirm': typeof ApiPublicNewsletterConfirmRoute
+  '/api/public/newsletter/subscribe': typeof ApiPublicNewsletterSubscribeRoute
+  '/api/public/newsletter/unsubscribe': typeof ApiPublicNewsletterUnsubscribeRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
+  '/consultation': typeof ConsultationRoute
+  '/contact': typeof ContactRoute
+  '/cookie-policy': typeof CookiePolicyRoute
+  '/faqs': typeof FaqsRoute
   '/mcp': typeof McpRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/services': typeof ServicesRoute
+  '/testimonials': typeof TestimonialsRoute
+  '/why-choose-us': typeof WhyChooseUsRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/onboarding': typeof AuthenticatedOnboardingRoute
   '/api/env-preflight': typeof ApiEnvPreflightRoute
+  '/guide/$slug': typeof GuideSlugRoute
+  '/instructors/apply': typeof InstructorsApplyRoute
+  '/merchandise/$slug': typeof MerchandiseSlugRoute
+  '/newsletter/confirm': typeof NewsletterConfirmRoute
+  '/newsletter/unsubscribe': typeof NewsletterUnsubscribeRoute
+  '/guide': typeof GuideIndexRoute
+  '/merchandise': typeof MerchandiseIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/account/mfa': typeof AuthenticatedAccountMfaRoute
   '/account/security': typeof AuthenticatedAccountSecurityRoute
   '/account/security-checklist': typeof AuthenticatedAccountSecurityChecklistRoute
+  '/admin/content': typeof AuthenticatedAdminContentRoute
   '/admin/tenants': typeof AuthenticatedAdminTenantsRoute
   '/assessments/$assessmentId': typeof AuthenticatedAssessmentsAssessmentIdRoute
   '/assessments/analytics': typeof AuthenticatedAssessmentsAnalyticsRoute
@@ -421,6 +610,10 @@ export interface FileRoutesByTo {
   '/programmes/$programmeId': typeof AuthenticatedProgrammesProgrammeIdRoute
   '/students/$studentId': typeof AuthenticatedStudentsStudentIdRoute
   '/students/new': typeof AuthenticatedStudentsNewRoute
+  '/api/public/health': typeof ApiPublicHealthRoute
+  '/api/public/inquiries': typeof ApiPublicInquiriesRoute
+  '/api/public/sitemap.xml': typeof ApiPublicSitemapDotxmlRoute
+  '/api/public/upload-ticket': typeof ApiPublicUploadTicketRoute
   '/assessments': typeof AuthenticatedAssessmentsIndexRoute
   '/assignments': typeof AuthenticatedAssignmentsIndexRoute
   '/curriculum': typeof AuthenticatedCurriculumIndexRoute
@@ -433,25 +626,45 @@ export interface FileRoutesByTo {
   '/curriculum/grades/$gradeId': typeof AuthenticatedCurriculumGradesGradeIdRoute
   '/curriculum/lessons/$lessonId': typeof AuthenticatedCurriculumLessonsLessonIdRoute
   '/curriculum/subjects/$subjectId': typeof AuthenticatedCurriculumSubjectsSubjectIdRoute
+  '/api/public/newsletter/confirm': typeof ApiPublicNewsletterConfirmRoute
+  '/api/public/newsletter/subscribe': typeof ApiPublicNewsletterSubscribeRoute
+  '/api/public/newsletter/unsubscribe': typeof ApiPublicNewsletterUnsubscribeRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/about': typeof AboutRoute
   '/auth': typeof AuthRoute
+  '/consultation': typeof ConsultationRoute
+  '/contact': typeof ContactRoute
+  '/cookie-policy': typeof CookiePolicyRoute
+  '/faqs': typeof FaqsRoute
   '/mcp': typeof McpRoute
+  '/privacy-policy': typeof PrivacyPolicyRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/services': typeof ServicesRoute
+  '/testimonials': typeof TestimonialsRoute
+  '/why-choose-us': typeof WhyChooseUsRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
   '/.well-known/oauth-protected-resource': typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/onboarding': typeof AuthenticatedOnboardingRoute
   '/api/env-preflight': typeof ApiEnvPreflightRoute
+  '/guide/$slug': typeof GuideSlugRoute
+  '/instructors/apply': typeof InstructorsApplyRoute
+  '/merchandise/$slug': typeof MerchandiseSlugRoute
+  '/newsletter/confirm': typeof NewsletterConfirmRoute
+  '/newsletter/unsubscribe': typeof NewsletterUnsubscribeRoute
+  '/guide/': typeof GuideIndexRoute
+  '/merchandise/': typeof MerchandiseIndexRoute
   '/.lovable/oauth/consent': typeof DotlovableOauthConsentRoute
   '/.mcp/invoke-tool/$tool': typeof Char91DotmcpChar93InvokeToolToolRoute
   '/_authenticated/account/mfa': typeof AuthenticatedAccountMfaRoute
   '/_authenticated/account/security': typeof AuthenticatedAccountSecurityRoute
   '/_authenticated/account/security-checklist': typeof AuthenticatedAccountSecurityChecklistRoute
+  '/_authenticated/admin/content': typeof AuthenticatedAdminContentRoute
   '/_authenticated/admin/tenants': typeof AuthenticatedAdminTenantsRoute
   '/_authenticated/assessments/$assessmentId': typeof AuthenticatedAssessmentsAssessmentIdRoute
   '/_authenticated/assessments/analytics': typeof AuthenticatedAssessmentsAnalyticsRoute
@@ -472,6 +685,10 @@ export interface FileRoutesById {
   '/_authenticated/programmes/$programmeId': typeof AuthenticatedProgrammesProgrammeIdRoute
   '/_authenticated/students/$studentId': typeof AuthenticatedStudentsStudentIdRoute
   '/_authenticated/students/new': typeof AuthenticatedStudentsNewRoute
+  '/api/public/health': typeof ApiPublicHealthRoute
+  '/api/public/inquiries': typeof ApiPublicInquiriesRoute
+  '/api/public/sitemap.xml': typeof ApiPublicSitemapDotxmlRoute
+  '/api/public/upload-ticket': typeof ApiPublicUploadTicketRoute
   '/_authenticated/assessments/': typeof AuthenticatedAssessmentsIndexRoute
   '/_authenticated/assignments/': typeof AuthenticatedAssignmentsIndexRoute
   '/_authenticated/curriculum/': typeof AuthenticatedCurriculumIndexRoute
@@ -484,25 +701,45 @@ export interface FileRoutesById {
   '/_authenticated/curriculum/grades/$gradeId': typeof AuthenticatedCurriculumGradesGradeIdRoute
   '/_authenticated/curriculum/lessons/$lessonId': typeof AuthenticatedCurriculumLessonsLessonIdRoute
   '/_authenticated/curriculum/subjects/$subjectId': typeof AuthenticatedCurriculumSubjectsSubjectIdRoute
+  '/api/public/newsletter/confirm': typeof ApiPublicNewsletterConfirmRoute
+  '/api/public/newsletter/subscribe': typeof ApiPublicNewsletterSubscribeRoute
+  '/api/public/newsletter/unsubscribe': typeof ApiPublicNewsletterUnsubscribeRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/about'
     | '/auth'
+    | '/consultation'
+    | '/contact'
+    | '/cookie-policy'
+    | '/faqs'
     | '/mcp'
+    | '/privacy-policy'
     | '/reset-password'
+    | '/services'
+    | '/testimonials'
+    | '/why-choose-us'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/dashboard'
     | '/notifications'
     | '/onboarding'
     | '/api/env-preflight'
+    | '/guide/$slug'
+    | '/instructors/apply'
+    | '/merchandise/$slug'
+    | '/newsletter/confirm'
+    | '/newsletter/unsubscribe'
+    | '/guide/'
+    | '/merchandise/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/account/mfa'
     | '/account/security'
     | '/account/security-checklist'
+    | '/admin/content'
     | '/admin/tenants'
     | '/assessments/$assessmentId'
     | '/assessments/analytics'
@@ -523,6 +760,10 @@ export interface FileRouteTypes {
     | '/programmes/$programmeId'
     | '/students/$studentId'
     | '/students/new'
+    | '/api/public/health'
+    | '/api/public/inquiries'
+    | '/api/public/sitemap.xml'
+    | '/api/public/upload-ticket'
     | '/assessments/'
     | '/assignments/'
     | '/curriculum/'
@@ -535,23 +776,43 @@ export interface FileRouteTypes {
     | '/curriculum/grades/$gradeId'
     | '/curriculum/lessons/$lessonId'
     | '/curriculum/subjects/$subjectId'
+    | '/api/public/newsletter/confirm'
+    | '/api/public/newsletter/subscribe'
+    | '/api/public/newsletter/unsubscribe'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/about'
     | '/auth'
+    | '/consultation'
+    | '/contact'
+    | '/cookie-policy'
+    | '/faqs'
     | '/mcp'
+    | '/privacy-policy'
     | '/reset-password'
+    | '/services'
+    | '/testimonials'
+    | '/why-choose-us'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/dashboard'
     | '/notifications'
     | '/onboarding'
     | '/api/env-preflight'
+    | '/guide/$slug'
+    | '/instructors/apply'
+    | '/merchandise/$slug'
+    | '/newsletter/confirm'
+    | '/newsletter/unsubscribe'
+    | '/guide'
+    | '/merchandise'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/account/mfa'
     | '/account/security'
     | '/account/security-checklist'
+    | '/admin/content'
     | '/admin/tenants'
     | '/assessments/$assessmentId'
     | '/assessments/analytics'
@@ -572,6 +833,10 @@ export interface FileRouteTypes {
     | '/programmes/$programmeId'
     | '/students/$studentId'
     | '/students/new'
+    | '/api/public/health'
+    | '/api/public/inquiries'
+    | '/api/public/sitemap.xml'
+    | '/api/public/upload-ticket'
     | '/assessments'
     | '/assignments'
     | '/curriculum'
@@ -584,24 +849,44 @@ export interface FileRouteTypes {
     | '/curriculum/grades/$gradeId'
     | '/curriculum/lessons/$lessonId'
     | '/curriculum/subjects/$subjectId'
+    | '/api/public/newsletter/confirm'
+    | '/api/public/newsletter/subscribe'
+    | '/api/public/newsletter/unsubscribe'
   id:
     | '__root__'
     | '/'
     | '/_authenticated'
+    | '/about'
     | '/auth'
+    | '/consultation'
+    | '/contact'
+    | '/cookie-policy'
+    | '/faqs'
     | '/mcp'
+    | '/privacy-policy'
     | '/reset-password'
+    | '/services'
+    | '/testimonials'
+    | '/why-choose-us'
     | '/.mcp/list-tools'
     | '/.well-known/oauth-protected-resource'
     | '/_authenticated/dashboard'
     | '/_authenticated/notifications'
     | '/_authenticated/onboarding'
     | '/api/env-preflight'
+    | '/guide/$slug'
+    | '/instructors/apply'
+    | '/merchandise/$slug'
+    | '/newsletter/confirm'
+    | '/newsletter/unsubscribe'
+    | '/guide/'
+    | '/merchandise/'
     | '/.lovable/oauth/consent'
     | '/.mcp/invoke-tool/$tool'
     | '/_authenticated/account/mfa'
     | '/_authenticated/account/security'
     | '/_authenticated/account/security-checklist'
+    | '/_authenticated/admin/content'
     | '/_authenticated/admin/tenants'
     | '/_authenticated/assessments/$assessmentId'
     | '/_authenticated/assessments/analytics'
@@ -622,6 +907,10 @@ export interface FileRouteTypes {
     | '/_authenticated/programmes/$programmeId'
     | '/_authenticated/students/$studentId'
     | '/_authenticated/students/new'
+    | '/api/public/health'
+    | '/api/public/inquiries'
+    | '/api/public/sitemap.xml'
+    | '/api/public/upload-ticket'
     | '/_authenticated/assessments/'
     | '/_authenticated/assignments/'
     | '/_authenticated/curriculum/'
@@ -634,19 +923,45 @@ export interface FileRouteTypes {
     | '/_authenticated/curriculum/grades/$gradeId'
     | '/_authenticated/curriculum/lessons/$lessonId'
     | '/_authenticated/curriculum/subjects/$subjectId'
+    | '/api/public/newsletter/confirm'
+    | '/api/public/newsletter/subscribe'
+    | '/api/public/newsletter/unsubscribe'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AboutRoute: typeof AboutRoute
   AuthRoute: typeof AuthRoute
+  ConsultationRoute: typeof ConsultationRoute
+  ContactRoute: typeof ContactRoute
+  CookiePolicyRoute: typeof CookiePolicyRoute
+  FaqsRoute: typeof FaqsRoute
   McpRoute: typeof McpRoute
+  PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  ServicesRoute: typeof ServicesRoute
+  TestimonialsRoute: typeof TestimonialsRoute
+  WhyChooseUsRoute: typeof WhyChooseUsRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
   Char91DotwellKnownChar93OauthProtectedResourceRoute: typeof Char91DotwellKnownChar93OauthProtectedResourceRoute
   ApiEnvPreflightRoute: typeof ApiEnvPreflightRoute
+  GuideSlugRoute: typeof GuideSlugRoute
+  InstructorsApplyRoute: typeof InstructorsApplyRoute
+  MerchandiseSlugRoute: typeof MerchandiseSlugRoute
+  NewsletterConfirmRoute: typeof NewsletterConfirmRoute
+  NewsletterUnsubscribeRoute: typeof NewsletterUnsubscribeRoute
+  GuideIndexRoute: typeof GuideIndexRoute
+  MerchandiseIndexRoute: typeof MerchandiseIndexRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
+  ApiPublicHealthRoute: typeof ApiPublicHealthRoute
+  ApiPublicInquiriesRoute: typeof ApiPublicInquiriesRoute
+  ApiPublicSitemapDotxmlRoute: typeof ApiPublicSitemapDotxmlRoute
+  ApiPublicUploadTicketRoute: typeof ApiPublicUploadTicketRoute
+  ApiPublicNewsletterConfirmRoute: typeof ApiPublicNewsletterConfirmRoute
+  ApiPublicNewsletterSubscribeRoute: typeof ApiPublicNewsletterSubscribeRoute
+  ApiPublicNewsletterUnsubscribeRoute: typeof ApiPublicNewsletterUnsubscribeRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -665,11 +980,46 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/consultation': {
+      id: '/consultation'
+      path: '/consultation'
+      fullPath: '/consultation'
+      preLoaderRoute: typeof ConsultationRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/contact': {
+      id: '/contact'
+      path: '/contact'
+      fullPath: '/contact'
+      preLoaderRoute: typeof ContactRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cookie-policy': {
+      id: '/cookie-policy'
+      path: '/cookie-policy'
+      fullPath: '/cookie-policy'
+      preLoaderRoute: typeof CookiePolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/faqs': {
+      id: '/faqs'
+      path: '/faqs'
+      fullPath: '/faqs'
+      preLoaderRoute: typeof FaqsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/mcp': {
@@ -679,11 +1029,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof McpRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/privacy-policy': {
+      id: '/privacy-policy'
+      path: '/privacy-policy'
+      fullPath: '/privacy-policy'
+      preLoaderRoute: typeof PrivacyPolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/reset-password': {
       id: '/reset-password'
       path: '/reset-password'
       fullPath: '/reset-password'
       preLoaderRoute: typeof ResetPasswordRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/services': {
+      id: '/services'
+      path: '/services'
+      fullPath: '/services'
+      preLoaderRoute: typeof ServicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/testimonials': {
+      id: '/testimonials'
+      path: '/testimonials'
+      fullPath: '/testimonials'
+      preLoaderRoute: typeof TestimonialsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/why-choose-us': {
+      id: '/why-choose-us'
+      path: '/why-choose-us'
+      fullPath: '/why-choose-us'
+      preLoaderRoute: typeof WhyChooseUsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/.mcp/list-tools': {
@@ -728,6 +1106,55 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiEnvPreflightRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/guide/': {
+      id: '/guide/'
+      path: '/guide'
+      fullPath: '/guide/'
+      preLoaderRoute: typeof GuideIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guide/$slug': {
+      id: '/guide/$slug'
+      path: '/guide/$slug'
+      fullPath: '/guide/$slug'
+      preLoaderRoute: typeof GuideSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/instructors/apply': {
+      id: '/instructors/apply'
+      path: '/instructors/apply'
+      fullPath: '/instructors/apply'
+      preLoaderRoute: typeof InstructorsApplyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/merchandise/': {
+      id: '/merchandise/'
+      path: '/merchandise'
+      fullPath: '/merchandise/'
+      preLoaderRoute: typeof MerchandiseIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/merchandise/$slug': {
+      id: '/merchandise/$slug'
+      path: '/merchandise/$slug'
+      fullPath: '/merchandise/$slug'
+      preLoaderRoute: typeof MerchandiseSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/newsletter/confirm': {
+      id: '/newsletter/confirm'
+      path: '/newsletter/confirm'
+      fullPath: '/newsletter/confirm'
+      preLoaderRoute: typeof NewsletterConfirmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/newsletter/unsubscribe': {
+      id: '/newsletter/unsubscribe'
+      path: '/newsletter/unsubscribe'
+      fullPath: '/newsletter/unsubscribe'
+      preLoaderRoute: typeof NewsletterUnsubscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/.lovable/oauth/consent': {
       id: '/.lovable/oauth/consent'
       path: '/.lovable/oauth/consent'
@@ -761,6 +1188,13 @@ declare module '@tanstack/react-router' {
       path: '/account/security-checklist'
       fullPath: '/account/security-checklist'
       preLoaderRoute: typeof AuthenticatedAccountSecurityChecklistRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/admin/content': {
+      id: '/_authenticated/admin/content'
+      path: '/admin/content'
+      fullPath: '/admin/content'
+      preLoaderRoute: typeof AuthenticatedAdminContentRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin/tenants': {
@@ -952,6 +1386,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStudentsNewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/health': {
+      id: '/api/public/health'
+      path: '/api/public/health'
+      fullPath: '/api/public/health'
+      preLoaderRoute: typeof ApiPublicHealthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/inquiries': {
+      id: '/api/public/inquiries'
+      path: '/api/public/inquiries'
+      fullPath: '/api/public/inquiries'
+      preLoaderRoute: typeof ApiPublicInquiriesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/sitemap.xml': {
+      id: '/api/public/sitemap.xml'
+      path: '/api/public/sitemap.xml'
+      fullPath: '/api/public/sitemap.xml'
+      preLoaderRoute: typeof ApiPublicSitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/upload-ticket': {
+      id: '/api/public/upload-ticket'
+      path: '/api/public/upload-ticket'
+      fullPath: '/api/public/upload-ticket'
+      preLoaderRoute: typeof ApiPublicUploadTicketRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/assessments/grade/$submissionId': {
       id: '/_authenticated/assessments/grade/$submissionId'
       path: '/assessments/grade/$submissionId'
@@ -987,6 +1449,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedCurriculumSubjectsSubjectIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/public/newsletter/confirm': {
+      id: '/api/public/newsletter/confirm'
+      path: '/api/public/newsletter/confirm'
+      fullPath: '/api/public/newsletter/confirm'
+      preLoaderRoute: typeof ApiPublicNewsletterConfirmRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/newsletter/subscribe': {
+      id: '/api/public/newsletter/subscribe'
+      path: '/api/public/newsletter/subscribe'
+      fullPath: '/api/public/newsletter/subscribe'
+      preLoaderRoute: typeof ApiPublicNewsletterSubscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/newsletter/unsubscribe': {
+      id: '/api/public/newsletter/unsubscribe'
+      path: '/api/public/newsletter/unsubscribe'
+      fullPath: '/api/public/newsletter/unsubscribe'
+      preLoaderRoute: typeof ApiPublicNewsletterUnsubscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -997,6 +1480,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedAccountMfaRoute: typeof AuthenticatedAccountMfaRoute
   AuthenticatedAccountSecurityRoute: typeof AuthenticatedAccountSecurityRoute
   AuthenticatedAccountSecurityChecklistRoute: typeof AuthenticatedAccountSecurityChecklistRoute
+  AuthenticatedAdminContentRoute: typeof AuthenticatedAdminContentRoute
   AuthenticatedAdminTenantsRoute: typeof AuthenticatedAdminTenantsRoute
   AuthenticatedAssessmentsAssessmentIdRoute: typeof AuthenticatedAssessmentsAssessmentIdRoute
   AuthenticatedAssessmentsAnalyticsRoute: typeof AuthenticatedAssessmentsAnalyticsRoute
@@ -1039,6 +1523,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAccountSecurityRoute: AuthenticatedAccountSecurityRoute,
   AuthenticatedAccountSecurityChecklistRoute:
     AuthenticatedAccountSecurityChecklistRoute,
+  AuthenticatedAdminContentRoute: AuthenticatedAdminContentRoute,
   AuthenticatedAdminTenantsRoute: AuthenticatedAdminTenantsRoute,
   AuthenticatedAssessmentsAssessmentIdRoute:
     AuthenticatedAssessmentsAssessmentIdRoute,
@@ -1090,15 +1575,38 @@ const AuthenticatedRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AboutRoute: AboutRoute,
   AuthRoute: AuthRoute,
+  ConsultationRoute: ConsultationRoute,
+  ContactRoute: ContactRoute,
+  CookiePolicyRoute: CookiePolicyRoute,
+  FaqsRoute: FaqsRoute,
   McpRoute: McpRoute,
+  PrivacyPolicyRoute: PrivacyPolicyRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  ServicesRoute: ServicesRoute,
+  TestimonialsRoute: TestimonialsRoute,
+  WhyChooseUsRoute: WhyChooseUsRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
   Char91DotwellKnownChar93OauthProtectedResourceRoute:
     Char91DotwellKnownChar93OauthProtectedResourceRoute,
   ApiEnvPreflightRoute: ApiEnvPreflightRoute,
+  GuideSlugRoute: GuideSlugRoute,
+  InstructorsApplyRoute: InstructorsApplyRoute,
+  MerchandiseSlugRoute: MerchandiseSlugRoute,
+  NewsletterConfirmRoute: NewsletterConfirmRoute,
+  NewsletterUnsubscribeRoute: NewsletterUnsubscribeRoute,
+  GuideIndexRoute: GuideIndexRoute,
+  MerchandiseIndexRoute: MerchandiseIndexRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
+  ApiPublicHealthRoute: ApiPublicHealthRoute,
+  ApiPublicInquiriesRoute: ApiPublicInquiriesRoute,
+  ApiPublicSitemapDotxmlRoute: ApiPublicSitemapDotxmlRoute,
+  ApiPublicUploadTicketRoute: ApiPublicUploadTicketRoute,
+  ApiPublicNewsletterConfirmRoute: ApiPublicNewsletterConfirmRoute,
+  ApiPublicNewsletterSubscribeRoute: ApiPublicNewsletterSubscribeRoute,
+  ApiPublicNewsletterUnsubscribeRoute: ApiPublicNewsletterUnsubscribeRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
