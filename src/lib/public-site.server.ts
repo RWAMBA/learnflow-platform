@@ -160,18 +160,25 @@ function hmacHex(salt: string, value: string): string {
 }
 
 /**
- * Reads the client IP only from the single header the hosting proxy is
- * configured to set. An arbitrary X-Forwarded-For is ignored, so a caller
- * cannot mint unlimited rate-limit buckets by spoofing headers.
+ * Reads the client IP from the header the hosting proxy is configured to set.
+ * When TRUSTED_CLIENT_IP_HEADER is not set, fall back to the edge-injected
+ * headers the platform itself controls, in order of trustworthiness. An
+ * arbitrary X-Forwarded-For entry beyond the first hop is still ignored.
  */
 function clientIp(request: Request): string | null {
-  const header = process.env["TRUSTED_CLIENT_IP_HEADER"];
-  if (!header) return null;
-  const raw = request.headers.get(header);
-  if (!raw) return null;
-  const first = raw.split(",")[0]?.trim();
-  return first && first.length <= 64 ? first : null;
+  const configured = process.env["TRUSTED_CLIENT_IP_HEADER"];
+  const candidates = configured
+    ? [configured]
+    : ["cf-connecting-ip", "x-real-ip", "x-forwarded-for"];
+  for (const header of candidates) {
+    const raw = request.headers.get(header);
+    if (!raw) continue;
+    const first = raw.split(",")[0]?.trim();
+    if (first && first.length <= 64) return first;
+  }
+  return null;
 }
+
 
 export interface RequestIdentity {
   ipHash: string;
