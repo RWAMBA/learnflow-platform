@@ -184,12 +184,15 @@ describe("real Storage HTTP API proof", () => {
     expect(RUNNER).not.toMatch(/process\.env\.SUPABASE_TEST_SERVICE_ROLE_KEY[^\n]*console/);
   });
 
-  it("cleans up and proves zero residue while retaining the schema bucket", () => {
+  it("cleans up and proves zero residue while retaining approved baseline buckets", () => {
     expect(RUNNER).toContain("cleanup complete");
     expect(RUNNER).toContain("admin.auth.admin.deleteUser");
-    expect(RESIDUE).toContain("only the schema-defined evidence bucket may remain");
+    expect(RESIDUE).toContain("only the approved baseline private buckets may remain");
+    expect(RESIDUE).toContain("curriculum-rights-evidence,instructor-applications");
     expect(RESIDUE).toContain("storage-api-%@example.test");
-    expect(SQL_RESIDUE).toContain("id <> 'curriculum-rights-evidence'");
+    expect(SQL_RESIDUE).toContain("WHERE id NOT IN");
+    expect(SQL_RESIDUE).toContain("'curriculum-rights-evidence'");
+    expect(SQL_RESIDUE).toContain("'instructor-applications'");
   });
 
   it("registers every created auth fixture in one authoritative registry", () => {

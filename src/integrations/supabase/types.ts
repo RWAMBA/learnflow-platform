@@ -1306,6 +1306,54 @@ export type Database = {
           },
         ]
       }
+      faqs: {
+        Row: {
+          answer_markdown: string
+          archived_at: string | null
+          category: string
+          content_version: number
+          created_at: string
+          created_by: string | null
+          display_order: number
+          id: string
+          published_at: string | null
+          question: string
+          status: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          answer_markdown: string
+          archived_at?: string | null
+          category?: string
+          content_version?: number
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          id?: string
+          published_at?: string | null
+          question: string
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          answer_markdown?: string
+          archived_at?: string | null
+          category?: string
+          content_version?: number
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          id?: string
+          published_at?: string | null
+          question?: string
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       grades: {
         Row: {
           created_at: string
@@ -1359,6 +1407,128 @@ export type Database = {
             columns: ["education_stage_id"]
             isOneToOne: false
             referencedRelation: "education_stages"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guide_articles: {
+        Row: {
+          archived_at: string | null
+          body_markdown: string
+          category: string
+          content_version: number
+          created_at: string
+          created_by: string | null
+          display_order: number
+          hero_media_path: string | null
+          id: string
+          published_at: string | null
+          reading_minutes: number | null
+          seo_description: string | null
+          slug: string
+          status: string
+          summary: string
+          tags: string[]
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archived_at?: string | null
+          body_markdown?: string
+          category?: string
+          content_version?: number
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          hero_media_path?: string | null
+          id?: string
+          published_at?: string | null
+          reading_minutes?: number | null
+          seo_description?: string | null
+          slug: string
+          status?: string
+          summary: string
+          tags?: string[]
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archived_at?: string | null
+          body_markdown?: string
+          category?: string
+          content_version?: number
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          hero_media_path?: string | null
+          id?: string
+          published_at?: string | null
+          reading_minutes?: number | null
+          seo_description?: string | null
+          slug?: string
+          status?: string
+          summary?: string
+          tags?: string[]
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      instructor_application_details: {
+        Row: {
+          application_status: string
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          decision_note: string | null
+          document_paths: string[]
+          id: string
+          inquiry_id: string
+          malware_state: string
+          qualifications_summary: string
+          subjects: string[]
+          updated_at: string
+          years_experience: number
+        }
+        Insert: {
+          application_status?: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          document_paths?: string[]
+          id?: string
+          inquiry_id: string
+          malware_state?: string
+          qualifications_summary: string
+          subjects?: string[]
+          updated_at?: string
+          years_experience: number
+        }
+        Update: {
+          application_status?: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          decision_note?: string | null
+          document_paths?: string[]
+          id?: string
+          inquiry_id?: string
+          malware_state?: string
+          qualifications_summary?: string
+          subjects?: string[]
+          updated_at?: string
+          years_experience?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "instructor_application_details_inquiry_id_fkey"
+            columns: ["inquiry_id"]
+            isOneToOne: true
+            referencedRelation: "public_inquiries"
             referencedColumns: ["id"]
           },
         ]
@@ -1713,6 +1883,69 @@ export type Database = {
           },
         ]
       }
+      merchandise_items: {
+        Row: {
+          archived_at: string | null
+          availability_note: string | null
+          content_version: number
+          created_at: string
+          created_by: string | null
+          description_markdown: string
+          display_order: number
+          id: string
+          media_path: string | null
+          name: string
+          price_amount: number | null
+          price_currency: string | null
+          published_at: string | null
+          slug: string
+          status: string
+          summary: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archived_at?: string | null
+          availability_note?: string | null
+          content_version?: number
+          created_at?: string
+          created_by?: string | null
+          description_markdown?: string
+          display_order?: number
+          id?: string
+          media_path?: string | null
+          name: string
+          price_amount?: number | null
+          price_currency?: string | null
+          published_at?: string | null
+          slug: string
+          status?: string
+          summary: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archived_at?: string | null
+          availability_note?: string | null
+          content_version?: number
+          created_at?: string
+          created_by?: string | null
+          description_markdown?: string
+          display_order?: number
+          id?: string
+          media_path?: string | null
+          name?: string
+          price_amount?: number | null
+          price_currency?: string | null
+          published_at?: string | null
+          slug?: string
+          status?: string
+          summary?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           body: string
@@ -1754,6 +1987,101 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      newsletter_consent_events: {
+        Row: {
+          actor_id: string | null
+          consent_text: string | null
+          consent_text_version: string | null
+          event_type: string
+          evidence: Json
+          id: string
+          occurred_at: string
+          policy_version: string | null
+          subscription_id: string
+        }
+        Insert: {
+          actor_id?: string | null
+          consent_text?: string | null
+          consent_text_version?: string | null
+          event_type: string
+          evidence?: Json
+          id?: string
+          occurred_at?: string
+          policy_version?: string | null
+          subscription_id: string
+        }
+        Update: {
+          actor_id?: string | null
+          consent_text?: string | null
+          consent_text_version?: string | null
+          event_type?: string
+          evidence?: Json
+          id?: string
+          occurred_at?: string
+          policy_version?: string | null
+          subscription_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "newsletter_consent_events_subscription_id_fkey"
+            columns: ["subscription_id"]
+            isOneToOne: false
+            referencedRelation: "newsletter_subscriptions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      newsletter_subscriptions: {
+        Row: {
+          confirmation_token_hash: string | null
+          confirmed_at: string | null
+          consent_text_version: string | null
+          created_at: string
+          email_normalized: string
+          id: string
+          policy_version: string | null
+          retention_expires_at: string | null
+          state: string
+          suppressed_at: string | null
+          suppression_reason: string | null
+          token_expires_at: string | null
+          unsubscribed_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          confirmation_token_hash?: string | null
+          confirmed_at?: string | null
+          consent_text_version?: string | null
+          created_at?: string
+          email_normalized: string
+          id?: string
+          policy_version?: string | null
+          retention_expires_at?: string | null
+          state?: string
+          suppressed_at?: string | null
+          suppression_reason?: string | null
+          token_expires_at?: string | null
+          unsubscribed_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          confirmation_token_hash?: string | null
+          confirmed_at?: string | null
+          consent_text_version?: string | null
+          created_at?: string
+          email_normalized?: string
+          id?: string
+          policy_version?: string | null
+          retention_expires_at?: string | null
+          state?: string
+          suppressed_at?: string | null
+          suppression_reason?: string | null
+          token_expires_at?: string | null
+          unsubscribed_at?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       notifications: {
         Row: {
@@ -2631,6 +2959,113 @@ export type Database = {
           },
         ]
       }
+      public_inquiries: {
+        Row: {
+          created_at: string
+          details: Json
+          email: string
+          full_name: string
+          handled_at: string | null
+          handled_by: string | null
+          handling_note: string | null
+          id: string
+          inquiry_type: string
+          ip_hash: string
+          message: string
+          phone: string | null
+          related_merchandise_id: string | null
+          retention_expires_at: string
+          status: string
+          subject: string | null
+          submitter_fingerprint: string
+          updated_at: string
+          user_agent_family: string | null
+        }
+        Insert: {
+          created_at?: string
+          details?: Json
+          email: string
+          full_name: string
+          handled_at?: string | null
+          handled_by?: string | null
+          handling_note?: string | null
+          id?: string
+          inquiry_type: string
+          ip_hash: string
+          message: string
+          phone?: string | null
+          related_merchandise_id?: string | null
+          retention_expires_at: string
+          status?: string
+          subject?: string | null
+          submitter_fingerprint: string
+          updated_at?: string
+          user_agent_family?: string | null
+        }
+        Update: {
+          created_at?: string
+          details?: Json
+          email?: string
+          full_name?: string
+          handled_at?: string | null
+          handled_by?: string | null
+          handling_note?: string | null
+          id?: string
+          inquiry_type?: string
+          ip_hash?: string
+          message?: string
+          phone?: string | null
+          related_merchandise_id?: string | null
+          retention_expires_at?: string
+          status?: string
+          subject?: string | null
+          submitter_fingerprint?: string
+          updated_at?: string
+          user_agent_family?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "public_inquiries_related_merchandise_id_fkey"
+            columns: ["related_merchandise_id"]
+            isOneToOne: false
+            referencedRelation: "merchandise_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      public_site_audit_log: {
+        Row: {
+          action: string
+          actor_id: string | null
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          new_state: Json | null
+          previous_state: Json | null
+        }
+        Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          new_state?: Json | null
+          previous_state?: Json | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          new_state?: Json | null
+          previous_state?: Json | null
+        }
+        Relationships: []
+      }
       question_bank_items: {
         Row: {
           answer_key: Json | null
@@ -3196,6 +3631,63 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      site_content: {
+        Row: {
+          archived_at: string | null
+          body_markdown: string
+          content_key: string
+          content_version: number
+          created_at: string
+          created_by: string | null
+          display_order: number
+          id: string
+          media_path: string | null
+          page_slug: string
+          published_at: string | null
+          status: string
+          summary: string | null
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archived_at?: string | null
+          body_markdown?: string
+          content_key: string
+          content_version?: number
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          id?: string
+          media_path?: string | null
+          page_slug: string
+          published_at?: string | null
+          status?: string
+          summary?: string | null
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archived_at?: string | null
+          body_markdown?: string
+          content_key?: string
+          content_version?: number
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          id?: string
+          media_path?: string | null
+          page_slug?: string
+          published_at?: string | null
+          status?: string
+          summary?: string | null
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
       }
       source_artifact_links: {
         Row: {
@@ -3895,6 +4387,42 @@ export type Database = {
           },
         ]
       }
+      submission_throttle: {
+        Row: {
+          bucket_key: string
+          created_at: string
+          expires_at: string
+          id: string
+          purpose: string
+          request_count: number
+          updated_at: string
+          window_seconds: number
+          window_start: string
+        }
+        Insert: {
+          bucket_key: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          purpose: string
+          request_count?: number
+          updated_at?: string
+          window_seconds: number
+          window_start: string
+        }
+        Update: {
+          bucket_key?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          purpose?: string
+          request_count?: number
+          updated_at?: string
+          window_seconds?: number
+          window_start?: string
+        }
+        Relationships: []
+      }
       system_settings: {
         Row: {
           description: string | null
@@ -4027,6 +4555,57 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      testimonials: {
+        Row: {
+          archived_at: string | null
+          author_location: string | null
+          author_name: string
+          author_role: string | null
+          content_version: number
+          created_at: string
+          created_by: string | null
+          display_order: number
+          id: string
+          published_at: string | null
+          quote: string
+          status: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          archived_at?: string | null
+          author_location?: string | null
+          author_name: string
+          author_role?: string | null
+          content_version?: number
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          id?: string
+          published_at?: string | null
+          quote: string
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          archived_at?: string | null
+          author_location?: string | null
+          author_name?: string
+          author_role?: string | null
+          content_version?: number
+          created_at?: string
+          created_by?: string | null
+          display_order?: number
+          id?: string
+          published_at?: string | null
+          quote?: string
+          status?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
       }
       topics: {
         Row: {
@@ -4270,6 +4849,26 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      confirm_newsletter_subscription: {
+        Args: {
+          p_evidence: Json
+          p_retention_days: number
+          p_token_hash: string
+        }
+        Returns: string
+      }
+      consume_rate_limit: {
+        Args: {
+          p_bucket_key: string
+          p_limit: number
+          p_purpose: string
+          p_window_seconds: number
+        }
+        Returns: {
+          allowed: boolean
+          retry_after_seconds: number
+        }[]
+      }
       create_student_with_placement: {
         Args: {
           p_academic_level_id: string
@@ -4288,6 +4887,26 @@ export type Database = {
       }
       enroll_student_in_programme: {
         Args: { p_programme_id: string; p_student_id: string }
+        Returns: string
+      }
+      purge_expired_public_submissions: {
+        Args: never
+        Returns: {
+          inquiries_redacted: number
+          newsletters_purged: number
+        }[]
+      }
+      purge_expired_throttle_windows: { Args: never; Returns: number }
+      request_newsletter_subscription: {
+        Args: {
+          p_consent_text: string
+          p_consent_text_version: string
+          p_email: string
+          p_evidence: Json
+          p_policy_version: string
+          p_token_hash: string
+          p_token_ttl_minutes: number
+        }
         Returns: string
       }
       search_curriculum: {
@@ -4317,6 +4936,27 @@ export type Database = {
         Args: { p_enrollment_id: string; p_status: string }
         Returns: undefined
       }
+      submit_public_inquiry: {
+        Args: {
+          p_details: Json
+          p_email: string
+          p_fingerprint: string
+          p_full_name: string
+          p_inquiry_type: string
+          p_instructor: Json
+          p_ip_hash: string
+          p_message: string
+          p_phone: string
+          p_related_merchandise_id: string
+          p_retention_days: number
+          p_subject: string
+          p_user_agent_family: string
+        }
+        Returns: {
+          duplicate: boolean
+          inquiry_id: string
+        }[]
+      }
       transfer_curriculum_enrollment: {
         Args: {
           p_academic_level_id: string
@@ -4326,6 +4966,10 @@ export type Database = {
           p_track_id?: string
         }
         Returns: Json
+      }
+      withdraw_newsletter_subscription: {
+        Args: { p_email_hash_or_token: string; p_evidence: Json }
+        Returns: string
       }
     }
     Enums: {

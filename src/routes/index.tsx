@@ -1,91 +1,61 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { BookOpen, ShieldCheck, Users } from "lucide-react";
+import { CmsBlocks } from "@/components/public/cms-blocks";
+import { PublicLayout, PublicPageHeader } from "@/components/public/public-layout";
+import { PublicRouteNotFound } from "@/components/public/public-route-state";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { getPageContent } from "@/lib/public-content.functions";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Platform — Homeschooling & Alternative Education" },
+      { title: "LearnFlow — Homeschooling, tuition and learning management" },
       {
         name: "description",
         content:
-          "A multi-tenant platform for homeschooling and alternative education: curriculum, assignments, progress and family messaging in one place.",
+          "LearnFlow supports homeschooling, part-time tuition and structured learning management for families, tutors and schools.",
       },
-      { property: "og:title", content: "Platform — Homeschooling & Alternative Education" },
+      { property: "og:title", content: "LearnFlow" },
       {
         property: "og:description",
-        content:
-          "Curriculum browsing, assignments, mastery tracking and secure messaging for families, teachers and tutors.",
+        content: "Curriculum, teaching and administration in one secure learning platform.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
     ],
   }),
+  loader: async () => getPageContent({ data: { pageSlug: "home" } }),
+  errorComponent: () => (
+    <PublicLayout>
+      <PublicPageHeader title="LearnFlow" />
+      <CmsBlocks blocks={[]} fetchedAt={null} failed />
+    </PublicLayout>
+  ),
+  notFoundComponent: PublicRouteNotFound,
   component: HomePage,
 });
 
-const HIGHLIGHTS = [
-  {
-    icon: BookOpen,
-    title: "Curriculum spine",
-    body: "Browse grades, pathways, subjects and lessons built on the Kenya CBC structure.",
-  },
-  {
-    icon: Users,
-    title: "Roles that fit real families",
-    body: "One account can be a parent and a tutor at once, each scoped to an organization.",
-  },
-  {
-    icon: ShieldCheck,
-    title: "Relationship-based access",
-    body: "Every read and write is enforced in the database, not in the interface.",
-  },
-];
-
 function HomePage() {
+  const { blocks, fetchedAt } = Route.useLoaderData();
+
   return (
-    <div className="min-h-dvh bg-background">
-      <header className="border-b">
-        <div className="mx-auto flex w-full max-w-5xl items-center justify-between px-4 py-4">
-          <span className="font-semibold">the Platform</span>
-          <Button asChild size="sm">
+    <PublicLayout>
+      <PublicPageHeader title="LearnFlow" />
+      <CmsBlocks
+        blocks={blocks}
+        fetchedAt={fetchedAt}
+        emptyTitle="Homepage content has not been published yet"
+        emptyDescription="You can still explore LearnFlow, request a consultation or sign in."
+      />
+      <section aria-label="Get started" className="mx-auto w-full max-w-3xl px-4 pb-16">
+        <div className="flex flex-wrap gap-3 rounded-lg border p-6">
+          <Button asChild className="min-h-11">
+            <Link to="/consultation">Book a consultation</Link>
+          </Button>
+          <Button asChild variant="outline" className="min-h-11">
             <Link to="/auth">Sign in</Link>
           </Button>
         </div>
-      </header>
-
-      <main className="mx-auto w-full max-w-5xl px-4 py-12">
-        <h1 className="max-w-2xl text-3xl font-semibold tracking-tight sm:text-4xl">
-          Homeschooling and alternative education, organised.
-        </h1>
-        <p className="mt-4 max-w-2xl text-muted-foreground">
-          Students, parents and guardians, teachers, tutors and administrators share one workspace —
-          with assignments, progress and messaging scoped to the relationships that actually exist.
-        </p>
-        <div className="mt-6 flex flex-wrap gap-3">
-          <Button asChild size="lg">
-            <Link to="/auth">Get started</Link>
-          </Button>
-          <Button asChild size="lg" variant="outline">
-            <Link to="/auth" search={{ mode: "sign-up" as const }}>
-              Create an account
-            </Link>
-          </Button>
-        </div>
-
-        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {HIGHLIGHTS.map((item) => (
-            <Card key={item.title}>
-              <CardHeader className="pb-2">
-                <item.icon aria-hidden="true" className="size-6 text-primary" />
-                <CardTitle className="text-lg">{item.title}</CardTitle>
-              </CardHeader>
-              <CardContent className="text-sm text-muted-foreground">{item.body}</CardContent>
-            </Card>
-          ))}
-        </div>
-      </main>
-    </div>
+      </section>
+    </PublicLayout>
   );
 }

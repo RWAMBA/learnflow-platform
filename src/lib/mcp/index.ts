@@ -4,7 +4,7 @@ import listStudentsTool from "./tools/list-students";
 import listAssignmentsTool from "./tools/list-assignments";
 import searchCurriculumTool from "./tools/search-curriculum";
 
-const projectRef = import.meta.env["VITE_SUPABASE_PROJECT_ID"] ?? "project-ref-unset";
+const projectRef = import.meta.env.VITE_SUPABASE_PROJECT_ID ?? "project-ref-unset";
 
 export default defineMcp({
   name: "learnflow-platform",

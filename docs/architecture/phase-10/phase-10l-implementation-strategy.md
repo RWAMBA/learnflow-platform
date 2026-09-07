@@ -5,6 +5,16 @@
 **Builds on:** Phases 1–9 and Phase 10A–10K — approved, all finalized.
 **No new product scope is introduced in this revision** — every change here is about _how_ the already-approved architecture gets built safely, not _what_ gets built.
 
+> **Stage 3 scope amendment (2 September 2026).** Two binding decisions in
+> [`2026-09-02-stage-3-scope-decision-record.md`](./2026-09-02-stage-3-scope-decision-record.md)
+> override any Stage 3 statement here that implies otherwise:
+> (1) instructor uploads are CV/document only — private `instructor-applications`
+> bucket, 5242880 bytes, PDF/DOCX; the earlier 10,485,760-byte PDF/JPEG/PNG,
+> certificate and passport-photograph proposal is **superseded**;
+> (2) merchandise is **text-first** — no Storage bucket, no upload journey, no
+> external-image URL workflow; `merchandise_items.media_path` is a reserved,
+> nullable, non-functional field.
+
 ---
 
 ## 0. Corrections Applied in This Revision

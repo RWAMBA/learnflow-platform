@@ -49,7 +49,7 @@ test.describe("env preflight banner", () => {
     await page.goto("/");
 
     await expect(page.getByText("Server configuration incomplete")).toBeVisible();
-    const status = page.getByRole("status");
+    const status = page.getByTestId("preflight-live-status");
     await expect(status).toHaveAttribute("aria-live", "polite");
     await expect(status).toContainText("2 environment variables still missing");
     await expect(status).toContainText("SUPABASE_SERVICE_ROLE_KEY");
@@ -65,7 +65,9 @@ test.describe("env preflight banner", () => {
     await runButton.click();
 
     await expect(page.getByTestId("run-status")).toContainText("Running preflight check…");
-    await expect(page.getByRole("status")).toContainText("Running Supabase environment preflight");
+    await expect(page.getByTestId("preflight-live-status")).toContainText(
+      "Running Supabase environment preflight",
+    );
     await expect(page.getByTestId("run-status")).toContainText("Check complete", {
       timeout: 15_000,
     });
@@ -75,12 +77,14 @@ test.describe("env preflight banner", () => {
   test("reports an error when the manual run fails", async ({ page }) => {
     await stubPreflight(page);
     await page.goto("/");
-    await expect(page.getByRole("status")).toContainText("Preflight check complete");
+    await expect(page.getByTestId("preflight-live-status")).toContainText(
+      "Preflight check complete",
+    );
 
     await stubPreflight(page, { fail: true });
     await page.getByRole("button", { name: /run preflight check now/i }).click();
     await expect(page.getByTestId("run-status")).toContainText("Check failed");
-    await expect(page.getByRole("status")).toContainText("failed");
+    await expect(page.getByTestId("preflight-live-status")).toContainText("failed");
   });
 
   test("exports the selected number of recent checks as JSON and CSV", async ({ page }) => {

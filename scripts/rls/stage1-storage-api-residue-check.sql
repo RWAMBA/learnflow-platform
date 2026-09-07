@@ -1,8 +1,8 @@
 -- Stage 1 Storage HTTP API residue proof.
 --
 -- The API runner writes real, committed rows and objects, so it must remove
--- every one of them. The schema-defined evidence bucket is created by the
--- migration history and is therefore RETAINED; nothing else may survive.
+-- every one of them. The approved baseline private buckets belong to the
+-- replayed environment and are therefore RETAINED; nothing else may survive.
 --
 -- rights_audit_log is append-only. The runner therefore cannot (and must not)
 -- delete the audit events its fixtures appended. It publishes their exact ids
@@ -40,8 +40,8 @@ BEGIN
   END IF;
 
   SELECT string_agg(id, ',' ORDER BY id) INTO v_buckets FROM storage.buckets;
-  IF coalesce(v_buckets, '') <> 'curriculum-rights-evidence' THEN
-    RAISE EXCEPTION 'RESIDUE: unexpected bucket set "%" (only the schema-defined evidence bucket may remain)', v_buckets;
+  IF coalesce(v_buckets, '') <> 'curriculum-rights-evidence,instructor-applications' THEN
+    RAISE EXCEPTION 'RESIDUE: unexpected bucket set "%" (only the approved baseline private buckets may remain)', v_buckets;
   END IF;
   IF EXISTS (SELECT 1 FROM storage.buckets WHERE public) THEN
     RAISE EXCEPTION 'RESIDUE: a public storage bucket exists';
@@ -75,7 +75,7 @@ BEGIN
   SELECT count(*) INTO v_count FROM public.curricula WHERE code = 'APIDISP';
   IF v_count <> 0 THEN RAISE EXCEPTION 'RESIDUE: % fixture curricula', v_count; END IF;
 
-  RAISE NOTICE '[stage1-storage-api-residue] OK - zero mutable residue; % immutable audit event(s) retained; evidence bucket retained',
+  RAISE NOTICE '[stage1-storage-api-residue] OK - zero mutable residue; % immutable audit event(s) retained; approved private buckets retained',
     coalesce(array_length(v_expected, 1), 0);
 END
 $$;
