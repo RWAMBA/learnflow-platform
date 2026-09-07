@@ -25,7 +25,8 @@ BEGIN
     (v_member, 's3-member@example.test');
   INSERT INTO public.profiles (id, full_name) VALUES
     (v_admin, 'Stage 3 Admin'),
-    (v_member, 'Stage 3 Member');
+    (v_member, 'Stage 3 Member')
+  ON CONFLICT (id) DO NOTHING;
   INSERT INTO public.platform_admins (user_id, created_by) VALUES (v_admin, v_admin);
 
   INSERT INTO public.site_content

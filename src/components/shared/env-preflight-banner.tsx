@@ -549,7 +549,13 @@ export function EnvPreflightBanner() {
               ) : null}
             </p>
           )}
-          <p role="status" aria-live="polite" aria-atomic="true" className="sr-only">
+          <p
+            role="status"
+            aria-live="polite"
+            aria-atomic="true"
+            className="sr-only"
+            data-testid="preflight-live-status"
+          >
             {isFetching
               ? "Running Supabase environment preflight check now."
               : runState.status === "error"
