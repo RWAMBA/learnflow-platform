@@ -19,7 +19,12 @@ import {
   instructorApplicationSchema,
   merchandiseInquirySchema,
 } from "@/lib/public-site.schemas";
-import { MIN_FORM_FILL_MS, PUBLIC_ERROR, RETENTION_DAYS } from "@/lib/public-site.constants";
+import {
+  MIN_FORM_FILL_MS,
+  PUBLIC_ERROR,
+  RETENTION_DAYS,
+  UPLOAD_LIMITS,
+} from "@/lib/public-site.constants";
 
 const envelope = z.discriminatedUnion("type", [
   z.object({ type: z.literal("contact"), payload: contactInquirySchema }).strict(),
@@ -40,15 +45,28 @@ export const Route = createFileRoute("/api/public/inquiries")({
           assertHoneypotEmpty,
           assertHumanTiming,
           assertSameOrigin,
+          assertMalwareScanClean,
           deriveRequestIdentity,
           enforceRateLimit,
           fieldErrorsFrom,
           jsonError,
           jsonOk,
+          magicBytesMatch,
+          parseUploadClaim,
           readJsonBody,
           serviceClient,
           verifyTurnstile,
         } = mod;
+
+        const claimedUploadPaths: string[] = [];
+        const removeClaimedUploads = async (paths = claimedUploadPaths) => {
+          if (paths.length === 0) return;
+          try {
+            await serviceClient().storage.from("instructor-applications").remove(paths);
+          } catch {
+            // Cleanup is best-effort here; no storage detail is exposed publicly.
+          }
+        };
 
         try {
           assertSameOrigin(request);
@@ -97,11 +115,62 @@ export const Route = createFileRoute("/api/public/inquiries")({
             phone = payload.phone;
             subject = "Instructor application";
             if (payload.portfolioUrl) details["portfolioUrl"] = payload.portfolioUrl;
+
+            const uploadIdentity = deriveRequestIdentity(request, "upload_ticket");
+            const documentPaths: string[] = [];
+            let totalBytes = 0;
+            for (const document of payload.documentClaims) {
+              const claim = parseUploadClaim(document.claim, uploadIdentity.fingerprint);
+              if (!claim || claim.path !== document.path || documentPaths.includes(claim.path)) {
+                throw new PublicBoundaryError(
+                  PUBLIC_ERROR.validation,
+                  "One or more documents could not be accepted.",
+                  400,
+                );
+              }
+
+              claimedUploadPaths.push(claim.path);
+              totalBytes += claim.sizeBytes;
+              if (totalBytes > UPLOAD_LIMITS.maxTotalBytes) {
+                throw new PublicBoundaryError(
+                  PUBLIC_ERROR.validation,
+                  "The combined document size is too large.",
+                  400,
+                );
+              }
+
+              const { data: object, error: downloadError } = await serviceClient()
+                .storage.from("instructor-applications")
+                .download(claim.path);
+              if (downloadError || !object || object.size !== claim.sizeBytes) {
+                throw new PublicBoundaryError(
+                  PUBLIC_ERROR.validation,
+                  "One or more documents could not be accepted.",
+                  400,
+                );
+              }
+
+              const bytes = new Uint8Array(await object.arrayBuffer());
+              const expected = UPLOAD_LIMITS.allowed.find(
+                (allowed) => allowed.mime === claim.contentType,
+              );
+              if (!expected || !magicBytesMatch(bytes.subarray(0, 8), expected.magic)) {
+                throw new PublicBoundaryError(
+                  PUBLIC_ERROR.validation,
+                  "One or more documents could not be accepted.",
+                  400,
+                );
+              }
+              await assertMalwareScanClean(bytes, claim.contentType);
+              documentPaths.push(claim.path);
+            }
+
             instructor = {
               subjects: payload.subjects,
               qualifications_summary: payload.qualificationsSummary,
               years_experience: payload.yearsExperience,
-              document_paths: payload.documentPaths,
+              document_paths: documentPaths,
+              malware_state: "clean",
             };
           }
 
@@ -138,12 +207,30 @@ export const Route = createFileRoute("/api/public/inquiries")({
           }
 
           const row = Array.isArray(data) ? data[0] : data;
-          const duplicate = Boolean((row as { duplicate?: boolean } | null)?.duplicate);
+          const result = row as { duplicate?: boolean; inquiry_id?: string } | null;
+          const duplicate = Boolean(result?.duplicate);
+
+          // A duplicate does not create a new application row, so its freshly
+          // uploaded objects would otherwise be orphaned. Preserve any path
+          // already attached to the original row: a replay must never delete
+          // the original application document.
+          if (duplicate && type === "instructor_application" && result?.inquiry_id) {
+            const { data: existing, error: existingError } = await serviceClient()
+              .from("instructor_application_details")
+              .select("document_paths")
+              .eq("inquiry_id", result.inquiry_id)
+              .maybeSingle();
+            if (!existingError && existing) {
+              const attached = new Set(existing.document_paths);
+              await removeClaimedUploads(claimedUploadPaths.filter((path) => !attached.has(path)));
+            }
+          }
 
           // Idempotent: a repeat inside the same UTC hour is acknowledged, not
           // duplicated, and no identifier is echoed back to the browser.
           return jsonOk({ received: true, duplicate });
         } catch (error) {
+          await removeClaimedUploads();
           if (error instanceof PublicBoundaryError) return jsonError(error);
           return jsonError(
             new PublicBoundaryError(

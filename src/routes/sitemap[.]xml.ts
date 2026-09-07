@@ -28,7 +28,7 @@ function xmlEscape(value: string): string {
   );
 }
 
-export const Route = createFileRoute("/api/public/sitemap.xml")({
+export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
       GET: async ({ request }) => {

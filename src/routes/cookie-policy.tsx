@@ -3,6 +3,7 @@ import { PublicLayout, PublicPageHeader } from "@/components/public/public-layou
 import { CmsBlocks } from "@/components/public/cms-blocks";
 import { getPageContent } from "@/lib/public-content.functions";
 import { ConsentPreferencesButton } from "@/components/public/consent";
+import { PublicRouteNotFound } from "@/components/public/public-route-state";
 
 export const Route = createFileRoute("/cookie-policy")({
   head: () => ({
@@ -29,6 +30,7 @@ export const Route = createFileRoute("/cookie-policy")({
       <CmsBlocks blocks={[]} fetchedAt={null} failed />
     </PublicLayout>
   ),
+  notFoundComponent: PublicRouteNotFound,
   component: CookiePolicyPage,
 });
 

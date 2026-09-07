@@ -9,8 +9,7 @@ import { useState, type ReactNode } from "react";
 import { Link } from "@tanstack/react-router";
 import { Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { AppStatusBar } from "./app-status-bar";
-import { ConsentProvider, useConsent } from "./consent";
+import { useConsent } from "./consent";
 import { NewsletterSignup } from "./newsletter-signup";
 
 const NAV = [
@@ -218,22 +217,13 @@ function Footer() {
 
 export function PublicLayout({ children }: { children: ReactNode }) {
   return (
-    <ConsentProvider>
-      <a
-        href="#main-content"
-        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground"
-      >
-        Skip to main content
-      </a>
-      <div className="flex min-h-screen flex-col bg-background text-foreground">
-        <AppStatusBar />
-        <Header />
-        <main id="main-content" tabIndex={-1} className="flex-1">
-          {children}
-        </main>
-        <Footer />
-      </div>
-    </ConsentProvider>
+    <div className="flex min-h-screen flex-col bg-background text-foreground">
+      <Header />
+      <main id="main-content" tabIndex={-1} className="flex-1">
+        {children}
+      </main>
+      <Footer />
+    </div>
   );
 }
 

@@ -35,6 +35,7 @@ export const Route = createFileRoute("/api/public/newsletter/subscribe")({
           missingPublicSiteConfig,
           newTokenPair,
           readJsonBody,
+          sendNewsletterConfirmationEmail,
           serviceClient,
           verifyTurnstile,
         } = await import("@/lib/public-site.server");
@@ -72,8 +73,8 @@ export const Route = createFileRoute("/api/public/newsletter/subscribe")({
           const identity = deriveRequestIdentity(request, "newsletter");
           await enforceRateLimit("newsletter_subscribe", identity.ipHash);
 
-          const { tokenHash } = newTokenPair();
-          const { error } = await serviceClient().rpc("request_newsletter_subscription", {
+          const { token, tokenHash } = newTokenPair();
+          const { data, error } = await serviceClient().rpc("request_newsletter_subscription", {
             p_email: payload.email,
             p_token_hash: tokenHash,
             p_token_ttl_minutes: NEWSLETTER_TOKEN_TTL_MINUTES,
@@ -89,6 +90,13 @@ export const Route = createFileRoute("/api/public/newsletter/subscribe")({
               "Newsletter sign-up is temporarily unavailable.",
               503,
             );
+          }
+
+          // The private RPC returns only a coarse state. Send solely for a
+          // pending request: confirmed/suppressed addresses remain silent and
+          // every caller still receives the same public response.
+          if (data === "pending") {
+            await sendNewsletterConfirmationEmail({ email: payload.email, token });
           }
 
           // Deliberately uniform: never reveal the stored state of an address.

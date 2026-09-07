@@ -26,9 +26,11 @@ export const Route = createFileRoute("/api/public/upload-ticket")({
           deriveRequestIdentity,
           enforceRateLimit,
           fieldErrorsFrom,
+          createUploadClaim,
           generateUploadPath,
           jsonError,
           jsonOk,
+          missingPublicSiteConfig,
           readJsonBody,
           serviceClient,
           verifyTurnstile,
@@ -36,6 +38,13 @@ export const Route = createFileRoute("/api/public/upload-ticket")({
 
         try {
           assertSameOrigin(request);
+          if (missingPublicSiteConfig(["malwareScanner"]).length > 0) {
+            throw new PublicBoundaryError(
+              PUBLIC_ERROR.notConfigured,
+              "Document uploads are temporarily unavailable.",
+              503,
+            );
+          }
           const parsed = uploadTicketSchema.safeParse(await readJsonBody(request));
           if (!parsed.success) {
             throw new PublicBoundaryError(
@@ -73,7 +82,14 @@ export const Route = createFileRoute("/api/public/upload-ticket")({
             );
           }
 
-          return jsonOk({ path: data.path, token: data.token, signedUrl: data.signedUrl });
+          const claim = createUploadClaim({
+            path: data.path,
+            contentType: parsed.data.contentType,
+            sizeBytes: parsed.data.sizeBytes,
+            requesterFingerprint: identity.fingerprint,
+          });
+
+          return jsonOk({ path: data.path, token: data.token, signedUrl: data.signedUrl, claim });
         } catch (error) {
           if (error instanceof PublicBoundaryError) return jsonError(error);
           console.error("[public/upload-ticket]", error);

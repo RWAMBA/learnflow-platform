@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { PublicLayout, PublicPageHeader } from "@/components/public/public-layout";
 import { SectionEmpty, SectionError, StaleNotice } from "@/components/public/cms-blocks";
+import { PublicRouteNotFound } from "@/components/public/public-route-state";
 import { formatMoney } from "@/lib/public-site.constants";
 import { listMerchandise } from "@/lib/public-content.functions";
 
@@ -31,6 +32,7 @@ export const Route = createFileRoute("/merchandise/")({
       </div>
     </PublicLayout>
   ),
+  notFoundComponent: PublicRouteNotFound,
   component: MerchandiseIndexPage,
 });
 

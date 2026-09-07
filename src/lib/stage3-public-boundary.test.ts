@@ -6,6 +6,7 @@
  * public edge, not restatements of the specification.
  */
 import { describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
 import { renderToStaticMarkup } from "react-dom/server";
 import { createElement } from "react";
 import { SafeMarkdown } from "@/components/public/safe-markdown";
@@ -31,6 +32,26 @@ import {
   siteContentInputSchema,
   uploadTicketSchema,
 } from "@/lib/public-site.schemas";
+import {
+  assertMalwareScanClean,
+  createUploadClaim,
+  isEmailProviderConfigured,
+  isMalwareScannerConfigured,
+  parseUploadClaim,
+  publicSiteCapabilityFlags,
+  readPublishedContent,
+  sendNewsletterConfirmationEmail,
+} from "@/lib/public-site.server";
+
+const NEWSLETTER_SUBSCRIBE_ROUTE = readFileSync(
+  `${process.cwd()}/src/routes/api/public/newsletter.subscribe.ts`,
+  "utf8",
+);
+const UPLOAD_TICKET_ROUTE = readFileSync(
+  `${process.cwd()}/src/routes/api/public/upload-ticket.ts`,
+  "utf8",
+);
+const INQUIRIES_ROUTE = readFileSync(`${process.cwd()}/src/routes/api/public/inquiries.ts`, "utf8");
 
 const baseContact = {
   fullName: "Amina Otieno",
@@ -129,9 +150,138 @@ describe("Stage 3 — input validation", () => {
     expect(uploadTicketSchema.safeParse({ ...ok, sizeBytes: 50_000_000 }).success).toBe(false);
   });
 
+  it("requires complete malware scanner configuration", () => {
+    expect(isMalwareScannerConfigured({})).toBe(false);
+    expect(
+      isMalwareScannerConfigured({
+        MALWARE_SCANNER_PROVIDER: "http-json-v1",
+        MALWARE_SCANNER_URL: "https://scanner.example.test/v1/scan",
+        MALWARE_SCANNER_API_KEY: "secret",
+      }),
+    ).toBe(true);
+    expect(
+      isMalwareScannerConfigured({
+        MALWARE_SCANNER_PROVIDER: "unknown",
+        MALWARE_SCANNER_URL: "https://scanner.example.test/v1/scan",
+        MALWARE_SCANNER_API_KEY: "secret",
+      }),
+    ).toBe(false);
+  });
+
+  it("accepts only an explicit clean scanner verdict", async () => {
+    const env = {
+      MALWARE_SCANNER_PROVIDER: "http-json-v1",
+      MALWARE_SCANNER_URL: "https://scanner.example.test/v1/scan",
+      MALWARE_SCANNER_API_KEY: "secret",
+    };
+    let authorization = "";
+    await expect(
+      assertMalwareScanClean(new TextEncoder().encode("%PDF-test"), "application/pdf", env, (async (
+        _input,
+        init,
+      ) => {
+        authorization = new Headers(init?.headers).get("authorization") ?? "";
+        return new Response(JSON.stringify({ clean: true }), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        });
+      }) as typeof fetch),
+    ).resolves.toBeUndefined();
+    expect(authorization).toBe("Bearer secret");
+
+    await expect(
+      assertMalwareScanClean(
+        new TextEncoder().encode("%PDF-test"),
+        "application/pdf",
+        env,
+        (async () =>
+          new Response(JSON.stringify({ clean: false }), {
+            status: 200,
+            headers: { "content-type": "application/json" },
+          })) as typeof fetch,
+      ),
+    ).rejects.toMatchObject({ code: PUBLIC_ERROR.validation, status: 400 });
+  });
+
+  it("signs upload claims and rejects tampering or a different requester", () => {
+    const now = 2_000_000;
+    const claim = createUploadClaim(
+      {
+        path: "applications/11111111-1111-4111-8111-111111111111/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.pdf",
+        contentType: "application/pdf",
+        sizeBytes: 1024,
+        requesterFingerprint: "requester-a",
+      },
+      "claim-secret",
+      now,
+    );
+
+    expect(parseUploadClaim(claim, "requester-a", "claim-secret", now + 1_000)?.sizeBytes).toBe(
+      1024,
+    );
+    expect(parseUploadClaim(claim, "requester-b", "claim-secret", now + 1_000)).toBeNull();
+    expect(parseUploadClaim(`${claim}x`, "requester-a", "claim-secret", now + 1_000)).toBeNull();
+    expect(parseUploadClaim(claim, "requester-a", "claim-secret", now + 20 * 60_000)).toBeNull();
+
+    const application = {
+      fullName: "Amina Tutor",
+      email: "amina@example.com",
+      phone: "+254712345678",
+      subjects: ["Mathematics"],
+      yearsExperience: 4,
+      qualificationsSummary: "Qualified and experienced classroom teacher.",
+      portfolioUrl: null,
+      message: "I would like to support LearnFlow learners.",
+      documentClaims: [
+        {
+          path: "applications/11111111-1111-4111-8111-111111111111/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa.pdf",
+          claim,
+        },
+      ],
+      website: "",
+      renderedAt: Date.now() - 5_000,
+      turnstileToken: "t".repeat(20),
+    };
+    expect(instructorApplicationSchema.safeParse(application).success).toBe(true);
+    expect(
+      instructorApplicationSchema.safeParse({
+        ...application,
+        documentClaims: [{ path: application.documentClaims[0]!.path, claim, extra: true }],
+      }).success,
+    ).toBe(false);
+  });
+
   it("bounds newsletter tokens", () => {
     expect(newsletterTokenSchema.safeParse({ token: "" }).success).toBe(false);
     expect(newsletterTokenSchema.safeParse({ token: "a".repeat(4000) }).success).toBe(false);
+  });
+});
+
+describe("Stage 3 — published-content resilience", () => {
+  it("serves stale content while refreshing the last-known-good value", async () => {
+    const key = `test-${crypto.randomUUID()}`;
+    let value = 1;
+    const load = async () => ({ value });
+
+    expect(await readPublishedContent(key, load, 1_000)).toEqual({ value: 1 });
+    value = 2;
+    expect(await readPublishedContent(key, load, 62_000)).toEqual({ value: 1 });
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(await readPublishedContent(key, load, 62_001)).toEqual({ value: 2 });
+  });
+
+  it("uses last-known-good content during a transient refresh failure", async () => {
+    const key = `test-${crypto.randomUUID()}`;
+    expect(await readPublishedContent(key, async () => "available", 1_000)).toBe("available");
+    expect(
+      await readPublishedContent(
+        key,
+        async () => {
+          throw new Error("database unavailable");
+        },
+        62_000,
+      ),
+    ).toBe("available");
   });
 });
 
@@ -326,5 +476,78 @@ describe("Stage 3 — rate-limit census", () => {
       expect(days, kind).toBeGreaterThan(0);
       expect(days, kind).toBeLessThanOrEqual(3650);
     }
+  });
+});
+
+describe("Stage 3 — public capability flags", () => {
+  const configured = {
+    turnstile: true,
+    ipSalt: true,
+    fingerprintSalt: true,
+    newsletterSalt: true,
+    emailProvider: true,
+    malwareScanner: true,
+    trustedProxyHeader: true,
+  };
+
+  it("never advertises newsletter signup without a delivery provider", () => {
+    expect(
+      publicSiteCapabilityFlags({ ...configured, emailProvider: false }).newsletterEnabled,
+    ).toBe(false);
+    expect(publicSiteCapabilityFlags(configured).newsletterEnabled).toBe(true);
+  });
+
+  it("requires both Resend credentials and a verified sender", () => {
+    expect(isEmailProviderConfigured({ RESEND_API_KEY: "key" })).toBe(false);
+    expect(isEmailProviderConfigured({ RESEND_FROM_EMAIL: "updates@example.com" })).toBe(false);
+    expect(
+      isEmailProviderConfigured({
+        RESEND_API_KEY: "key",
+        RESEND_FROM_EMAIL: "LearnFlow <updates@example.com>",
+        VITE_APP_URL: "https://learnflow.example.com",
+      }),
+    ).toBe(true);
+  });
+
+  it("sends the raw confirmation token only after the pending request is stored", () => {
+    expect(NEWSLETTER_SUBSCRIBE_ROUTE).toContain("const { token, tokenHash } = newTokenPair()");
+    expect(NEWSLETTER_SUBSCRIBE_ROUTE).toContain("await sendNewsletterConfirmationEmail(");
+  });
+
+  it("delivers a confirmation link without exposing the provider key", async () => {
+    const requests: Array<{ input: RequestInfo | URL; init?: RequestInit }> = [];
+    const fetcher: typeof fetch = async (input, init) => {
+      requests.push({ input, init });
+      return new Response(null, { status: 202 });
+    };
+
+    await sendNewsletterConfirmationEmail(
+      { email: "parent@example.com", token: "raw-confirmation-token" },
+      {
+        env: {
+          RESEND_API_KEY: "provider-secret",
+          RESEND_FROM_EMAIL: "LearnFlow <updates@example.com>",
+          VITE_APP_URL: "https://learnflow.example.com",
+        },
+        fetcher,
+      },
+    );
+
+    expect(requests).toHaveLength(1);
+    expect(String(requests[0]?.input)).toBe("https://api.resend.com/emails");
+    const body = String(requests[0]?.init?.body);
+    expect(body).toContain(
+      "https://learnflow.example.com/newsletter/confirm?token=raw-confirmation-token",
+    );
+    expect(body).not.toContain("provider-secret");
+  });
+
+  it("fails upload-ticket issuance closed without a malware scanner", () => {
+    expect(UPLOAD_TICKET_ROUTE).toContain('missingPublicSiteConfig(["malwareScanner"])');
+  });
+
+  it("preserves documents already attached to a duplicate application", () => {
+    expect(INQUIRIES_ROUTE).toContain('.select("document_paths")');
+    expect(INQUIRIES_ROUTE).toContain("claimedUploadPaths.filter((path) => !attached.has(path))");
   });
 });

@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { PublicLayout, PublicPageHeader } from "@/components/public/public-layout";
+import { PublicRouteError, PublicRouteNotFound } from "@/components/public/public-route-state";
 import {
   FormField,
   Honeypot,
@@ -24,6 +25,7 @@ const ACCEPTED = {
 interface UploadedDoc {
   name: string;
   path: string;
+  claim: string;
 }
 
 export const Route = createFileRoute("/instructors/apply")({
@@ -44,6 +46,8 @@ export const Route = createFileRoute("/instructors/apply")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
+  errorComponent: PublicRouteError,
+  notFoundComponent: PublicRouteNotFound,
   component: InstructorApplyPage,
 });
 
@@ -51,6 +55,7 @@ function InstructorApplyPage() {
   const renderedAt = useMemo(() => Date.now(), []);
   const { state, submit } = usePublicSubmission<{ reference?: string }>("/api/public/inquiries");
   const [token, setToken] = useState<string | null>(null);
+  const [turnstileEpoch, setTurnstileEpoch] = useState(0);
   const [honeypot, setHoneypot] = useState("");
   const [docs, setDocs] = useState<UploadedDoc[]>([]);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -100,7 +105,15 @@ function InstructorApplyPage() {
         }),
       });
       if (!ticketResponse.ok) throw new Error("ticket");
-      const ticket = (await ticketResponse.json()) as { signedUrl: string; path: string };
+      const ticket = (await ticketResponse.json()) as {
+        signedUrl: string;
+        path: string;
+        claim: string;
+      };
+      // Turnstile tokens are single-use. Remount the widget now that ticket
+      // issuance consumed this token, so a fresh token protects the next step.
+      setToken(null);
+      setTurnstileEpoch((current) => current + 1);
 
       const upload = await fetch(ticket.signedUrl, {
         method: "PUT",
@@ -109,7 +122,10 @@ function InstructorApplyPage() {
       });
       if (!upload.ok) throw new Error("upload");
 
-      setDocs((current) => [...current, { name: file.name, path: ticket.path }]);
+      setDocs((current) => [
+        ...current,
+        { name: file.name, path: ticket.path, claim: ticket.claim },
+      ]);
     } catch {
       setUploadError("That document could not be uploaded. Please try again.");
     } finally {
@@ -152,7 +168,7 @@ function InstructorApplyPage() {
                   qualificationsSummary: form.qualificationsSummary,
                   portfolioUrl: form.portfolioUrl ? form.portfolioUrl : null,
                   message: form.message,
-                  documentPaths: docs.map((d) => d.path),
+                  documentClaims: docs.map(({ path, claim }) => ({ path, claim })),
                   turnstileToken: token ?? "",
                   website: honeypot,
                   renderedAt,
@@ -340,7 +356,7 @@ function InstructorApplyPage() {
               ) : null}
             </div>
 
-            <Turnstile onToken={setToken} />
+            <Turnstile key={turnstileEpoch} onToken={setToken} />
             <SubmissionStatus state={state} />
             <SubmitButton state={state} disabled={!token || uploading}>
               Submit application

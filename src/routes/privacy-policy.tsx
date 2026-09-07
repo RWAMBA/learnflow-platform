@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PublicLayout, PublicPageHeader } from "@/components/public/public-layout";
 import { CmsBlocks } from "@/components/public/cms-blocks";
+import { PublicRouteNotFound } from "@/components/public/public-route-state";
 import { getPageContent } from "@/lib/public-content.functions";
 
 export const Route = createFileRoute("/privacy-policy")({
@@ -28,6 +29,7 @@ export const Route = createFileRoute("/privacy-policy")({
       <CmsBlocks blocks={[]} fetchedAt={null} failed />
     </PublicLayout>
   ),
+  notFoundComponent: PublicRouteNotFound,
   component: PrivacyPolicyPage,
 });
 

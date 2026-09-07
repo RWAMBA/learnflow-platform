@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { PublicLayout, PublicPageHeader } from "@/components/public/public-layout";
 import { CmsBlocks } from "@/components/public/cms-blocks";
+import { PublicRouteNotFound } from "@/components/public/public-route-state";
 import { Button } from "@/components/ui/button";
 import { getPageContent } from "@/lib/public-content.functions";
 
@@ -30,6 +31,7 @@ export const Route = createFileRoute("/services")({
       <CmsBlocks blocks={[]} fetchedAt={null} failed />
     </PublicLayout>
   ),
+  notFoundComponent: PublicRouteNotFound,
   component: ServicesPage,
 });
 

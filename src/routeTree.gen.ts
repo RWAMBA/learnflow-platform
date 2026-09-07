@@ -20,7 +20,9 @@ import { Route as FaqsRouteImport } from './routes/faqs'
 import { Route as McpRouteImport } from './routes/mcp'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as ResetPasswordRouteImport } from './routes/reset-password'
+import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as ServicesRouteImport } from './routes/services'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TestimonialsRouteImport } from './routes/testimonials'
 import { Route as WhyChooseUsRouteImport } from './routes/why-choose-us'
 import { Route as Char91DotmcpChar93ListToolsRouteImport } from './routes/[.mcp]/list-tools'
@@ -71,7 +73,6 @@ import { Route as AuthenticatedStudentsStudentIdRouteImport } from './routes/_au
 import { Route as AuthenticatedStudentsNewRouteImport } from './routes/_authenticated/students.new'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as ApiPublicInquiriesRouteImport } from './routes/api/public/inquiries'
-import { Route as ApiPublicSitemapDotxmlRouteImport } from './routes/api/public/sitemap[.]xml'
 import { Route as ApiPublicUploadTicketRouteImport } from './routes/api/public/upload-ticket'
 import { Route as AuthenticatedAssessmentsGradeSubmissionIdRouteImport } from './routes/_authenticated/assessments.grade.$submissionId'
 import { Route as AuthenticatedAssessmentsTakeSubmissionIdRouteImport } from './routes/_authenticated/assessments.take.$submissionId'
@@ -136,9 +137,19 @@ const ResetPasswordRoute = ResetPasswordRouteImport.update({
   path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
+  id: '/robots.txt',
+  path: '/robots.txt',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ServicesRoute = ServicesRouteImport.update({
   id: '/services',
   path: '/services',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TestimonialsRoute = TestimonialsRouteImport.update({
@@ -425,11 +436,6 @@ const ApiPublicInquiriesRoute = ApiPublicInquiriesRouteImport.update({
   path: '/api/public/inquiries',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiPublicSitemapDotxmlRoute = ApiPublicSitemapDotxmlRouteImport.update({
-  id: '/api/public/sitemap.xml',
-  path: '/api/public/sitemap.xml',
-  getParentRoute: () => rootRouteImport,
-} as any)
 const ApiPublicUploadTicketRoute = ApiPublicUploadTicketRouteImport.update({
   id: '/api/public/upload-ticket',
   path: '/api/public/upload-ticket',
@@ -495,7 +501,9 @@ export interface FileRoutesByFullPath {
   '/mcp': typeof McpRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/robots.txt': typeof RobotsDottxtRoute
   '/services': typeof ServicesRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/testimonials': typeof TestimonialsRoute
   '/why-choose-us': typeof WhyChooseUsRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
@@ -539,7 +547,6 @@ export interface FileRoutesByFullPath {
   '/students/new': typeof AuthenticatedStudentsNewRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/inquiries': typeof ApiPublicInquiriesRoute
-  '/api/public/sitemap.xml': typeof ApiPublicSitemapDotxmlRoute
   '/api/public/upload-ticket': typeof ApiPublicUploadTicketRoute
   '/assessments/': typeof AuthenticatedAssessmentsIndexRoute
   '/assignments/': typeof AuthenticatedAssignmentsIndexRoute
@@ -568,7 +575,9 @@ export interface FileRoutesByTo {
   '/mcp': typeof McpRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/robots.txt': typeof RobotsDottxtRoute
   '/services': typeof ServicesRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/testimonials': typeof TestimonialsRoute
   '/why-choose-us': typeof WhyChooseUsRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
@@ -612,7 +621,6 @@ export interface FileRoutesByTo {
   '/students/new': typeof AuthenticatedStudentsNewRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/inquiries': typeof ApiPublicInquiriesRoute
-  '/api/public/sitemap.xml': typeof ApiPublicSitemapDotxmlRoute
   '/api/public/upload-ticket': typeof ApiPublicUploadTicketRoute
   '/assessments': typeof AuthenticatedAssessmentsIndexRoute
   '/assignments': typeof AuthenticatedAssignmentsIndexRoute
@@ -643,7 +651,9 @@ export interface FileRoutesById {
   '/mcp': typeof McpRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/robots.txt': typeof RobotsDottxtRoute
   '/services': typeof ServicesRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/testimonials': typeof TestimonialsRoute
   '/why-choose-us': typeof WhyChooseUsRoute
   '/.mcp/list-tools': typeof Char91DotmcpChar93ListToolsRoute
@@ -687,7 +697,6 @@ export interface FileRoutesById {
   '/_authenticated/students/new': typeof AuthenticatedStudentsNewRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/inquiries': typeof ApiPublicInquiriesRoute
-  '/api/public/sitemap.xml': typeof ApiPublicSitemapDotxmlRoute
   '/api/public/upload-ticket': typeof ApiPublicUploadTicketRoute
   '/_authenticated/assessments/': typeof AuthenticatedAssessmentsIndexRoute
   '/_authenticated/assignments/': typeof AuthenticatedAssignmentsIndexRoute
@@ -718,7 +727,9 @@ export interface FileRouteTypes {
     | '/mcp'
     | '/privacy-policy'
     | '/reset-password'
+    | '/robots.txt'
     | '/services'
+    | '/sitemap.xml'
     | '/testimonials'
     | '/why-choose-us'
     | '/.mcp/list-tools'
@@ -762,7 +773,6 @@ export interface FileRouteTypes {
     | '/students/new'
     | '/api/public/health'
     | '/api/public/inquiries'
-    | '/api/public/sitemap.xml'
     | '/api/public/upload-ticket'
     | '/assessments/'
     | '/assignments/'
@@ -791,7 +801,9 @@ export interface FileRouteTypes {
     | '/mcp'
     | '/privacy-policy'
     | '/reset-password'
+    | '/robots.txt'
     | '/services'
+    | '/sitemap.xml'
     | '/testimonials'
     | '/why-choose-us'
     | '/.mcp/list-tools'
@@ -835,7 +847,6 @@ export interface FileRouteTypes {
     | '/students/new'
     | '/api/public/health'
     | '/api/public/inquiries'
-    | '/api/public/sitemap.xml'
     | '/api/public/upload-ticket'
     | '/assessments'
     | '/assignments'
@@ -865,7 +876,9 @@ export interface FileRouteTypes {
     | '/mcp'
     | '/privacy-policy'
     | '/reset-password'
+    | '/robots.txt'
     | '/services'
+    | '/sitemap.xml'
     | '/testimonials'
     | '/why-choose-us'
     | '/.mcp/list-tools'
@@ -909,7 +922,6 @@ export interface FileRouteTypes {
     | '/_authenticated/students/new'
     | '/api/public/health'
     | '/api/public/inquiries'
-    | '/api/public/sitemap.xml'
     | '/api/public/upload-ticket'
     | '/_authenticated/assessments/'
     | '/_authenticated/assignments/'
@@ -940,7 +952,9 @@ export interface RootRouteChildren {
   McpRoute: typeof McpRoute
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   ResetPasswordRoute: typeof ResetPasswordRoute
+  RobotsDottxtRoute: typeof RobotsDottxtRoute
   ServicesRoute: typeof ServicesRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TestimonialsRoute: typeof TestimonialsRoute
   WhyChooseUsRoute: typeof WhyChooseUsRoute
   Char91DotmcpChar93ListToolsRoute: typeof Char91DotmcpChar93ListToolsRoute
@@ -957,7 +971,6 @@ export interface RootRouteChildren {
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
   ApiPublicInquiriesRoute: typeof ApiPublicInquiriesRoute
-  ApiPublicSitemapDotxmlRoute: typeof ApiPublicSitemapDotxmlRoute
   ApiPublicUploadTicketRoute: typeof ApiPublicUploadTicketRoute
   ApiPublicNewsletterConfirmRoute: typeof ApiPublicNewsletterConfirmRoute
   ApiPublicNewsletterSubscribeRoute: typeof ApiPublicNewsletterSubscribeRoute
@@ -1043,11 +1056,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/robots.txt': {
+      id: '/robots.txt'
+      path: '/robots.txt'
+      fullPath: '/robots.txt'
+      preLoaderRoute: typeof RobotsDottxtRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/services': {
       id: '/services'
       path: '/services'
       fullPath: '/services'
       preLoaderRoute: typeof ServicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/testimonials': {
@@ -1400,13 +1427,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicInquiriesRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/public/sitemap.xml': {
-      id: '/api/public/sitemap.xml'
-      path: '/api/public/sitemap.xml'
-      fullPath: '/api/public/sitemap.xml'
-      preLoaderRoute: typeof ApiPublicSitemapDotxmlRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/public/upload-ticket': {
       id: '/api/public/upload-ticket'
       path: '/api/public/upload-ticket'
@@ -1584,7 +1604,9 @@ const rootRouteChildren: RootRouteChildren = {
   McpRoute: McpRoute,
   PrivacyPolicyRoute: PrivacyPolicyRoute,
   ResetPasswordRoute: ResetPasswordRoute,
+  RobotsDottxtRoute: RobotsDottxtRoute,
   ServicesRoute: ServicesRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   TestimonialsRoute: TestimonialsRoute,
   WhyChooseUsRoute: WhyChooseUsRoute,
   Char91DotmcpChar93ListToolsRoute: Char91DotmcpChar93ListToolsRoute,
@@ -1602,7 +1624,6 @@ const rootRouteChildren: RootRouteChildren = {
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
   ApiPublicHealthRoute: ApiPublicHealthRoute,
   ApiPublicInquiriesRoute: ApiPublicInquiriesRoute,
-  ApiPublicSitemapDotxmlRoute: ApiPublicSitemapDotxmlRoute,
   ApiPublicUploadTicketRoute: ApiPublicUploadTicketRoute,
   ApiPublicNewsletterConfirmRoute: ApiPublicNewsletterConfirmRoute,
   ApiPublicNewsletterSubscribeRoute: ApiPublicNewsletterSubscribeRoute,

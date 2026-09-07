@@ -10,10 +10,15 @@
  * Everything fails closed. A missing salt or a missing Turnstile secret makes
  * the dependent journey unavailable rather than silently unprotected.
  */
-import { createHmac, randomBytes, createHash } from "node:crypto";
+import { createHmac, randomBytes, createHash, timingSafeEqual } from "node:crypto";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/integrations/supabase/types";
-import { PUBLIC_ERROR, RATE_LIMITS, type RateLimitPurpose } from "./public-site.constants";
+import {
+  PUBLIC_ERROR,
+  RATE_LIMITS,
+  UPLOAD_LIMITS,
+  type RateLimitPurpose,
+} from "./public-site.constants";
 
 /* ------------------------------------------------------------------ *
  * Errors
@@ -76,14 +81,33 @@ export interface PublicSiteConfigStatus {
   trustedProxyHeader: boolean;
 }
 
+type PublicEmailEnvironment = Record<string, string | undefined>;
+
+/** Newsletter delivery is usable only when every value needed to send a link exists. */
+export function isEmailProviderConfigured(env: PublicEmailEnvironment = process.env): boolean {
+  return Boolean(env["RESEND_API_KEY"] && env["RESEND_FROM_EMAIL"] && env["VITE_APP_URL"]);
+}
+
+/** The upload capability is advertised only for the scanner contract we implement. */
+export function isMalwareScannerConfigured(env: PublicEmailEnvironment = process.env): boolean {
+  if (env["MALWARE_SCANNER_PROVIDER"] !== "http-json-v1") return false;
+  if (!env["MALWARE_SCANNER_API_KEY"]) return false;
+  try {
+    const url = new URL(env["MALWARE_SCANNER_URL"] ?? "");
+    return url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 export function publicSiteConfigStatus(): PublicSiteConfigStatus {
   return {
     turnstile: Boolean(process.env["TURNSTILE_SECRET_KEY"]),
     ipSalt: Boolean(process.env["PUBLIC_IP_HASH_SALT"]),
     fingerprintSalt: Boolean(process.env["PUBLIC_FINGERPRINT_SALT"]),
     newsletterSalt: Boolean(process.env["NEWSLETTER_TOKEN_SALT"]),
-    emailProvider: Boolean(process.env["RESEND_API_KEY"]),
-    malwareScanner: Boolean(process.env["MALWARE_SCANNER_PROVIDER"]),
+    emailProvider: isEmailProviderConfigured(),
+    malwareScanner: isMalwareScannerConfigured(),
     trustedProxyHeader: Boolean(process.env["TRUSTED_CLIENT_IP_HEADER"]),
   };
 }
@@ -93,8 +117,73 @@ export function missingPublicSiteConfig(keys: Array<keyof PublicSiteConfigStatus
   return keys.filter((k) => !status[k]);
 }
 
-function requireSecret(name: string): string {
-  const value = process.env[name];
+/** Public, non-secret feature availability derived from the server configuration. */
+export function publicSiteCapabilityFlags(status: PublicSiteConfigStatus) {
+  const formsEnabled = status.turnstile && status.ipSalt && status.fingerprintSalt;
+  return {
+    formsEnabled,
+    newsletterEnabled: formsEnabled && status.newsletterSalt && status.emailProvider,
+    uploadsEnabled: status.malwareScanner,
+  };
+}
+
+/* ------------------------------------------------------------------ *
+ * Published-content resilience
+ * ------------------------------------------------------------------ */
+
+const PUBLISHED_FRESH_MS = 60 * 1000;
+const PUBLISHED_STALE_MS = 24 * 60 * 60 * 1000;
+interface PublishedCacheEntry {
+  value: unknown;
+  loadedAt: number;
+  refresh?: Promise<void>;
+}
+const publishedContentCache = new Map<string, PublishedCacheEntry>();
+
+/**
+ * Small server-side stale-while-revalidate cache. Published rows remain
+ * governed by anon RLS at load time; this retains only a last-known-good
+ * response and never substitutes draft content.
+ */
+export async function readPublishedContent<T>(
+  key: string,
+  loader: () => Promise<T>,
+  now = Date.now(),
+): Promise<T> {
+  const cached = publishedContentCache.get(key);
+  if (!cached) {
+    const value = await loader();
+    publishedContentCache.set(key, { value, loadedAt: now });
+    return value;
+  }
+
+  const age = Math.max(0, now - cached.loadedAt);
+  if (age <= PUBLISHED_FRESH_MS) return cached.value as T;
+
+  if (age <= PUBLISHED_STALE_MS) {
+    if (!cached.refresh) {
+      cached.refresh = loader()
+        .then((value) => {
+          publishedContentCache.set(key, { value, loadedAt: now });
+        })
+        .catch(() => {
+          // Keep the last-known-good value for the bounded stale window.
+        })
+        .finally(() => {
+          const current = publishedContentCache.get(key);
+          if (current === cached) delete cached.refresh;
+        });
+    }
+    return cached.value as T;
+  }
+
+  const value = await loader();
+  publishedContentCache.set(key, { value, loadedAt: now });
+  return value;
+}
+
+function requireConfiguredValue(name: string, env: PublicEmailEnvironment = process.env): string {
+  const value = env[name];
   if (!value) {
     throw new PublicBoundaryError(
       PUBLIC_ERROR.notConfigured,
@@ -103,6 +192,10 @@ function requireSecret(name: string): string {
     );
   }
   return value;
+}
+
+function requireSecret(name: string): string {
+  return requireConfiguredValue(name);
 }
 
 /* ------------------------------------------------------------------ *
@@ -358,6 +451,83 @@ export function hashNewsletterToken(token: string): string {
   return createHmac("sha256", salt).update(token).digest("hex");
 }
 
+interface NewsletterConfirmationEmail {
+  email: string;
+  token: string;
+}
+
+/**
+ * Delivers the only copy of the raw double-opt-in token. The database stores
+ * its HMAC, never this value. Provider responses are deliberately discarded
+ * so identifiers and provider diagnostics cannot leak through the API.
+ */
+export async function sendNewsletterConfirmationEmail(
+  input: NewsletterConfirmationEmail,
+  dependencies: {
+    env?: PublicEmailEnvironment;
+    fetcher?: typeof fetch;
+  } = {},
+): Promise<void> {
+  const env = dependencies.env ?? process.env;
+  const fetcher = dependencies.fetcher ?? fetch;
+  const apiKey = requireConfiguredValue("RESEND_API_KEY", env);
+  const from = requireConfiguredValue("RESEND_FROM_EMAIL", env);
+  const appUrl = requireConfiguredValue("VITE_APP_URL", env);
+
+  let confirmationUrl: URL;
+  try {
+    confirmationUrl = new URL("/newsletter/confirm", appUrl);
+    if (!["http:", "https:"].includes(confirmationUrl.protocol))
+      throw new Error("invalid protocol");
+  } catch {
+    throw new PublicBoundaryError(
+      PUBLIC_ERROR.notConfigured,
+      "Newsletter sign-up is temporarily unavailable.",
+      503,
+    );
+  }
+  confirmationUrl.searchParams.set("token", input.token);
+  const link = confirmationUrl.toString();
+  const escapedLink = link
+    .replaceAll("&", "&amp;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;");
+
+  let response: Response;
+  try {
+    response = await fetcher("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${apiKey}`,
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({
+        from,
+        to: [input.email],
+        subject: "Confirm your LearnFlow newsletter subscription",
+        text: `Confirm your LearnFlow newsletter subscription: ${link}\n\nIf you did not request this, you can ignore this email.`,
+        html: `<p>Confirm your LearnFlow newsletter subscription:</p><p><a href="${escapedLink}">Confirm subscription</a></p><p>If you did not request this, you can ignore this email.</p>`,
+      }),
+      signal: AbortSignal.timeout(8000),
+    });
+  } catch {
+    throw new PublicBoundaryError(
+      PUBLIC_ERROR.unavailable,
+      "Newsletter sign-up is temporarily unavailable.",
+      503,
+    );
+  }
+
+  if (!response.ok) {
+    throw new PublicBoundaryError(
+      PUBLIC_ERROR.unavailable,
+      "Newsletter sign-up is temporarily unavailable.",
+      503,
+    );
+  }
+}
+
 /* ------------------------------------------------------------------ *
  * Body handling
  * ------------------------------------------------------------------ */
@@ -398,6 +568,71 @@ export function generateUploadPath(applicationRef: string, extension: string): s
   return `applications/${applicationRef}/${randomBytes(16).toString("hex")}.${extension}`;
 }
 
+const UPLOAD_CLAIM_TTL_MS = 15 * 60 * 1000;
+const UPLOAD_PATH = /^applications\/[0-9a-f-]{36}\/[a-z0-9]{32}\.(pdf|docx)$/;
+
+export interface UploadClaimPayload {
+  path: string;
+  contentType: (typeof UPLOAD_LIMITS.allowed)[number]["mime"];
+  sizeBytes: number;
+  requesterFingerprint: string;
+  expiresAt: number;
+}
+
+type NewUploadClaim = Omit<UploadClaimPayload, "expiresAt">;
+
+/** Signs the exact destination, declaration and requester into an opaque claim. */
+export function createUploadClaim(
+  input: NewUploadClaim,
+  secret = requireSecret("PUBLIC_FINGERPRINT_SALT"),
+  now = Date.now(),
+): string {
+  const payload: UploadClaimPayload = { ...input, expiresAt: now + UPLOAD_CLAIM_TTL_MS };
+  const encoded = Buffer.from(JSON.stringify(payload)).toString("base64url");
+  const signature = createHmac("sha256", secret)
+    .update(`learnflow-upload-v1.${encoded}`)
+    .digest("base64url");
+  return `${encoded}.${signature}`;
+}
+
+/** Returns null for malformed, expired, tampered or differently-owned claims. */
+export function parseUploadClaim(
+  claim: string,
+  requesterFingerprint: string,
+  secret = requireSecret("PUBLIC_FINGERPRINT_SALT"),
+  now = Date.now(),
+): UploadClaimPayload | null {
+  try {
+    const [encoded, supplied, extra] = claim.split(".");
+    if (!encoded || !supplied || extra) return null;
+    const expected = createHmac("sha256", secret).update(`learnflow-upload-v1.${encoded}`).digest();
+    const actual = Buffer.from(supplied, "base64url");
+    if (actual.length !== expected.length || !timingSafeEqual(actual, expected)) return null;
+
+    const value = JSON.parse(
+      Buffer.from(encoded, "base64url").toString("utf8"),
+    ) as Partial<UploadClaimPayload>;
+    const allowed = UPLOAD_LIMITS.allowed.some((item) => item.mime === value.contentType);
+    if (
+      typeof value.path !== "string" ||
+      !UPLOAD_PATH.test(value.path) ||
+      !allowed ||
+      !Number.isInteger(value.sizeBytes) ||
+      (value.sizeBytes ?? 0) < 1 ||
+      (value.sizeBytes ?? 0) > UPLOAD_LIMITS.maxFileBytes ||
+      value.requesterFingerprint !== requesterFingerprint ||
+      typeof value.expiresAt !== "number" ||
+      value.expiresAt < now ||
+      value.expiresAt > now + UPLOAD_CLAIM_TTL_MS
+    ) {
+      return null;
+    }
+    return value as UploadClaimPayload;
+  } catch {
+    return null;
+  }
+}
+
 /** Structural check: the declared type must match the leading bytes. */
 export function magicBytesMatch(head: Uint8Array, expected: string): boolean {
   const bytes = new TextEncoder().encode(expected);
@@ -408,4 +643,48 @@ export function magicBytesMatch(head: Uint8Array, expected: string): boolean {
 
 export function checksum(data: Uint8Array): string {
   return createHash("sha256").update(data).digest("hex");
+}
+
+/**
+ * Scanner adapter contract: POST raw bytes and receive JSON `{ "clean": true }`.
+ * Timeouts, transport failures, malformed responses and non-clean verdicts all
+ * fail closed. The API credential is never sent to the browser.
+ */
+export async function assertMalwareScanClean(
+  data: Uint8Array,
+  contentType: string,
+  env: PublicEmailEnvironment = process.env,
+  fetchImpl: typeof fetch = fetch,
+): Promise<void> {
+  if (!isMalwareScannerConfigured(env)) {
+    throw new PublicBoundaryError(
+      PUBLIC_ERROR.notConfigured,
+      "Document uploads are temporarily unavailable.",
+      503,
+    );
+  }
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15_000);
+  try {
+    const response = await fetchImpl(env["MALWARE_SCANNER_URL"]!, {
+      method: "POST",
+      headers: {
+        authorization: `Bearer ${env["MALWARE_SCANNER_API_KEY"]}`,
+        "content-type": contentType,
+        "x-content-sha256": checksum(data),
+      },
+      body: Buffer.from(data),
+      signal: controller.signal,
+    });
+    const verdict = response.ok ? ((await response.json()) as { clean?: unknown }) : null;
+    if (verdict?.clean !== true) throw new Error("unclean");
+  } catch {
+    throw new PublicBoundaryError(
+      PUBLIC_ERROR.validation,
+      "That document could not be accepted.",
+      400,
+    );
+  } finally {
+    clearTimeout(timeout);
+  }
 }

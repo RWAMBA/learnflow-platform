@@ -7,7 +7,7 @@
  * scripts/rls/stage2-principal-tests.sql style runners and the disposable
  * database workflow.
  */
-import { readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
 const DIR = "supabase/migrations";
@@ -22,6 +22,31 @@ if (STAGE3_FILES.length === 0) throw new Error("the Stage 3 public website migra
 
 const stripComments = (sql: string) => sql.replace(/^\s*--.*$/gm, "");
 const SQL = STAGE3_FILES.map((f) => stripComments(readFileSync(`${DIR}/${f}`, "utf8"))).join("\n");
+const HOME_ROUTE = readFileSync("src/routes/index.tsx", "utf8");
+const ROOT_ROUTE = readFileSync("src/routes/__root.tsx", "utf8");
+const PUBLIC_LAYOUT = readFileSync("src/components/public/public-layout.tsx", "utf8");
+const ROBOTS_ROUTE = readFileSync("src/routes/robots[.]txt.ts", "utf8");
+const QUALITY_WORKFLOW = readFileSync(".github/workflows/pr-quality-gates.yml", "utf8");
+const RLS_WORKFLOW = readFileSync(".github/workflows/rls-principal-tests.yml", "utf8");
+const PUBLIC_PAGE_ROUTES = [
+  "index.tsx",
+  "about.tsx",
+  "why-choose-us.tsx",
+  "services.tsx",
+  "guide.index.tsx",
+  "guide.$slug.tsx",
+  "testimonials.tsx",
+  "faqs.tsx",
+  "contact.tsx",
+  "consultation.tsx",
+  "instructors.apply.tsx",
+  "merchandise.index.tsx",
+  "merchandise.$slug.tsx",
+  "newsletter.confirm.tsx",
+  "newsletter.unsubscribe.tsx",
+  "privacy-policy.tsx",
+  "cookie-policy.tsx",
+] as const;
 
 const TEN_ENTITIES = [
   "site_content",
@@ -35,6 +60,45 @@ const TEN_ENTITIES = [
   "newsletter_subscriptions",
   "newsletter_consent_events",
 ] as const;
+
+describe("Stage 3 — public homepage", () => {
+  it("uses the resilient public shell and CMS-backed home content", () => {
+    expect(HOME_ROUTE).toContain("<PublicLayout>");
+    expect(HOME_ROUTE).toContain('pageSlug: "home"');
+    expect(HOME_ROUTE).toContain("<CmsBlocks");
+  });
+
+  it("uses LearnFlow metadata for fallback and error pages", () => {
+    expect(ROOT_ROUTE).not.toContain('title: "Lovable App"');
+    expect(ROOT_ROUTE).not.toContain('name: "author", content: "Lovable"');
+    expect(ROOT_ROUTE).toContain('title: "LearnFlow"');
+  });
+
+  it("mounts connectivity and consent once at the application root", () => {
+    expect(ROOT_ROUTE).toContain("<ConsentProvider>");
+    expect(ROOT_ROUTE).toContain("<AppStatusBar />");
+    expect(PUBLIC_LAYOUT).not.toContain("<ConsentProvider>");
+    expect(PUBLIC_LAYOUT).not.toContain("<AppStatusBar />");
+  });
+});
+
+describe("Stage 3 — search discovery", () => {
+  it("serves the generated sitemap at the standard public path", () => {
+    expect(existsSync("src/routes/sitemap[.]xml.ts")).toBe(true);
+    expect(ROBOTS_ROUTE).toContain("Sitemap: ${origin}/sitemap.xml");
+    expect(ROBOTS_ROUTE).toContain("Disallow: /api/");
+  });
+});
+
+describe("Stage 3 — public route recovery", () => {
+  it("gives every public page an error and not-found boundary", () => {
+    for (const route of PUBLIC_PAGE_ROUTES) {
+      const source = readFileSync(`src/routes/${route}`, "utf8");
+      expect(source, `${route} error boundary`).toContain("errorComponent");
+      expect(source, `${route} not-found boundary`).toContain("notFoundComponent");
+    }
+  });
+});
 
 describe("Stage 3 — migration artifacts", () => {
   it("orders after every Stage 1 and Stage 2 migration", () => {
@@ -81,6 +145,29 @@ describe("Stage 3 — migration artifacts", () => {
       expect(SQL, table).toMatch(
         new RegExp(`ALTER TABLE public\\.${table} ENABLE ROW LEVEL SECURITY`, "i"),
       );
+    }
+  });
+});
+
+describe("Stage 3 — scanned instructor documents", () => {
+  it("records a clean scan verdict in an additive migration", () => {
+    const remediation = MIGRATIONS.find((file) =>
+      file.includes("record_instructor_document_scan_verdict"),
+    );
+    expect(remediation).toBeDefined();
+    const sql = readFileSync(`${DIR}/${remediation}`, "utf8");
+    expect(sql).toContain("CREATE OR REPLACE FUNCTION app_private.submit_public_inquiry");
+    expect(sql).toContain("document_paths, malware_state");
+    expect(sql).toContain("COALESCE(p_instructor ->> 'malware_state', 'quarantined')");
+    expect(sql).toContain("FROM PUBLIC, anon, authenticated");
+  });
+});
+
+describe("Stage 3 — disposable principal proof", () => {
+  it("runs the same rollback proof and residue check in both workflows", () => {
+    for (const workflow of [QUALITY_WORKFLOW, RLS_WORKFLOW]) {
+      expect(workflow).toContain("node scripts/run-stage3-rls-tests.mjs");
+      expect(workflow).toContain("scripts/rls/stage3-residue-check.sql");
     }
   });
 });

@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { PublicLayout, PublicPageHeader } from "@/components/public/public-layout";
 import { SectionEmpty, SectionError, StaleNotice } from "@/components/public/cms-blocks";
+import { PublicRouteNotFound } from "@/components/public/public-route-state";
 import { listTestimonials } from "@/lib/public-content.functions";
 
 export const Route = createFileRoute("/testimonials")({
@@ -29,6 +30,7 @@ export const Route = createFileRoute("/testimonials")({
       </div>
     </PublicLayout>
   ),
+  notFoundComponent: PublicRouteNotFound,
   component: TestimonialsPage,
 });
 

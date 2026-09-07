@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { z } from "zod";
 import { PublicLayout, PublicPageHeader } from "@/components/public/public-layout";
+import { PublicRouteError, PublicRouteNotFound } from "@/components/public/public-route-state";
 
 const searchSchema = z.object({ token: z.string().optional() });
 
@@ -21,6 +22,8 @@ export const Route = createFileRoute("/newsletter/confirm")({
       { name: "robots", content: "noindex" },
     ],
   }),
+  errorComponent: PublicRouteError,
+  notFoundComponent: PublicRouteNotFound,
   component: NewsletterConfirmPage,
 });
 

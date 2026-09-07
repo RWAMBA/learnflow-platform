@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { PublicLayout, PublicPageHeader } from "@/components/public/public-layout";
 import { SectionEmpty, SectionError, StaleNotice } from "@/components/public/cms-blocks";
 import { SafeMarkdown } from "@/components/public/safe-markdown";
+import { PublicRouteNotFound } from "@/components/public/public-route-state";
 import {
   Accordion,
   AccordionContent,
@@ -34,6 +35,7 @@ export const Route = createFileRoute("/faqs")({
       </div>
     </PublicLayout>
   ),
+  notFoundComponent: PublicRouteNotFound,
   component: FaqsPage,
 });
 

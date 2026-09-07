@@ -35,110 +35,124 @@ export interface PublicContentBlock {
 export const getPageContent = createServerFn({ method: "GET" })
   .inputValidator((input: unknown) => pageSchema.parse(input))
   .handler(async ({ data }): Promise<{ blocks: PublicContentBlock[]; fetchedAt: string }> => {
-    const { publishableClient } = await import("./public-site.server");
-    const { data: rows, error } = await publishableClient()
-      .from("site_content")
-      .select("id, content_key, title, summary, body_markdown, display_order")
-      .eq("status", "published")
-      .eq("page_slug", data.pageSlug)
-      .order("display_order", { ascending: true });
-    if (error) throw new Error("Content is unavailable right now.");
-    return {
-      blocks: (rows ?? []).map((r) => ({
-        id: r.id,
-        contentKey: r.content_key,
-        title: r.title,
-        summary: r.summary,
-        bodyMarkdown: r.body_markdown,
-        displayOrder: r.display_order,
-      })),
-      fetchedAt: new Date().toISOString(),
-    };
+    const { publishableClient, readPublishedContent } = await import("./public-site.server");
+    return readPublishedContent(`site-content:${data.pageSlug}`, async () => {
+      const { data: rows, error } = await publishableClient()
+        .from("site_content")
+        .select("id, content_key, title, summary, body_markdown, display_order")
+        .eq("status", "published")
+        .eq("page_slug", data.pageSlug)
+        .order("display_order", { ascending: true });
+      if (error) throw new Error("Content is unavailable right now.");
+      return {
+        blocks: (rows ?? []).map((r) => ({
+          id: r.id,
+          contentKey: r.content_key,
+          title: r.title,
+          summary: r.summary,
+          bodyMarkdown: r.body_markdown,
+          displayOrder: r.display_order,
+        })),
+        fetchedAt: new Date().toISOString(),
+      };
+    });
   });
 
 export const listGuideArticles = createServerFn({ method: "GET" }).handler(async () => {
-  const { publishableClient } = await import("./public-site.server");
-  const { data, error } = await publishableClient()
-    .from("guide_articles")
-    .select(
-      "id, slug, title, summary, category, tags, reading_minutes, published_at, display_order",
-    )
-    .eq("status", "published")
-    .order("display_order", { ascending: true })
-    .order("published_at", { ascending: false })
-    .limit(200);
-  if (error) throw new Error("The guide is unavailable right now.");
-  return { articles: data ?? [], fetchedAt: new Date().toISOString() };
+  const { publishableClient, readPublishedContent } = await import("./public-site.server");
+  return readPublishedContent("guide-articles", async () => {
+    const { data, error } = await publishableClient()
+      .from("guide_articles")
+      .select(
+        "id, slug, title, summary, category, tags, reading_minutes, published_at, display_order",
+      )
+      .eq("status", "published")
+      .order("display_order", { ascending: true })
+      .order("published_at", { ascending: false })
+      .limit(200);
+    if (error) throw new Error("The guide is unavailable right now.");
+    return { articles: data ?? [], fetchedAt: new Date().toISOString() };
+  });
 });
 
 export const getGuideArticle = createServerFn({ method: "GET" })
   .inputValidator((input: unknown) => slugSchema.parse(input))
   .handler(async ({ data }) => {
-    const { publishableClient } = await import("./public-site.server");
-    const { data: row, error } = await publishableClient()
-      .from("guide_articles")
-      .select(
-        "id, slug, title, summary, body_markdown, category, tags, reading_minutes, seo_description, published_at",
-      )
-      .eq("status", "published")
-      .eq("slug", data.slug)
-      .maybeSingle();
-    if (error) throw new Error("The guide is unavailable right now.");
-    return { article: row, fetchedAt: new Date().toISOString() };
+    const { publishableClient, readPublishedContent } = await import("./public-site.server");
+    return readPublishedContent(`guide-article:${data.slug}`, async () => {
+      const { data: row, error } = await publishableClient()
+        .from("guide_articles")
+        .select(
+          "id, slug, title, summary, body_markdown, category, tags, reading_minutes, seo_description, published_at",
+        )
+        .eq("status", "published")
+        .eq("slug", data.slug)
+        .maybeSingle();
+      if (error) throw new Error("The guide is unavailable right now.");
+      return { article: row, fetchedAt: new Date().toISOString() };
+    });
   });
 
 export const listTestimonials = createServerFn({ method: "GET" }).handler(async () => {
-  const { publishableClient } = await import("./public-site.server");
-  const { data, error } = await publishableClient()
-    .from("testimonials")
-    .select("id, author_name, author_role, author_location, quote, display_order")
-    .eq("status", "published")
-    .order("display_order", { ascending: true })
-    .limit(200);
-  if (error) throw new Error("Testimonials are unavailable right now.");
-  return { testimonials: data ?? [], fetchedAt: new Date().toISOString() };
+  const { publishableClient, readPublishedContent } = await import("./public-site.server");
+  return readPublishedContent("testimonials", async () => {
+    const { data, error } = await publishableClient()
+      .from("testimonials")
+      .select("id, author_name, author_role, author_location, quote, display_order")
+      .eq("status", "published")
+      .order("display_order", { ascending: true })
+      .limit(200);
+    if (error) throw new Error("Testimonials are unavailable right now.");
+    return { testimonials: data ?? [], fetchedAt: new Date().toISOString() };
+  });
 });
 
 export const listFaqs = createServerFn({ method: "GET" }).handler(async () => {
-  const { publishableClient } = await import("./public-site.server");
-  const { data, error } = await publishableClient()
-    .from("faqs")
-    .select("id, question, answer_markdown, category, display_order")
-    .eq("status", "published")
-    .order("display_order", { ascending: true })
-    .limit(300);
-  if (error) throw new Error("FAQs are unavailable right now.");
-  return { faqs: data ?? [], fetchedAt: new Date().toISOString() };
+  const { publishableClient, readPublishedContent } = await import("./public-site.server");
+  return readPublishedContent("faqs", async () => {
+    const { data, error } = await publishableClient()
+      .from("faqs")
+      .select("id, question, answer_markdown, category, display_order")
+      .eq("status", "published")
+      .order("display_order", { ascending: true })
+      .limit(300);
+    if (error) throw new Error("FAQs are unavailable right now.");
+    return { faqs: data ?? [], fetchedAt: new Date().toISOString() };
+  });
 });
 
 export const listMerchandise = createServerFn({ method: "GET" }).handler(async () => {
-  const { publishableClient } = await import("./public-site.server");
-  const { data, error } = await publishableClient()
-    .from("merchandise_items")
-    .select(
-      "id, slug, name, summary, price_amount, price_currency, availability_note, display_order",
-    )
-    .eq("status", "published")
-    .order("display_order", { ascending: true })
-    .limit(200);
-  if (error) throw new Error("Merchandise is unavailable right now.");
-  return { items: data ?? [], fetchedAt: new Date().toISOString() };
+  const { publishableClient, readPublishedContent } = await import("./public-site.server");
+  return readPublishedContent("merchandise", async () => {
+    const { data, error } = await publishableClient()
+      .from("merchandise_items")
+      .select(
+        "id, slug, name, summary, price_amount, price_currency, availability_note, display_order",
+      )
+      .eq("status", "published")
+      .order("display_order", { ascending: true })
+      .limit(200);
+    if (error) throw new Error("Merchandise is unavailable right now.");
+    return { items: data ?? [], fetchedAt: new Date().toISOString() };
+  });
 });
 
 export const getMerchandiseItem = createServerFn({ method: "GET" })
   .inputValidator((input: unknown) => slugSchema.parse(input))
   .handler(async ({ data }) => {
-    const { publishableClient } = await import("./public-site.server");
-    const { data: row, error } = await publishableClient()
-      .from("merchandise_items")
-      .select(
-        "id, slug, name, summary, description_markdown, price_amount, price_currency, availability_note",
-      )
-      .eq("status", "published")
-      .eq("slug", data.slug)
-      .maybeSingle();
-    if (error) throw new Error("Merchandise is unavailable right now.");
-    return { item: row, fetchedAt: new Date().toISOString() };
+    const { publishableClient, readPublishedContent } = await import("./public-site.server");
+    return readPublishedContent(`merchandise-item:${data.slug}`, async () => {
+      const { data: row, error } = await publishableClient()
+        .from("merchandise_items")
+        .select(
+          "id, slug, name, summary, description_markdown, price_amount, price_currency, availability_note",
+        )
+        .eq("status", "published")
+        .eq("slug", data.slug)
+        .maybeSingle();
+      if (error) throw new Error("Merchandise is unavailable right now.");
+      return { item: row, fetchedAt: new Date().toISOString() };
+    });
   });
 
 /**
@@ -146,13 +160,11 @@ export const getMerchandiseItem = createServerFn({ method: "GET" })
  * the Turnstile *site* key and booleans saying which journeys are configured.
  */
 export const getPublicSiteConfig = createServerFn({ method: "GET" }).handler(async () => {
-  const { publicSiteConfigStatus } = await import("./public-site.server");
+  const { publicSiteCapabilityFlags, publicSiteConfigStatus } =
+    await import("./public-site.server");
   const status = publicSiteConfigStatus();
   return {
     turnstileSiteKey: process.env["VITE_TURNSTILE_SITE_KEY"] ?? null,
-    formsEnabled: status.turnstile && status.ipSalt && status.fingerprintSalt,
-    newsletterEnabled:
-      status.turnstile && status.ipSalt && status.fingerprintSalt && status.newsletterSalt,
-    uploadsEnabled: status.malwareScanner,
+    ...publicSiteCapabilityFlags(status),
   };
 });

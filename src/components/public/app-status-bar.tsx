@@ -11,23 +11,25 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { AlertTriangle, CheckCircle2, RefreshCw, WifiOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getPublic, healthBreaker } from "@/lib/public-client";
+import { statusPollDelay } from "@/lib/public-status";
 
 type Status = "ok" | "offline" | "degraded" | "recovered";
-
-const POLL_MS = 45000;
 
 export function AppStatusBar() {
   const [status, setStatus] = useState<Status>("ok");
   const [checking, setChecking] = useState(false);
   const wasDegraded = useRef(false);
+  const consecutiveFailures = useRef(0);
   const recoveryTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const check = useCallback(async () => {
     if (typeof navigator !== "undefined" && !navigator.onLine) {
+      consecutiveFailures.current += 1;
       setStatus("offline");
       return;
     }
     if (healthBreaker.isOpen) {
+      consecutiveFailures.current += 1;
       setStatus("degraded");
       return;
     }
@@ -37,6 +39,7 @@ export function AppStatusBar() {
 
     if (result && result.status === "ok") {
       healthBreaker.recordSuccess();
+      consecutiveFailures.current = 0;
       if (wasDegraded.current) {
         wasDegraded.current = false;
         setStatus("recovered");
@@ -48,31 +51,46 @@ export function AppStatusBar() {
       return;
     }
     healthBreaker.recordFailure();
+    consecutiveFailures.current += 1;
     wasDegraded.current = true;
     setStatus("degraded");
   }, []);
 
   useEffect(() => {
-    let timer: ReturnType<typeof setInterval> | undefined;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    let stopped = false;
 
-    const start = () => {
-      void check();
-      timer = setInterval(() => {
-        if (document.visibilityState === "visible") void check();
-      }, POLL_MS);
+    const schedule = () => {
+      clearTimeout(timer);
+      if (stopped || document.visibilityState !== "visible") return;
+      timer = setTimeout(async () => {
+        await check();
+        schedule();
+      }, statusPollDelay(consecutiveFailures.current));
     };
-    const onOnline = () => void check();
-    const onOffline = () => setStatus("offline");
+    const runNow = async () => {
+      clearTimeout(timer);
+      await check();
+      schedule();
+    };
+    const onOnline = () => void runNow();
+    const onOffline = () => {
+      consecutiveFailures.current += 1;
+      setStatus("offline");
+      schedule();
+    };
     const onVisibility = () => {
-      if (document.visibilityState === "visible") void check();
+      if (document.visibilityState === "visible") void runNow();
+      else clearTimeout(timer);
     };
 
-    start();
+    void runNow();
     window.addEventListener("online", onOnline);
     window.addEventListener("offline", onOffline);
     document.addEventListener("visibilitychange", onVisibility);
     return () => {
-      if (timer) clearInterval(timer);
+      stopped = true;
+      clearTimeout(timer);
       clearTimeout(recoveryTimer.current);
       window.removeEventListener("online", onOnline);
       window.removeEventListener("offline", onOffline);

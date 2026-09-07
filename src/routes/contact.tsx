@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { PublicLayout, PublicPageHeader } from "@/components/public/public-layout";
+import { PublicRouteError, PublicRouteNotFound } from "@/components/public/public-route-state";
 import {
   FormField,
   Honeypot,
@@ -28,6 +29,8 @@ export const Route = createFileRoute("/contact")({
       { name: "twitter:card", content: "summary" },
     ],
   }),
+  errorComponent: PublicRouteError,
+  notFoundComponent: PublicRouteNotFound,
   component: ContactPage,
 });
 

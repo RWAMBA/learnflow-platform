@@ -112,9 +112,16 @@ export const instructorApplicationSchema = z
     qualificationsSummary: safeText(10, 4000),
     portfolioUrl: httpsUrlSchema.optional().nullable(),
     message: safeText(10, 5000),
-    /** Server-generated upload paths returned by the upload-ticket endpoint. */
-    documentPaths: z
-      .array(z.string().regex(/^applications\/[0-9a-f-]{36}\/[a-z0-9]{32}\.(pdf|docx)$/))
+    /** Server-signed claims returned by the upload-ticket endpoint. */
+    documentClaims: z
+      .array(
+        z
+          .object({
+            path: z.string().regex(/^applications\/[0-9a-f-]{36}\/[a-z0-9]{32}\.(pdf|docx)$/),
+            claim: z.string().min(64).max(2048),
+          })
+          .strict(),
+      )
       .max(3)
       .default([]),
     ...botShield,
