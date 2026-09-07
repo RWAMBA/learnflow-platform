@@ -4889,6 +4889,13 @@ export type Database = {
         Args: { p_programme_id: string; p_student_id: string }
         Returns: string
       }
+      finalize_public_retention: {
+        Args: { p_inquiry_ids: string[] }
+        Returns: {
+          inquiries_redacted: number
+          newsletters_redacted: number
+        }[]
+      }
       purge_expired_public_submissions: {
         Args: never
         Returns: {

@@ -1,5 +1,13 @@
 # LearnFlow — Stage 3 Binding Scope Decision Record
 
+> **Subsequent security remediation (7 September 2026).** The later review of
+> PR #8 identified scanner-verdict integrity and retention-execution defects
+> that were not known when this scope record was written. This record remains
+> authoritative only for the upload-format and merchandise-media scope
+> decisions below. The corrective architecture and outstanding delivery gates
+> are recorded in
+> [`2026-09-07-stage-3-security-remediation-record.md`](./2026-09-07-stage-3-security-remediation-record.md).
+
 **Date:** 2 September 2026
 **Pull request:** #8 (`RWAMBA/learnflow-platform`)
 **Branch:** `feature/phase10-stage3-public-website`

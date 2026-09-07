@@ -59,10 +59,22 @@ export const Route = createFileRoute("/api/public/inquiries")({
         } = mod;
 
         const claimedUploadPaths: string[] = [];
-        const removeClaimedUploads = async (paths = claimedUploadPaths) => {
+        const removeUnattachedClaimedUploads = async (paths = claimedUploadPaths) => {
           if (paths.length === 0) return;
           try {
-            await serviceClient().storage.from("instructor-applications").remove(paths);
+            const client = serviceClient();
+            const { data: owners, error: ownerError } = await client
+              .from("instructor_application_details")
+              .select("document_paths")
+              .overlaps("document_paths", paths);
+            // Fail safe: a lookup failure must never delete possibly attached
+            // evidence. Unreferenced uploads can be reclaimed on a later run.
+            if (ownerError) return;
+            const attached = new Set((owners ?? []).flatMap((owner) => owner.document_paths));
+            const unattached = paths.filter((path) => !attached.has(path));
+            if (unattached.length > 0) {
+              await client.storage.from("instructor-applications").remove(unattached);
+            }
           } catch {
             // Cleanup is best-effort here; no storage detail is exposed publicly.
           }
@@ -215,22 +227,14 @@ export const Route = createFileRoute("/api/public/inquiries")({
           // already attached to the original row: a replay must never delete
           // the original application document.
           if (duplicate && type === "instructor_application" && result?.inquiry_id) {
-            const { data: existing, error: existingError } = await serviceClient()
-              .from("instructor_application_details")
-              .select("document_paths")
-              .eq("inquiry_id", result.inquiry_id)
-              .maybeSingle();
-            if (!existingError && existing) {
-              const attached = new Set(existing.document_paths);
-              await removeClaimedUploads(claimedUploadPaths.filter((path) => !attached.has(path)));
-            }
+            await removeUnattachedClaimedUploads();
           }
 
           // Idempotent: a repeat inside the same UTC hour is acknowledged, not
           // duplicated, and no identifier is echoed back to the browser.
           return jsonOk({ received: true, duplicate });
         } catch (error) {
-          await removeClaimedUploads();
+          await removeUnattachedClaimedUploads();
           if (error instanceof PublicBoundaryError) return jsonError(error);
           return jsonError(
             new PublicBoundaryError(

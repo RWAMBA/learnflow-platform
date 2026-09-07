@@ -528,3 +528,16 @@ See `docs/architecture/phase-10/2026-09-02-stage-3-scope-decision-record.md`
 
 Neither decision alters applied migrations. Public deployment stays deferred.
 Stage 4 cannot start until PR #8 receives final approval and is merged.
+
+## Stage 3 Security Remediation (7 September 2026)
+
+See `docs/architecture/phase-10/2026-09-07-stage-3-security-remediation-record.md`.
+A later review found two merge-blocking defects: scanner-controlled instructor
+document fields were directly mutable by Platform Administrators, and retention
+did not de-identify PII, remove private documents, or run on a schedule. The
+forward-only remediation narrows update privileges, binds Storage reads to an
+attached clean verdict, adds service-only irreversible retention plus an
+authenticated daily scheduler, and extends real-principal proofs. Repository
+migration count becomes 44; the two post-ledger migrations remain pending until
+the linked project is explicitly migrated and reconciled. Stage 4 remains
+blocked until exact-head CI, live reconciliation and product evidence pass.

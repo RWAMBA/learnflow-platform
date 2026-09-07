@@ -71,6 +71,7 @@ import { Route as AuthenticatedProgrammesProgrammeIdRouteImport } from './routes
 import { Route as AuthenticatedStudentsIndexRouteImport } from './routes/_authenticated/students.index'
 import { Route as AuthenticatedStudentsStudentIdRouteImport } from './routes/_authenticated/students.$studentId'
 import { Route as AuthenticatedStudentsNewRouteImport } from './routes/_authenticated/students.new'
+import { Route as ApiInternalPublicRetentionRouteImport } from './routes/api/internal/public-retention'
 import { Route as ApiPublicHealthRouteImport } from './routes/api/public/health'
 import { Route as ApiPublicInquiriesRouteImport } from './routes/api/public/inquiries'
 import { Route as ApiPublicUploadTicketRouteImport } from './routes/api/public/upload-ticket'
@@ -426,6 +427,12 @@ const AuthenticatedStudentsNewRoute =
     path: '/students/new',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const ApiInternalPublicRetentionRoute =
+  ApiInternalPublicRetentionRouteImport.update({
+    id: '/api/internal/public-retention',
+    path: '/api/internal/public-retention',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicHealthRoute = ApiPublicHealthRouteImport.update({
   id: '/api/public/health',
   path: '/api/public/health',
@@ -545,6 +552,7 @@ export interface FileRoutesByFullPath {
   '/programmes/$programmeId': typeof AuthenticatedProgrammesProgrammeIdRoute
   '/students/$studentId': typeof AuthenticatedStudentsStudentIdRoute
   '/students/new': typeof AuthenticatedStudentsNewRoute
+  '/api/internal/public-retention': typeof ApiInternalPublicRetentionRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/inquiries': typeof ApiPublicInquiriesRoute
   '/api/public/upload-ticket': typeof ApiPublicUploadTicketRoute
@@ -619,6 +627,7 @@ export interface FileRoutesByTo {
   '/programmes/$programmeId': typeof AuthenticatedProgrammesProgrammeIdRoute
   '/students/$studentId': typeof AuthenticatedStudentsStudentIdRoute
   '/students/new': typeof AuthenticatedStudentsNewRoute
+  '/api/internal/public-retention': typeof ApiInternalPublicRetentionRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/inquiries': typeof ApiPublicInquiriesRoute
   '/api/public/upload-ticket': typeof ApiPublicUploadTicketRoute
@@ -695,6 +704,7 @@ export interface FileRoutesById {
   '/_authenticated/programmes/$programmeId': typeof AuthenticatedProgrammesProgrammeIdRoute
   '/_authenticated/students/$studentId': typeof AuthenticatedStudentsStudentIdRoute
   '/_authenticated/students/new': typeof AuthenticatedStudentsNewRoute
+  '/api/internal/public-retention': typeof ApiInternalPublicRetentionRoute
   '/api/public/health': typeof ApiPublicHealthRoute
   '/api/public/inquiries': typeof ApiPublicInquiriesRoute
   '/api/public/upload-ticket': typeof ApiPublicUploadTicketRoute
@@ -771,6 +781,7 @@ export interface FileRouteTypes {
     | '/programmes/$programmeId'
     | '/students/$studentId'
     | '/students/new'
+    | '/api/internal/public-retention'
     | '/api/public/health'
     | '/api/public/inquiries'
     | '/api/public/upload-ticket'
@@ -845,6 +856,7 @@ export interface FileRouteTypes {
     | '/programmes/$programmeId'
     | '/students/$studentId'
     | '/students/new'
+    | '/api/internal/public-retention'
     | '/api/public/health'
     | '/api/public/inquiries'
     | '/api/public/upload-ticket'
@@ -920,6 +932,7 @@ export interface FileRouteTypes {
     | '/_authenticated/programmes/$programmeId'
     | '/_authenticated/students/$studentId'
     | '/_authenticated/students/new'
+    | '/api/internal/public-retention'
     | '/api/public/health'
     | '/api/public/inquiries'
     | '/api/public/upload-ticket'
@@ -969,6 +982,7 @@ export interface RootRouteChildren {
   MerchandiseIndexRoute: typeof MerchandiseIndexRoute
   DotlovableOauthConsentRoute: typeof DotlovableOauthConsentRoute
   Char91DotmcpChar93InvokeToolToolRoute: typeof Char91DotmcpChar93InvokeToolToolRoute
+  ApiInternalPublicRetentionRoute: typeof ApiInternalPublicRetentionRoute
   ApiPublicHealthRoute: typeof ApiPublicHealthRoute
   ApiPublicInquiriesRoute: typeof ApiPublicInquiriesRoute
   ApiPublicUploadTicketRoute: typeof ApiPublicUploadTicketRoute
@@ -1413,6 +1427,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedStudentsNewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/api/internal/public-retention': {
+      id: '/api/internal/public-retention'
+      path: '/api/internal/public-retention'
+      fullPath: '/api/internal/public-retention'
+      preLoaderRoute: typeof ApiInternalPublicRetentionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/health': {
       id: '/api/public/health'
       path: '/api/public/health'
@@ -1622,6 +1643,7 @@ const rootRouteChildren: RootRouteChildren = {
   MerchandiseIndexRoute: MerchandiseIndexRoute,
   DotlovableOauthConsentRoute: DotlovableOauthConsentRoute,
   Char91DotmcpChar93InvokeToolToolRoute: Char91DotmcpChar93InvokeToolToolRoute,
+  ApiInternalPublicRetentionRoute: ApiInternalPublicRetentionRoute,
   ApiPublicHealthRoute: ApiPublicHealthRoute,
   ApiPublicInquiriesRoute: ApiPublicInquiriesRoute,
   ApiPublicUploadTicketRoute: ApiPublicUploadTicketRoute,

@@ -285,8 +285,6 @@ export const adminUpdateApplication = createServerFn({ method: "POST" })
       .update({
         application_status: data.applicationStatus,
         decision_note: data.note ?? null,
-        decided_by: context.userId,
-        decided_at: new Date().toISOString(),
       })
       .eq("id", data.id)
       .select("id, application_status, decided_at")

@@ -28,6 +28,10 @@ const PUBLIC_LAYOUT = readFileSync("src/components/public/public-layout.tsx", "u
 const ROBOTS_ROUTE = readFileSync("src/routes/robots[.]txt.ts", "utf8");
 const QUALITY_WORKFLOW = readFileSync(".github/workflows/pr-quality-gates.yml", "utf8");
 const RLS_WORKFLOW = readFileSync(".github/workflows/rls-principal-tests.yml", "utf8");
+const RETENTION_ROUTE = existsSync("src/routes/api/internal/public-retention.ts")
+  ? readFileSync("src/routes/api/internal/public-retention.ts", "utf8")
+  : "";
+const VERCEL_CONFIG = existsSync("vercel.json") ? readFileSync("vercel.json", "utf8") : "";
 const PUBLIC_PAGE_ROUTES = [
   "index.tsx",
   "about.tsx",
@@ -316,14 +320,46 @@ describe("Stage 3 — retention and rate limiting", () => {
     expect(SQL).not.toMatch(/\bip_address\b/);
   });
 
-  it("closes and de-identifies expired submissions instead of deleting evidence", () => {
-    expect(SQL).toContain("purge_expired_public_submissions");
-    expect(SQL).toContain("retention expired");
+  it("irreversibly de-identifies every expired public-submission PII field", () => {
+    expect(SQL).toContain("full_name = '[redacted]'");
+    expect(SQL).toContain("email = 'redacted+' || i.id::text || '@invalid.invalid'");
+    expect(SQL).toContain("message = '[redacted after retention]'");
+    expect(SQL).toContain("submitter_fingerprint = repeat('0', 64)");
+    expect(SQL).toContain("document_paths = '{}'::text[]");
+    expect(SQL).toContain("email_normalized = 'redacted+' || n.id::text || '@invalid.invalid'");
+    expect(SQL).toContain("evidence = '{}'::jsonb");
+  });
+
+  it("runs retention through an authenticated scheduler that removes Storage first", () => {
+    expect(RETENTION_ROUTE).toContain('process.env["CRON_SECRET"]');
+    expect(RETENTION_ROUTE).toMatch(
+      /\.storage\s*\.from\("instructor-applications"\)\s*\.remove\(documentPaths\)/,
+    );
+    expect(RETENTION_ROUTE).toContain('rpc("finalize_public_retention"');
+    expect(RETENTION_ROUTE).toContain('.not("email", "like", "redacted+%@invalid.invalid")');
+    expect(VERCEL_CONFIG).toContain('"path": "/api/internal/public-retention"');
+    expect(VERCEL_CONFIG).toContain('"schedule": "');
   });
 
   it("enforces rate limits atomically in the database", () => {
     expect(SQL).toContain("consume_rate_limit");
     expect(SQL).toContain("submission_throttle");
+  });
+});
+
+describe("Stage 3 — instructor-document scan integrity", () => {
+  it("prevents authenticated administrators from mutating scan evidence directly", () => {
+    expect(SQL).toContain(
+      "REVOKE UPDATE ON public.instructor_application_details FROM authenticated",
+    );
+    expect(SQL).toContain(
+      "GRANT UPDATE (application_status, decision_note) ON public.instructor_application_details TO authenticated",
+    );
+  });
+
+  it("allows authenticated Storage reads only for attached clean documents", () => {
+    expect(SQL).toContain("d.malware_state = 'clean'");
+    expect(SQL).toContain("storage.objects.name = ANY(d.document_paths)");
   });
 });
 

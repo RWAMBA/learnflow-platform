@@ -170,3 +170,14 @@ before analysis began); CodeQL checks remain separate valid evidence. Public
 deployment remains deferred, and Stage 4 cannot start until PR #8 is approved
 and merged. Expanding either capability requires a separate additive
 implementation with architecture approval and security review.
+
+## 13. Stage 3 Security Remediation (7 September 2026)
+
+The later security review and forward-only corrective architecture are recorded
+in `phase-10/2026-09-07-stage-3-security-remediation-record.md`. It supersedes
+the 2 September record only as a readiness verdict: scanner evidence is now
+service-controlled, private document reads require an attached clean verdict,
+and expired public-submission PII is irreversibly redacted through an
+authenticated scheduled boundary after Storage deletion. Repository migrations
+total 44 after remediation; live application, ledger reconciliation, exact-head
+CI and manual product evidence remain mandatory before PR #8 may merge.

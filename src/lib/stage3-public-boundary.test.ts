@@ -546,8 +546,9 @@ describe("Stage 3 — public capability flags", () => {
     expect(UPLOAD_TICKET_ROUTE).toContain('missingPublicSiteConfig(["malwareScanner"])');
   });
 
-  it("preserves documents already attached to a duplicate application", () => {
-    expect(INQUIRIES_ROUTE).toContain('.select("document_paths")');
-    expect(INQUIRIES_ROUTE).toContain("claimedUploadPaths.filter((path) => !attached.has(path))");
+  it("preserves documents already attached during duplicate and failure cleanup", () => {
+    expect(INQUIRIES_ROUTE).toContain('.overlaps("document_paths", paths)');
+    expect(INQUIRIES_ROUTE).toContain("const unattached = paths.filter");
+    expect(INQUIRIES_ROUTE).toContain("if (ownerError) return");
   });
 });
