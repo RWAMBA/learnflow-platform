@@ -40,9 +40,13 @@ function CookiePreferencesButton() {
 function Header() {
   const [open, setOpen] = useState(false);
   return (
-    <header className="border-b bg-background">
+    <header className="sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
       <div className="mx-auto flex w-full max-w-6xl items-center gap-4 px-4 py-3">
-        <Link to="/" className="text-lg font-semibold tracking-tight">
+        <Link
+          to="/"
+          className="flex min-h-11 items-center gap-2 rounded-md text-lg font-semibold tracking-tight"
+        >
+          <span aria-hidden="true" className="inline-block size-3 rounded-sm bg-primary" />
           LearnFlow
         </Link>
 
@@ -216,8 +220,10 @@ function Footer() {
 }
 
 export function PublicLayout({ children }: { children: ReactNode }) {
+  // `public-site` scopes the homeschool theme tokens to the public shell only;
+  // the authenticated application keeps the platform tokens unchanged.
   return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground">
+    <div className="public-site flex min-h-screen flex-col bg-background text-foreground">
       <Header />
       <main id="main-content" tabIndex={-1} className="flex-1">
         {children}
@@ -238,15 +244,15 @@ export function PublicPageHeader({
   eyebrow?: string;
 }) {
   return (
-    <div className="border-b bg-muted/20">
-      <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:py-14">
+    <div className="border-b border-border bg-card">
+      <div className="mx-auto w-full max-w-6xl px-4 py-12 sm:py-16">
         {eyebrow ? (
-          <p className="text-sm font-medium uppercase tracking-wide text-muted-foreground">
-            {eyebrow}
-          </p>
+          <p className="text-sm font-semibold uppercase tracking-wide text-secondary">{eyebrow}</p>
         ) : null}
-        <h1 className="mt-2 text-3xl font-semibold tracking-tight sm:text-4xl">{title}</h1>
-        {intro ? <p className="mt-3 max-w-2xl text-base text-muted-foreground">{intro}</p> : null}
+        <h1 className="mt-3 text-3xl font-semibold tracking-tight sm:text-4xl">{title}</h1>
+        {intro ? (
+          <p className="mt-4 max-w-2xl text-base leading-relaxed text-muted-foreground">{intro}</p>
+        ) : null}
       </div>
     </div>
   );
