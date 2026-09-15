@@ -10,8 +10,8 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AlertTriangle, CheckCircle2, RefreshCw, WifiOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getPublic, healthBreaker } from "@/lib/public-client";
-import { statusPollDelay } from "@/lib/public-status";
+import { healthBreaker, probePublicHealth } from "@/lib/public-client";
+import { statusPollDelay, throttleRetryDelay } from "@/lib/public-status";
 
 type Status = "ok" | "offline" | "degraded" | "recovered";
 
@@ -20,9 +20,12 @@ export function AppStatusBar() {
   const [checking, setChecking] = useState(false);
   const wasDegraded = useRef(false);
   const consecutiveFailures = useRef(0);
+  // Honoured before the ordinary cadence when the limiter asks us to wait.
+  const throttledUntilDelay = useRef(0);
   const recoveryTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const check = useCallback(async () => {
+    throttledUntilDelay.current = 0;
     if (typeof navigator !== "undefined" && !navigator.onLine) {
       consecutiveFailures.current += 1;
       setStatus("offline");
@@ -34,10 +37,17 @@ export function AppStatusBar() {
       return;
     }
     setChecking(true);
-    const result = await getPublic<{ status: string }>("/api/public/health", { retries: 1 });
+    const probe = await probePublicHealth();
     setChecking(false);
 
-    if (result && result.status === "ok") {
+    // Being rate limited means the protection worked, not that the service is
+    // down. Hold the last known state, back off, and never show an outage.
+    if (probe.kind === "throttled") {
+      throttledUntilDelay.current = throttleRetryDelay(probe.retryAfterSeconds);
+      return;
+    }
+
+    if (probe.kind === "ok") {
       healthBreaker.recordSuccess();
       consecutiveFailures.current = 0;
       if (wasDegraded.current) {
@@ -50,6 +60,7 @@ export function AppStatusBar() {
       }
       return;
     }
+
     healthBreaker.recordFailure();
     consecutiveFailures.current += 1;
     wasDegraded.current = true;
@@ -63,10 +74,13 @@ export function AppStatusBar() {
     const schedule = () => {
       clearTimeout(timer);
       if (stopped || document.visibilityState !== "visible") return;
-      timer = setTimeout(async () => {
-        await check();
-        schedule();
-      }, statusPollDelay(consecutiveFailures.current));
+      timer = setTimeout(
+        async () => {
+          await check();
+          schedule();
+        },
+        Math.max(throttledUntilDelay.current, statusPollDelay(consecutiveFailures.current)),
+      );
     };
     const runNow = async () => {
       clearTimeout(timer);
@@ -101,7 +115,7 @@ export function AppStatusBar() {
   // The live region exists at all times so transitions are announced; the bar
   // sits below the skip link in the DOM so it can never obscure it.
   return (
-    <div role="status" aria-live="polite" aria-atomic="true">
+    <div className="public-site" role="status" aria-live="polite" aria-atomic="true">
       {status === "ok" ? null : (
         <div
           className={

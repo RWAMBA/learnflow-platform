@@ -130,7 +130,7 @@ export function ConsentProvider({ children }: { children: React.ReactNode }) {
       {needsDecision ? (
         <section
           aria-labelledby="consent-banner-title"
-          className="fixed inset-x-0 bottom-0 z-50 border-t bg-background/98 p-4 shadow-lg backdrop-blur"
+          className="public-site fixed inset-x-0 bottom-0 z-50 border-t border-border bg-background/98 p-4 text-foreground shadow-lg backdrop-blur"
         >
           <div className="mx-auto flex w-full max-w-5xl flex-col gap-3">
             <h2 id="consent-banner-title" className="text-sm font-semibold">
@@ -157,7 +157,7 @@ export function ConsentProvider({ children }: { children: React.ReactNode }) {
       ) : null}
 
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-lg">
+        <DialogContent className="public-site max-w-lg border-border bg-card text-foreground">
           <DialogHeader>
             <DialogTitle>Cookie preferences</DialogTitle>
             <DialogDescription>

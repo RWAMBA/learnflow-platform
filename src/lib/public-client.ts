@@ -8,6 +8,7 @@
  * of being treated as an outage.
  */
 import { PUBLIC_ERROR } from "./public-site.constants";
+import { classifyHealthResponse, type HealthProbe } from "./public-status";
 
 export interface PublicApiFailure {
   ok: false;
@@ -145,4 +146,36 @@ export async function getPublic<T>(
     if (attempt < retries) await new Promise((r) => setTimeout(r, backoffDelay(attempt)));
   }
   return null;
+}
+
+/**
+ * Single, un-retried health probe.
+ *
+ * Deliberately separate from getPublic: a 429 must surface as "throttled", not
+ * collapse to null alongside genuine unreachability. Never retried on 429 so a
+ * throttled endpoint is never stormed.
+ */
+export async function probePublicHealth(
+  path = "/api/public/health",
+  options: { timeoutMs?: number; signal?: AbortSignal } = {},
+): Promise<HealthProbe> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), options.timeoutMs ?? 6000);
+  const onAbort = () => controller.abort();
+  options.signal?.addEventListener("abort", onAbort);
+  try {
+    const response = await fetch(path, { signal: controller.signal, credentials: "same-origin" });
+    let payload: unknown = null;
+    try {
+      payload = await response.json();
+    } catch {
+      payload = null;
+    }
+    return classifyHealthResponse(response.status, payload, response.headers.get("retry-after"));
+  } catch {
+    return { kind: "unreachable" };
+  } finally {
+    clearTimeout(timer);
+    options.signal?.removeEventListener("abort", onAbort);
+  }
 }
