@@ -53,6 +53,10 @@
   --color-warning-foreground: hsl(var(--warning-foreground));
   --color-info: hsl(var(--info));
   --color-info-foreground: hsl(var(--info-foreground));
+  --color-surface-deep: hsl(var(--surface-deep));
+  --color-surface-deep-foreground: hsl(var(--foreground));
+  --color-surface-alt: hsl(var(--surface-alt));
+  --color-primary-hover: hsl(var(--primary-hover));
   --color-border: hsl(var(--border));
   --color-input: hsl(var(--input));
   --color-ring: hsl(var(--ring));
@@ -99,6 +103,9 @@
   --input: 160 10% 88%;
   --ring: 158 64% 32%;
   --radius: 0.5rem;
+  --surface-deep: 0 0% 100%;
+  --surface-alt: 160 10% 95%;
+  --primary-hover: 158 64% 30%;
 
   --sidebar: 160 10% 97%;
   --sidebar-foreground: 160 15% 12%;
