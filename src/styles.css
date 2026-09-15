@@ -275,6 +275,33 @@
   color-scheme: dark;
 }
 
+/*
+ * Reference glow. The near-black canvas is lifted by a soft green light from
+ * the top-left corner (#0E281C fading to the #09110E canvas), exactly as in the
+ * approved reference. Purely decorative and static — it adds no motion and sits
+ * behind all content.
+ */
+@utility public-glow {
+  position: relative;
+  isolation: isolate;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    background:
+      radial-gradient(
+        120% 90% at 0% 0%,
+        hsl(154 48% 11% / 0.95) 0%,
+        hsl(154 48% 11% / 0.45) 38%,
+        transparent 72%
+      ),
+      radial-gradient(90% 70% at 100% 0%, hsl(150 45% 12% / 0.35) 0%, transparent 65%);
+  }
+}
+
 /* Educational reading content keeps its approved AAA treatment even inside the
    dark public shell. */
 .public-site .learning-surface {
