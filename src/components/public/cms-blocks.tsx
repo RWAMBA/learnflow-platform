@@ -6,17 +6,20 @@
  * spinning forever. When a read fails the page still renders; only this
  * section degrades.
  */
+import { useEffect, useState } from "react";
 import { AlertTriangle, FileText } from "lucide-react";
 import type { PublicContentBlock } from "@/lib/public-content.functions";
 import { SafeMarkdown } from "./safe-markdown";
 
 export function StaleNotice({ fetchedAt }: { fetchedAt: string | null }) {
-  if (!fetchedAt) return null;
-  return (
-    <p className="mt-8 text-xs text-muted-foreground">
-      Content loaded {new Date(fetchedAt).toLocaleString()}.
-    </p>
-  );
+  // Rendered only after hydration: the server and the visitor's browser sit in
+  // different time zones, so a locale timestamp cannot be server-rendered.
+  const [local, setLocal] = useState<string | null>(null);
+  useEffect(() => {
+    setLocal(fetchedAt ? new Date(fetchedAt).toLocaleString() : null);
+  }, [fetchedAt]);
+  if (!fetchedAt || !local) return null;
+  return <p className="mt-8 text-xs text-muted-foreground">Content loaded {local}.</p>;
 }
 
 export function SectionError({ message }: { message?: string }) {
@@ -38,7 +41,7 @@ export function SectionError({ message }: { message?: string }) {
 
 export function SectionEmpty({ title, description }: { title: string; description: string }) {
   return (
-    <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed p-10 text-center">
+    <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-border bg-card p-10 text-center">
       <FileText className="size-6 text-muted-foreground" aria-hidden="true" />
       <p className="text-sm font-medium">{title}</p>
       <p className="max-w-md text-sm text-muted-foreground">{description}</p>
