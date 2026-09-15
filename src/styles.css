@@ -172,7 +172,10 @@
   }
 
   :focus-visible {
-    outline: 2px solid var(--color-ring);
+    /* hsl(var(--ring)) rather than --color-ring: the theme token is resolved at
+       :root, so a scoped theme (.public-site) would otherwise keep the platform
+       focus colour and lose contrast on the dark canvas. */
+    outline: 2px solid hsl(var(--ring));
     outline-offset: 2px;
   }
 }
