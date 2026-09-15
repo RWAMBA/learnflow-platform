@@ -244,7 +244,7 @@ export function PublicPageHeader({
   eyebrow?: string;
 }) {
   return (
-    <div className="border-b border-border bg-background">
+    <div className="public-glow border-b border-border bg-background">
       <div className="mx-auto w-full max-w-6xl px-4 py-12 sm:py-16">
         {eyebrow ? (
           <p className="text-sm font-semibold uppercase tracking-wide text-secondary">{eyebrow}</p>
