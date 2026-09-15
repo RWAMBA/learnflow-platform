@@ -214,47 +214,56 @@
  * untouched. Every value is a semantic token override — public pages must not
  * hardcode colour utilities.
  *
- *   background #071711   surfaces #0B2118   borders #234638
- *   mint       #66F2B3   cream    #F2F6EE   muted text #B7C8BE
- *   gold       #F3B91F  (sparing: small labels and educational markers only)
+ *   page canvas       #09110E   header/footer  #08110F
+ *   deepest canvas    #070E0C   green section  #0E251B
+ *   cards / panels    #122520   borders        #1B3B30
+ *   mint              #6FF0AF   mint hover     #82F4BC
+ *   primary text      #F2F6EF   secondary text #A9BDB5
+ *   gold              #F3B91F  (sparing: small labels and educational markers)
  *
- * Contrast (verified against the page background):
- *   cream text 16:1 · muted text 10.7:1 · mint 13.4:1 · control border 4.7:1
+ * The canvas must read near-black; green appears through cards, alternating
+ * sections, borders and accents — never as a flat wash.
  */
 .public-site {
-  --background: 158 53% 6%;
-  --foreground: 90 31% 95%;
-  --card: 156 50% 9%;
-  --card-foreground: 90 31% 95%;
-  --popover: 156 50% 9%;
-  --popover-foreground: 90 31% 95%;
+  --background: 158 31% 5%; /* #09110E */
+  --foreground: 94 28% 95%; /* #F2F6EF */
+  --card: 164 35% 11%; /* #122520 */
+  --card-foreground: 94 28% 95%;
+  --popover: 164 35% 11%;
+  --popover-foreground: 94 28% 95%;
 
-  --primary: 153 84% 67%;
-  --primary-foreground: 158 53% 6%;
+  /* Darkest chrome (header / footer) and the deepest alternate canvas. */
+  --surface-deep: 167 36% 5%; /* #08110F */
+  --surface-alt: 163 33% 4%; /* #070E0C */
+
+  --primary: 150 81% 69%; /* #6FF0AF */
+  --primary-foreground: 167 36% 5%; /* #08110F */
+  --primary-hover: 151 84% 73%; /* #82F4BC */
 
   /* Gold. Reserved for small labels and educational highlights. */
-  --secondary: 44 90% 54%;
-  --secondary-foreground: 158 53% 6%;
+  --secondary: 44 90% 54%; /* #F3B91F */
+  --secondary-foreground: 167 36% 5%;
 
-  --muted: 156 40% 13%;
-  --muted-foreground: 145 13% 75%;
-  --accent: 156 45% 16%;
-  --accent-foreground: 153 84% 80%;
+  /* Secondary green section surface. */
+  --muted: 154 45% 10%; /* #0E251B */
+  --muted-foreground: 156 13% 70%; /* #A9BDB5 */
+  --accent: 154 45% 10%;
+  --accent-foreground: 150 81% 80%;
 
   --destructive: 4 76% 68%;
-  --destructive-foreground: 158 53% 6%;
-  --success: 153 60% 60%;
-  --success-foreground: 158 53% 6%;
+  --destructive-foreground: 167 36% 5%;
+  --success: 150 60% 62%;
+  --success-foreground: 167 36% 5%;
   --warning: 44 90% 62%;
-  --warning-foreground: 158 53% 6%;
+  --warning-foreground: 167 36% 5%;
   --info: 188 60% 66%;
-  --info-foreground: 158 53% 6%;
+  --info-foreground: 167 36% 5%;
 
   /* Dividers stay subtle; interactive boundaries use the brighter --input so
      non-text control contrast stays at or above 3:1. */
-  --border: 156 33% 21%;
+  --border: 159 37% 17%; /* #1B3B30 */
   --input: 157 28% 43%;
-  --ring: 153 84% 67%;
+  --ring: 150 81% 69%;
 
   --radius: 0.75rem;
 
