@@ -40,7 +40,7 @@ function CookiePreferencesButton() {
 function Header() {
   const [open, setOpen] = useState(false);
   return (
-    <header className="sticky top-0 z-40 border-b border-border bg-card/95 backdrop-blur supports-[backdrop-filter]:bg-card/80">
+    <header className="sticky top-0 z-40 border-b border-border bg-surface-deep/95 backdrop-blur supports-[backdrop-filter]:bg-surface-deep/80">
       <div className="mx-auto flex w-full max-w-6xl items-center gap-4 px-4 py-3">
         <Link
           to="/"
@@ -123,7 +123,7 @@ function Header() {
 
 function Footer() {
   return (
-    <footer className="mt-16 border-t bg-muted/30">
+    <footer className="mt-16 border-t border-border bg-surface-deep">
       <div className="mx-auto grid w-full max-w-6xl gap-8 px-4 py-10 sm:grid-cols-2 lg:grid-cols-4">
         <div>
           <p className="text-base font-semibold">LearnFlow</p>
@@ -244,7 +244,7 @@ export function PublicPageHeader({
   eyebrow?: string;
 }) {
   return (
-    <div className="border-b border-border bg-card">
+    <div className="border-b border-border bg-background">
       <div className="mx-auto w-full max-w-6xl px-4 py-12 sm:py-16">
         {eyebrow ? (
           <p className="text-sm font-semibold uppercase tracking-wide text-secondary">{eyebrow}</p>

@@ -145,7 +145,7 @@ export function ConsentProvider({ children }: { children: React.ReactNode }) {
               <Button className="min-h-11" onClick={value.acceptAll}>
                 Accept all
               </Button>
-              <Button className="min-h-11" variant="secondary" onClick={value.rejectAll}>
+              <Button className="min-h-11" variant="outline" onClick={value.rejectAll}>
                 Reject all
               </Button>
               <Button className="min-h-11" variant="outline" onClick={value.open}>
@@ -209,7 +209,7 @@ export function ConsentProvider({ children }: { children: React.ReactNode }) {
           </div>
 
           <DialogFooter className="gap-2 sm:justify-between">
-            <Button variant="secondary" className="min-h-11" onClick={value.rejectAll}>
+            <Button variant="outline" className="min-h-11" onClick={value.rejectAll}>
               Reject all
             </Button>
             <Button className="min-h-11" onClick={() => persist(draft)}>
