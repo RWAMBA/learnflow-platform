@@ -541,3 +541,13 @@ authenticated daily scheduler, and extends real-principal proofs. Repository
 migration count becomes 44; the two post-ledger migrations remain pending until
 the linked project is explicitly migrated and reconciled. Stage 4 remains
 blocked until exact-head CI, live reconciliation and product evidence pass.
+
+## Stage 3 Completeness Remediation (15 September 2026)
+
+See
+`docs/architecture/phase-10/2026-09-15-stage-3-completeness-remediation-record.md`.
+The final completeness pass adds forward-only reclamation of instructor uploads
+that remain unattached for more than 24 hours and restores CMS ownership of
+substantive About, Services and Why Choose Us copy. Repository migration count
+becomes 45. The new migration is not claimed live; Stage 4 remains blocked until
+live ledger reconciliation, exact-head CI and complete product evidence pass.

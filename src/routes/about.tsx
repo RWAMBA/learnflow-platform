@@ -38,11 +38,7 @@ function AboutPage() {
   const { blocks, fetchedAt } = Route.useLoaderData();
   return (
     <PublicLayout>
-      <PublicPageHeader
-        eyebrow="About"
-        title="Built for the way families and schools actually teach"
-        intro="LearnFlow brings curriculum, learners, teaching and administration into one place for homeschools, tutors, learning centres, academies and schools."
-      />
+      <PublicPageHeader eyebrow="About" title="About LearnFlow" />
       <CmsBlocks blocks={blocks} fetchedAt={fetchedAt} />
     </PublicLayout>
   );

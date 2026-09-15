@@ -181,3 +181,14 @@ and expired public-submission PII is irreversibly redacted through an
 authenticated scheduled boundary after Storage deletion. Repository migrations
 total 44 after remediation; live application, ledger reconciliation, exact-head
 CI and manual product evidence remain mandatory before PR #8 may merge.
+
+## 14. Stage 3 Completeness Remediation (15 September 2026)
+
+The final completeness correction is recorded in
+`phase-10/2026-09-15-stage-3-completeness-remediation-record.md`. It adds a
+forward-only, service-only cleanup selector for instructor uploads that remain
+unattached beyond 24 hours, integrates it with the existing scheduled retention
+boundary, and removes substantive deploy-bound marketing claims from three
+CMS-owned informational routes. Repository migrations total 45 after this
+correction. Live application, ledger reconciliation, exact-head CI and manual
+product evidence remain mandatory before PR #8 may merge.

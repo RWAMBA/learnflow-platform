@@ -1,8 +1,7 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { PublicLayout, PublicPageHeader } from "@/components/public/public-layout";
 import { CmsBlocks } from "@/components/public/cms-blocks";
 import { PublicRouteNotFound } from "@/components/public/public-route-state";
-import { Button } from "@/components/ui/button";
 import { getPageContent } from "@/lib/public-content.functions";
 
 export const Route = createFileRoute("/services")({
@@ -39,26 +38,8 @@ function ServicesPage() {
   const { blocks, fetchedAt } = Route.useLoaderData();
   return (
     <PublicLayout>
-      <PublicPageHeader
-        eyebrow="Services"
-        title="Support for full-time, part-time and enrichment learning"
-        intro="Every learner is placed on a curriculum pathway, and everything else — teaching, assessment, progress and reporting — follows from that placement."
-      />
+      <PublicPageHeader eyebrow="Services" title="Services" />
       <CmsBlocks blocks={blocks} fetchedAt={fetchedAt} />
-      <section aria-labelledby="services-cta" className="mx-auto w-full max-w-3xl px-4 pb-16">
-        <div className="rounded-lg border p-6">
-          <h2 id="services-cta" className="text-lg font-semibold">
-            Not sure which fits your family or school?
-          </h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Book a consultation and we will talk through your situation before you commit to
-            anything.
-          </p>
-          <Button asChild className="mt-4 min-h-11">
-            <Link to="/consultation">Book a consultation</Link>
-          </Button>
-        </div>
-      </section>
     </PublicLayout>
   );
 }

@@ -37,11 +37,7 @@ function WhyChooseUsPage() {
   const { blocks, fetchedAt } = Route.useLoaderData();
   return (
     <PublicLayout>
-      <PublicPageHeader
-        eyebrow="Why choose us"
-        title="One system instead of five spreadsheets"
-        intro="Curriculum structure, learner placement, teaching, assessment and administration in a single, permission-aware platform."
-      />
+      <PublicPageHeader eyebrow="Why choose us" title="Why choose LearnFlow" />
       <CmsBlocks blocks={blocks} fetchedAt={fetchedAt} />
     </PublicLayout>
   );

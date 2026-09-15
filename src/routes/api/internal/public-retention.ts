@@ -42,6 +42,20 @@ export const Route = createFileRoute("/api/internal/public-retention")({
         const client = serviceClient();
         const now = new Date().toISOString();
 
+        const { data: orphanRows, error: orphanLookupError } = await client.rpc(
+          "list_expired_unattached_instructor_uploads",
+          { p_limit: BATCH_SIZE },
+        );
+        if (orphanLookupError) return response({ ok: false }, 503);
+
+        const orphanPaths = [...new Set((orphanRows ?? []).map((row) => row.object_path))];
+        if (orphanPaths.length > 0) {
+          const { error } = await client.storage
+            .from("instructor-applications")
+            .remove(orphanPaths);
+          if (error) return response({ ok: false }, 503);
+        }
+
         const { data: expired, error: inquiryError } = await client
           .from("public_inquiries")
           .select("id")
@@ -81,6 +95,7 @@ export const Route = createFileRoute("/api/internal/public-retention")({
             inquiriesRedacted: result?.inquiries_redacted ?? 0,
             newslettersRedacted: result?.newsletters_redacted ?? 0,
             documentsRemoved: documentPaths.length,
+            orphanUploadsRemoved: orphanPaths.length,
           },
           200,
         );

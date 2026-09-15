@@ -16,7 +16,7 @@ const MIGRATIONS = readdirSync(DIR)
   .sort();
 
 const STAGE3_FILES = MIGRATIONS.filter((file) =>
-  readFileSync(`${DIR}/${file}`, "utf8").includes("public_site_audit_log"),
+  /Stage 3|public_site_audit_log/.test(readFileSync(`${DIR}/${file}`, "utf8")),
 );
 if (STAGE3_FILES.length === 0) throw new Error("the Stage 3 public website migration is missing");
 
@@ -341,9 +341,31 @@ describe("Stage 3 — retention and rate limiting", () => {
     expect(VERCEL_CONFIG).toContain('"schedule": "');
   });
 
+  it("reclaims expired uploads that were never attached to an application", () => {
+    expect(SQL).toContain("list_expired_unattached_instructor_uploads");
+    expect(SQL).toContain("o.created_at < now() - interval '24 hours'");
+    expect(SQL).toContain("o.name = ANY(d.document_paths)");
+    expect(RETENTION_ROUTE).toMatch(/rpc\(\s*"list_expired_unattached_instructor_uploads"/);
+    expect(RETENTION_ROUTE).toContain(".remove(orphanPaths)");
+  });
+
   it("enforces rate limits atomically in the database", () => {
     expect(SQL).toContain("consume_rate_limit");
     expect(SQL).toContain("submission_throttle");
+  });
+});
+
+describe("Stage 3 — CMS ownership", () => {
+  it("keeps editable marketing claims out of route source", () => {
+    const informationalRoutes = ["index.tsx", "about.tsx", "why-choose-us.tsx", "services.tsx"];
+    const source = informationalRoutes
+      .map((route) => readFileSync(`src/routes/${route}`, "utf8"))
+      .join("\n");
+
+    expect(source).not.toContain("One system instead of five spreadsheets");
+    expect(source).not.toContain("Built for the way families and schools actually teach");
+    expect(source).not.toContain("Support for full-time, part-time and enrichment learning");
+    expect(source).not.toContain("Not sure which fits your family or school?");
   });
 });
 

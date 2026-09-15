@@ -24,6 +24,7 @@ DECLARE
   v_rows integer;
   v_inquiries_redacted integer;
   v_newsletters_redacted integer;
+  v_orphan_path text;
 BEGIN
   IF to_regclass('public.site_content') IS NULL
      OR to_regclass('public.public_inquiries') IS NULL
@@ -99,6 +100,10 @@ BEGIN
     (v_unattached_object, 'instructor-applications',
      'applications/00000000-0000-0000-0000-000000000003/cccccccccccccccccccccccccccccccc.pdf',
      v_admin);
+
+  UPDATE storage.objects
+     SET created_at = now() - interval '25 hours'
+   WHERE id IN (v_clean_object, v_unattached_object);
 
   INSERT INTO public.newsletter_subscriptions
     (id, email_normalized, state, confirmed_at, consent_text_version, policy_version,
@@ -238,10 +243,26 @@ BEGIN
      OR NOT has_function_privilege('service_role', 'public.finalize_public_retention(uuid[])', 'EXECUTE') THEN
     RAISE EXCEPTION 'PRIVILEGE FAILED: retention RPC boundary is incorrect';
   END IF;
+  IF has_function_privilege('anon',
+       'public.list_expired_unattached_instructor_uploads(integer)', 'EXECUTE')
+     OR has_function_privilege('authenticated',
+       'public.list_expired_unattached_instructor_uploads(integer)', 'EXECUTE')
+     OR NOT has_function_privilege('service_role',
+       'public.list_expired_unattached_instructor_uploads(integer)', 'EXECUTE') THEN
+    RAISE EXCEPTION 'PRIVILEGE FAILED: abandoned-upload cleanup RPC boundary is incorrect';
+  END IF;
 
   RESET ROLE;
   SET LOCAL ROLE service_role;
   PERFORM set_config('request.jwt.claims', '{"role":"service_role"}', true);
+  SELECT object_path INTO v_orphan_path
+    FROM public.list_expired_unattached_instructor_uploads(500);
+  IF v_orphan_path IS DISTINCT FROM
+       'applications/00000000-0000-0000-0000-000000000003/cccccccccccccccccccccccccccccccc.pdf' THEN
+    RAISE EXCEPTION
+      'ABANDONED UPLOAD CLEANUP FAILED: expected only the expired unattached object, got %',
+      v_orphan_path;
+  END IF;
   SELECT inquiries_redacted, newsletters_redacted
     INTO v_inquiries_redacted, v_newsletters_redacted
   FROM public.finalize_public_retention(ARRAY[v_expired_application_inquiry]);

@@ -4896,6 +4896,10 @@ export type Database = {
           newsletters_redacted: number
         }[]
       }
+      list_expired_unattached_instructor_uploads: {
+        Args: { p_limit?: number }
+        Returns: { object_path: string }[]
+      }
       purge_expired_public_submissions: {
         Args: never
         Returns: {
