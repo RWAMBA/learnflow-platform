@@ -9,10 +9,13 @@ BEGIN
   IF v_count <> 0 THEN
     RAISE EXCEPTION 'RESIDUE: % storage objects persisted', v_count;
   END IF;
-  -- Only the schema-defined private evidence bucket, created by the migration
-  -- history, may exist. Anything the proof created must have rolled back.
+  -- Only the approved baseline private buckets may exist. Anything created by
+  -- the principal proof itself must have rolled back.
   SELECT count(*) INTO v_count FROM storage.buckets
-   WHERE id <> 'curriculum-rights-evidence';
+   WHERE id NOT IN (
+     'curriculum-rights-evidence',
+     'instructor-applications'
+   );
   IF v_count <> 0 THEN
     RAISE EXCEPTION 'RESIDUE: % unexpected storage bucket(s) persisted', v_count;
   END IF;
@@ -31,6 +34,6 @@ BEGIN
   IF v_count <> 0 THEN
     RAISE EXCEPTION 'RESIDUE: % platform admins persisted', v_count;
   END IF;
-  RAISE NOTICE '[stage1-storage-residue] OK - zero residue, transaction was rolled back';
+  RAISE NOTICE '[stage1-storage-residue] OK - zero mutable fixture residue, transaction was rolled back';
 END
 $$;

@@ -82,6 +82,22 @@ describe("CI prelude reproduces the authoritative hosted prehistory object", () 
   });
 });
 
+describe("CI prelude reproduces the Stage 3 out-of-band storage dependency", () => {
+  it("provisions the private bucket with a complete fail-closed postcondition", () => {
+    expect(prelude).toContain("INSERT INTO storage.buckets");
+    expect(prelude).toContain("'instructor-applications'");
+    expect(prelude).toContain("5242880");
+    expect(prelude).toContain("'application/pdf'");
+    expect(prelude).toContain(
+      "'application/vnd.openxmlformats-officedocument.wordprocessingml.document'",
+    );
+    expect(prelude).toContain(
+      "CI PRECONDITION: instructor-applications bucket configuration differs",
+    );
+    expect(prelude.trimEnd()).toMatch(/\$\$;$/);
+  });
+});
+
 describe("Stage 1C CI object verification is fail-closed", () => {
   const shellDollar = "$".repeat(2);
   const step = workflow.slice(

@@ -1,0 +1,398 @@
+/**
+ * Stage 3 — Public Website: schema, lifecycle, RLS and privilege verification.
+ *
+ * No isolated Postgres is available here, so each database guarantee is
+ * asserted structurally against the migration SQL that creates it. The
+ * executable allow/deny proof under real principals lives in
+ * scripts/rls/stage2-principal-tests.sql style runners and the disposable
+ * database workflow.
+ */
+import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { describe, expect, it } from "vitest";
+
+const DIR = "supabase/migrations";
+const MIGRATIONS = readdirSync(DIR)
+  .filter((f) => f.endsWith(".sql"))
+  .sort();
+
+const STAGE3_FILES = MIGRATIONS.filter((file) =>
+  /Stage 3|public_site_audit_log/.test(readFileSync(`${DIR}/${file}`, "utf8")),
+);
+if (STAGE3_FILES.length === 0) throw new Error("the Stage 3 public website migration is missing");
+
+const stripComments = (sql: string) => sql.replace(/^\s*--.*$/gm, "");
+const SQL = STAGE3_FILES.map((f) => stripComments(readFileSync(`${DIR}/${f}`, "utf8"))).join("\n");
+const HOME_ROUTE = readFileSync("src/routes/index.tsx", "utf8");
+const ROOT_ROUTE = readFileSync("src/routes/__root.tsx", "utf8");
+const PUBLIC_LAYOUT = readFileSync("src/components/public/public-layout.tsx", "utf8");
+const ROBOTS_ROUTE = readFileSync("src/routes/robots[.]txt.ts", "utf8");
+const QUALITY_WORKFLOW = readFileSync(".github/workflows/pr-quality-gates.yml", "utf8");
+const RLS_WORKFLOW = readFileSync(".github/workflows/rls-principal-tests.yml", "utf8");
+const RETENTION_ROUTE = existsSync("src/routes/api/internal/public-retention.ts")
+  ? readFileSync("src/routes/api/internal/public-retention.ts", "utf8")
+  : "";
+const VERCEL_CONFIG = existsSync("vercel.json") ? readFileSync("vercel.json", "utf8") : "";
+const PUBLIC_PAGE_ROUTES = [
+  "index.tsx",
+  "about.tsx",
+  "why-choose-us.tsx",
+  "services.tsx",
+  "guide.index.tsx",
+  "guide.$slug.tsx",
+  "testimonials.tsx",
+  "faqs.tsx",
+  "contact.tsx",
+  "consultation.tsx",
+  "instructors.apply.tsx",
+  "merchandise.index.tsx",
+  "merchandise.$slug.tsx",
+  "newsletter.confirm.tsx",
+  "newsletter.unsubscribe.tsx",
+  "privacy-policy.tsx",
+  "cookie-policy.tsx",
+] as const;
+
+const TEN_ENTITIES = [
+  "site_content",
+  "guide_articles",
+  "testimonials",
+  "faqs",
+  "merchandise_items",
+  "public_inquiries",
+  "instructor_application_details",
+  "submission_throttle",
+  "newsletter_subscriptions",
+  "newsletter_consent_events",
+] as const;
+
+describe("Stage 3 — public homepage", () => {
+  it("uses the resilient public shell and CMS-backed home content", () => {
+    expect(HOME_ROUTE).toContain("<PublicLayout>");
+    expect(HOME_ROUTE).toContain('pageSlug: "home"');
+    expect(HOME_ROUTE).toContain("<CmsBlocks");
+  });
+
+  it("uses LearnFlow metadata for fallback and error pages", () => {
+    expect(ROOT_ROUTE).not.toContain('title: "Lovable App"');
+    expect(ROOT_ROUTE).not.toContain('name: "author", content: "Lovable"');
+    expect(ROOT_ROUTE).toContain('title: "LearnFlow"');
+  });
+
+  it("mounts connectivity and consent once at the application root", () => {
+    expect(ROOT_ROUTE).toContain("<ConsentProvider>");
+    expect(ROOT_ROUTE).toContain("<AppStatusBar />");
+    expect(PUBLIC_LAYOUT).not.toContain("<ConsentProvider>");
+    expect(PUBLIC_LAYOUT).not.toContain("<AppStatusBar />");
+  });
+});
+
+describe("Stage 3 — search discovery", () => {
+  it("serves the generated sitemap at the standard public path", () => {
+    expect(existsSync("src/routes/sitemap[.]xml.ts")).toBe(true);
+    expect(ROBOTS_ROUTE).toContain("Sitemap: ${origin}/sitemap.xml");
+    expect(ROBOTS_ROUTE).toContain("Disallow: /api/");
+  });
+});
+
+describe("Stage 3 — public route recovery", () => {
+  it("gives every public page an error and not-found boundary", () => {
+    for (const route of PUBLIC_PAGE_ROUTES) {
+      const source = readFileSync(`src/routes/${route}`, "utf8");
+      expect(source, `${route} error boundary`).toContain("errorComponent");
+      expect(source, `${route} not-found boundary`).toContain("notFoundComponent");
+    }
+  });
+});
+
+describe("Stage 3 — migration artifacts", () => {
+  it("orders after every Stage 1 and Stage 2 migration", () => {
+    const first = MIGRATIONS.indexOf(STAGE3_FILES[0]!);
+    expect(first).toBeGreaterThan(0);
+    expect(MIGRATIONS.slice(0, first).every((f) => f < STAGE3_FILES[0]!)).toBe(true);
+  });
+
+  it("is additive, forward-only and non-destructive", () => {
+    for (const forbidden of [
+      /\bDROP\s+TABLE\b/i,
+      /\bDROP\s+COLUMN\b/i,
+      /\bTRUNCATE\b/i,
+      /\bALTER\s+DATABASE\b/i,
+      /\bDELETE\s+FROM\s+storage\./i,
+    ]) {
+      expect(SQL).not.toMatch(forbidden);
+    }
+  });
+
+  it("never creates tables in Supabase-reserved schemas", () => {
+    for (const schema of ["auth.", "storage.", "realtime.", "vault.", "supabase_functions."]) {
+      expect(SQL.includes(`CREATE TABLE ${schema}`)).toBe(false);
+    }
+  });
+
+  it("creates all ten approved entities", () => {
+    for (const table of TEN_ENTITIES) {
+      expect(SQL).toMatch(new RegExp(`CREATE TABLE (IF NOT EXISTS )?public\\.${table}\\b`));
+    }
+  });
+
+  it("enables row level security on every entity plus the audit log", () => {
+    // CMS tables are enabled through one generated loop; the rest literally.
+    expect(SQL).toMatch(/ALTER TABLE public\.%I ENABLE ROW LEVEL SECURITY/i);
+    for (const table of [
+      "public_inquiries",
+      "instructor_application_details",
+      "submission_throttle",
+      "newsletter_subscriptions",
+      "newsletter_consent_events",
+      "public_site_audit_log",
+    ]) {
+      expect(SQL, table).toMatch(
+        new RegExp(`ALTER TABLE public\\.${table} ENABLE ROW LEVEL SECURITY`, "i"),
+      );
+    }
+  });
+});
+
+describe("Stage 3 — scanned instructor documents", () => {
+  it("records a clean scan verdict in an additive migration", () => {
+    const remediation = MIGRATIONS.find((file) =>
+      file.includes("record_instructor_document_scan_verdict"),
+    );
+    expect(remediation).toBeDefined();
+    const sql = readFileSync(`${DIR}/${remediation}`, "utf8");
+    expect(sql).toContain("CREATE OR REPLACE FUNCTION app_private.submit_public_inquiry");
+    expect(sql).toContain("document_paths, malware_state");
+    expect(sql).toContain("COALESCE(p_instructor ->> 'malware_state', 'quarantined')");
+    expect(sql).toContain("FROM PUBLIC, anon, authenticated");
+  });
+});
+
+describe("Stage 3 — disposable principal proof", () => {
+  it("runs the same rollback proof and residue check in both workflows", () => {
+    for (const workflow of [QUALITY_WORKFLOW, RLS_WORKFLOW]) {
+      expect(workflow).toContain("node scripts/run-stage3-rls-tests.mjs");
+      expect(workflow).toContain("scripts/rls/stage3-residue-check.sql");
+    }
+  });
+});
+
+describe("Stage 3 — deduplication index is timezone independent", () => {
+  it("uses the fixed UTC truncation expression", () => {
+    expect(SQL).toContain("date_trunc('hour', created_at AT TIME ZONE 'utc')");
+  });
+
+  it("never uses the prohibited mutable bare expression", () => {
+    const bare = /date_trunc\('hour',\s*created_at\s*\)/g;
+    expect(SQL.match(bare)).toBeNull();
+  });
+
+  it("applies the same UTC basis inside the duplicate lookup", () => {
+    expect(SQL).toContain("date_trunc('hour', i.created_at AT TIME ZONE 'utc')");
+    expect(SQL).toContain("date_trunc('hour', now() AT TIME ZONE 'utc')");
+  });
+});
+
+describe("Stage 3 — content lifecycle and immutability", () => {
+  it("forces new content to start as draft", () => {
+    expect(SQL).toContain("public content must be created as draft");
+  });
+
+  it("permits only the approved status transitions", () => {
+    expect(SQL).toMatch(/OLD\.status = 'draft'\s+AND NEW\.status IN \('published','archived'\)/);
+    expect(SQL).toMatch(/OLD\.status = 'published' AND NEW\.status IN \('draft','archived'\)/);
+    expect(SQL).toMatch(/OLD\.status = 'archived'\s+AND NEW\.status = 'draft'/);
+  });
+
+  it("detects a stale writer through optimistic content_version", () => {
+    expect(SQL).toContain("CONFLICT: content_version mismatch");
+    expect(SQL).toContain("USING ERRCODE = '40001'");
+    expect(SQL).toContain("NEW.content_version := OLD.content_version + 1");
+  });
+
+  it("preserves creation attribution across updates", () => {
+    expect(SQL).toContain("NEW.created_at := OLD.created_at");
+    expect(SQL).toContain("NEW.created_by := OLD.created_by");
+  });
+
+  it("rejects hard deletes on published content and submissions", () => {
+    expect(SQL).toContain("app_private.reject_hard_delete()");
+    // CMS tables receive the guard through one generated loop; submission
+    // tables declare it literally.
+    expect(SQL).toContain("t || '_no_delete'");
+    for (const trigger of [
+      "public_inquiries_no_delete",
+      "instructor_applications_no_delete",
+      "newsletter_subscriptions_no_delete",
+    ]) {
+      expect(SQL).toContain(trigger);
+    }
+  });
+
+  it("keeps consent evidence and the site audit log append-only", () => {
+    expect(SQL).toContain("reject_newsletter_consent_mutation");
+    expect(SQL).toContain("reject_public_site_audit_mutation");
+  });
+});
+
+describe("Stage 3 — RLS exposure", () => {
+  it("lets anonymous readers see published rows only", () => {
+    expect(SQL).toContain("FOR SELECT TO anon USING (status = 'published')");
+  });
+
+  it("gives signed-in users published rows or full platform-admin visibility", () => {
+    expect(SQL).toContain(
+      "FOR SELECT TO authenticated USING (status = 'published' OR app_private.is_platform_admin())",
+    );
+  });
+
+  it("restricts every content write to a platform administrator", () => {
+    expect(SQL).toContain(
+      "FOR INSERT TO authenticated WITH CHECK (app_private.is_platform_admin())",
+    );
+    expect(SQL).toContain(
+      "FOR UPDATE TO authenticated USING (app_private.is_platform_admin()) WITH CHECK (app_private.is_platform_admin())",
+    );
+  });
+
+  it("grants anonymous readers no access at all to private submissions", () => {
+    for (const table of [
+      "public_inquiries",
+      "instructor_application_details",
+      "newsletter_subscriptions",
+      "newsletter_consent_events",
+      "submission_throttle",
+    ]) {
+      expect(SQL).not.toMatch(new RegExp(`GRANT[^;]*ON public\\.${table}[^;]*TO anon`, "i"));
+      expect(SQL).not.toMatch(
+        new RegExp(`CREATE POLICY[^;]*ON public\\.${table}[^;]*TO anon`, "is"),
+      );
+    }
+  });
+
+  it("scopes private submission reads to platform administrators", () => {
+    expect(SQL).toContain("public_inquiries_admin_read");
+    expect(SQL).toContain("instructor_applications_admin_read");
+    expect(SQL).toContain("newsletter_admin_read");
+    expect(SQL).toContain("newsletter_consent_admin_read");
+  });
+});
+
+describe("Stage 3 — function security", () => {
+  it("pins search_path on every function it defines", () => {
+    const definitions = SQL.match(/CREATE OR REPLACE FUNCTION[\s\S]*?AS \$\$/g) ?? [];
+    expect(definitions.length).toBeGreaterThan(5);
+    for (const definition of definitions) {
+      expect(definition).toMatch(/SET search_path = ''/);
+    }
+  });
+
+  it("revokes public execution before granting the minimum", () => {
+    const revokes = SQL.match(/REVOKE ALL ON FUNCTION[^;]+FROM PUBLIC/g) ?? [];
+    expect(revokes.length).toBeGreaterThan(5);
+  });
+
+  it("exposes public wrappers only to the server role", () => {
+    for (const fn of [
+      "public.submit_public_inquiry",
+      "public.request_newsletter_subscription",
+      "public.confirm_newsletter_subscription",
+      "public.withdraw_newsletter_subscription",
+      "public.consume_rate_limit",
+    ]) {
+      expect(SQL).toMatch(
+        new RegExp(`GRANT EXECUTE ON FUNCTION ${fn.replace(".", "\\.")}[^;]*TO service_role`),
+      );
+      expect(SQL).not.toMatch(
+        new RegExp(`GRANT EXECUTE ON FUNCTION ${fn.replace(".", "\\.")}[^;]*TO anon`),
+      );
+    }
+  });
+
+  it("keeps privileged internals inside app_private", () => {
+    expect(SQL).toMatch(/CREATE (OR REPLACE )?FUNCTION app_private\./);
+    expect(SQL).not.toMatch(/GRANT EXECUTE ON FUNCTION app_private\.[^;]*TO anon/);
+  });
+});
+
+describe("Stage 3 — retention and rate limiting", () => {
+  it("stores only a hashed network identifier", () => {
+    expect(SQL).toMatch(/ip_hash/);
+    expect(SQL).not.toMatch(/\bip_address\b/);
+  });
+
+  it("irreversibly de-identifies every expired public-submission PII field", () => {
+    expect(SQL).toContain("full_name = '[redacted]'");
+    expect(SQL).toContain("email = 'redacted+' || i.id::text || '@invalid.invalid'");
+    expect(SQL).toContain("message = '[redacted after retention]'");
+    expect(SQL).toContain("submitter_fingerprint = repeat('0', 64)");
+    expect(SQL).toContain("document_paths = '{}'::text[]");
+    expect(SQL).toContain("email_normalized = 'redacted+' || n.id::text || '@invalid.invalid'");
+    expect(SQL).toContain("evidence = '{}'::jsonb");
+  });
+
+  it("runs retention through an authenticated scheduler that removes Storage first", () => {
+    expect(RETENTION_ROUTE).toContain('process.env["CRON_SECRET"]');
+    expect(RETENTION_ROUTE).toMatch(
+      /\.storage\s*\.from\("instructor-applications"\)\s*\.remove\(documentPaths\)/,
+    );
+    expect(RETENTION_ROUTE).toContain('rpc("finalize_public_retention"');
+    expect(RETENTION_ROUTE).toContain('.not("email", "like", "redacted+%@invalid.invalid")');
+    expect(VERCEL_CONFIG).toContain('"path": "/api/internal/public-retention"');
+    expect(VERCEL_CONFIG).toContain('"schedule": "');
+  });
+
+  it("reclaims expired uploads that were never attached to an application", () => {
+    expect(SQL).toContain("list_expired_unattached_instructor_uploads");
+    expect(SQL).toContain("o.created_at < now() - interval '24 hours'");
+    expect(SQL).toContain("o.name = ANY(d.document_paths)");
+    expect(RETENTION_ROUTE).toMatch(/rpc\(\s*"list_expired_unattached_instructor_uploads"/);
+    expect(RETENTION_ROUTE).toContain(".remove(orphanPaths)");
+  });
+
+  it("enforces rate limits atomically in the database", () => {
+    expect(SQL).toContain("consume_rate_limit");
+    expect(SQL).toContain("submission_throttle");
+  });
+});
+
+describe("Stage 3 — CMS ownership", () => {
+  it("keeps editable marketing claims out of route source", () => {
+    const informationalRoutes = ["index.tsx", "about.tsx", "why-choose-us.tsx", "services.tsx"];
+    const source = informationalRoutes
+      .map((route) => readFileSync(`src/routes/${route}`, "utf8"))
+      .join("\n");
+
+    expect(source).not.toContain("One system instead of five spreadsheets");
+    expect(source).not.toContain("Built for the way families and schools actually teach");
+    expect(source).not.toContain("Support for full-time, part-time and enrichment learning");
+    expect(source).not.toContain("Not sure which fits your family or school?");
+  });
+});
+
+describe("Stage 3 — instructor-document scan integrity", () => {
+  it("prevents authenticated administrators from mutating scan evidence directly", () => {
+    expect(SQL).toContain(
+      "REVOKE UPDATE ON public.instructor_application_details FROM authenticated",
+    );
+    expect(SQL).toContain(
+      "GRANT UPDATE (application_status, decision_note) ON public.instructor_application_details TO authenticated",
+    );
+  });
+
+  it("allows authenticated Storage reads only for attached clean documents", () => {
+    expect(SQL).toContain("d.malware_state = 'clean'");
+    expect(SQL).toContain("storage.objects.name = ANY(d.document_paths)");
+  });
+});
+
+describe("Stage 3 — private recruitment storage", () => {
+  it("gates instructor documents on platform-administrator authority", () => {
+    expect(SQL).toContain("instructor_applications_platform_admin_read");
+    expect(SQL).toContain("instructor-applications");
+  });
+
+  it("never writes to storage.buckets from SQL", () => {
+    expect(SQL).not.toMatch(/INSERT INTO storage\.buckets/i);
+    expect(SQL).not.toMatch(/UPDATE storage\.buckets/i);
+  });
+});

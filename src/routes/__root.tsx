@@ -11,6 +11,8 @@ import { useEffect, type ReactNode } from "react";
 
 import "../styles.css";
 import { reportLovableError } from "../lib/lovable-error-reporting";
+import { AppStatusBar } from "../components/public/app-status-bar";
+import { ConsentProvider } from "../components/public/consent";
 
 function NotFoundComponent() {
   return (
@@ -77,14 +79,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "LearnFlow" },
+      {
+        name: "description",
+        content: "Curriculum, teaching and administration in one secure learning platform.",
+      },
+      { name: "author", content: "LearnFlow" },
+      { property: "og:title", content: "LearnFlow" },
+      {
+        property: "og:description",
+        content: "Curriculum, teaching and administration in one secure learning platform.",
+      },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [{ rel: "icon", href: "/favicon.ico", type: "image/x-icon" }],
   }),
@@ -101,7 +108,16 @@ function RootShell({ children }: { children: ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        {children}
+        <ConsentProvider>
+          <a
+            href="#main-content"
+            className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[60] focus:rounded-md focus:bg-primary focus:px-4 focus:py-2 focus:text-primary-foreground"
+          >
+            Skip to main content
+          </a>
+          <AppStatusBar />
+          {children}
+        </ConsentProvider>
         <Scripts />
       </body>
     </html>

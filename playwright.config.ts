@@ -14,7 +14,7 @@ export default defineConfig({
     launchOptions: { executablePath },
   },
   webServer: {
-    command: "bunx vite --config e2e/vite.harness.config.ts",
+    command: "./node_modules/.bin/vite --config e2e/vite.harness.config.ts",
     url: "http://localhost:5199",
     reuseExistingServer: true,
     timeout: 60_000,
