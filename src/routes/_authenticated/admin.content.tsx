@@ -33,6 +33,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useRoleContext } from "@/features/roles/role-context";
 import { formatDateTime } from "@/lib/format";
 import { CMS_ENTITIES, buildValues, type CmsEntity } from "@/features/public-site/admin-fields";
+import { PREPARED_CONTENT } from "@/features/public-site/prepared-content";
 import {
   adminCreateDocumentLink,
   adminListApplications,
