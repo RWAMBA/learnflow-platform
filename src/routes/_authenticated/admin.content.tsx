@@ -215,14 +215,44 @@ function EntityPanel({ entity }: { entity: CmsEntity }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground" aria-live="polite">
           {reorder.isPending ? "Saving new order…" : `${rows.length} item(s).`}
         </p>
-        <Button size="sm" onClick={() => setEditing("new")}>
-          <Plus className="mr-1.5 size-4" aria-hidden="true" />
-          New {entity.singular}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          {missing.length > 0 ? (
+            <Button
+              size="sm"
+              variant="outline"
+              className="min-h-11"
+              disabled={addPrepared.isPending}
+              onClick={() => addPrepared.mutate()}
+            >
+              {addPrepared.isPending ? (
+                <Loader2 className="mr-1.5 size-4 animate-spin" aria-hidden="true" />
+              ) : null}
+              Add prepared drafts ({missing.length})
+            </Button>
+          ) : null}
+          {draftRows.length > 0 ? (
+            <Button
+              size="sm"
+              variant="secondary"
+              className="min-h-11"
+              disabled={publishDrafts.isPending}
+              onClick={() => publishDrafts.mutate()}
+            >
+              {publishDrafts.isPending ? (
+                <Loader2 className="mr-1.5 size-4 animate-spin" aria-hidden="true" />
+              ) : null}
+              Publish all drafts ({draftRows.length})
+            </Button>
+          ) : null}
+          <Button size="sm" className="min-h-11" onClick={() => setEditing("new")}>
+            <Plus className="mr-1.5 size-4" aria-hidden="true" />
+            New {entity.singular}
+          </Button>
+        </div>
       </div>
 
       <QueryState
