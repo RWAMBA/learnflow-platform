@@ -55,9 +55,11 @@ describe("prepared CMS packet", () => {
       for (const record of set.records) {
         const text = JSON.stringify(record.values);
         const match = text.match(FORBIDDEN);
-        // Negations such as "does not issue certificates" are written without
-        // the claim words, so any match is a real defect.
         expect(match?.[0], `${record.label}: ${match?.[0] ?? ""}`).toBeUndefined();
+        if (POST_SCHOOL.test(text)) {
+          // Post-school study may be named only to say LearnFlow excludes it.
+          expect(EXCLUSION.test(text), record.label).toBe(true);
+        }
       }
     });
   }
