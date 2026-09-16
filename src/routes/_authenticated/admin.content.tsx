@@ -33,6 +33,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useRoleContext } from "@/features/roles/role-context";
 import { formatDateTime } from "@/lib/format";
 import { CMS_ENTITIES, buildValues, type CmsEntity } from "@/features/public-site/admin-fields";
+import { PREPARED_CONTENT } from "@/features/public-site/prepared-content";
 import {
   adminCreateDocumentLink,
   adminListApplications,
@@ -133,6 +134,68 @@ function EntityPanel({ entity }: { entity: CmsEntity }) {
 
   const rows = (pendingOrder ?? (list.data?.rows as Row[] | undefined) ?? []) as Row[];
 
+  /**
+   * The approved Stage 3 packet, offered as drafts. Every record is created
+   * through the same authenticated server function a hand-typed record uses, so
+   * RLS, validation, timestamps and audit attribution are identical. Nothing is
+   * published here: publication stays an explicit per-record decision.
+   */
+  const prepared = PREPARED_CONTENT[entity.table];
+  const missing = useMemo(() => {
+    if (!prepared) return [];
+    const existing = new Set(rows.map((row) => String(row[prepared.identityColumn] ?? "")));
+    return prepared.records.filter(
+      (record) => !existing.has(String(record.values[prepared.identityKey] ?? "")),
+    );
+  }, [prepared, rows]);
+
+  const addPrepared = useMutation({
+    mutationFn: async () => {
+      let created = 0;
+      for (const record of missing) {
+        await adminSaveContent({ data: { table: entity.table, values: record.values } });
+        created += 1;
+      }
+      return created;
+    },
+    onSuccess: async (created) => {
+      toast.success(`${created} draft(s) created. Review each, then publish.`);
+      await queryClient.invalidateQueries({ queryKey: key });
+    },
+    onError: async (error) => {
+      toast.error(message(error));
+      await queryClient.invalidateQueries({ queryKey: key });
+    },
+  });
+
+  const draftRows = rows.filter((row) => String(row["status"] ?? "draft") === "draft");
+
+  const publishDrafts = useMutation({
+    mutationFn: async () => {
+      let published = 0;
+      for (const row of draftRows) {
+        await adminSetContentStatus({
+          data: {
+            table: entity.table,
+            id: String(row["id"]),
+            status: "published",
+            expectedVersion: Number(row["content_version"] ?? 1),
+          },
+        });
+        published += 1;
+      }
+      return published;
+    },
+    onSuccess: async (published) => {
+      toast.success(`${published} item(s) published.`);
+      await queryClient.invalidateQueries({ queryKey: key });
+    },
+    onError: async (error) => {
+      toast.error(message(error));
+      await queryClient.invalidateQueries({ queryKey: key });
+    },
+  });
+
   function move(index: number, direction: -1 | 1) {
     const next = [...rows];
     const target = index + direction;
@@ -152,14 +215,44 @@ function EntityPanel({ entity }: { entity: CmsEntity }) {
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-sm text-muted-foreground" aria-live="polite">
           {reorder.isPending ? "Saving new order…" : `${rows.length} item(s).`}
         </p>
-        <Button size="sm" onClick={() => setEditing("new")}>
-          <Plus className="mr-1.5 size-4" aria-hidden="true" />
-          New {entity.singular}
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          {missing.length > 0 ? (
+            <Button
+              size="sm"
+              variant="outline"
+              className="min-h-11"
+              disabled={addPrepared.isPending}
+              onClick={() => addPrepared.mutate()}
+            >
+              {addPrepared.isPending ? (
+                <Loader2 className="mr-1.5 size-4 animate-spin" aria-hidden="true" />
+              ) : null}
+              Add prepared drafts ({missing.length})
+            </Button>
+          ) : null}
+          {draftRows.length > 0 ? (
+            <Button
+              size="sm"
+              variant="secondary"
+              className="min-h-11"
+              disabled={publishDrafts.isPending}
+              onClick={() => publishDrafts.mutate()}
+            >
+              {publishDrafts.isPending ? (
+                <Loader2 className="mr-1.5 size-4 animate-spin" aria-hidden="true" />
+              ) : null}
+              Publish all drafts ({draftRows.length})
+            </Button>
+          ) : null}
+          <Button size="sm" className="min-h-11" onClick={() => setEditing("new")}>
+            <Plus className="mr-1.5 size-4" aria-hidden="true" />
+            New {entity.singular}
+          </Button>
+        </div>
       </div>
 
       <QueryState
