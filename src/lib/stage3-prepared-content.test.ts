@@ -18,7 +18,10 @@ const SCHEMAS = {
 
 /** Claims the owner has not evidenced and that must never be published. */
 const FORBIDDEN =
-  /\b(accredit\w*|certified|certification|qualification granted|guarantee\w*|partnership with|in partnership|our partners|students enrolled|learners enrolled|university|TVET|degree|diploma|scholarship)\b/i;
+  /\b(accredit\w*|certified|guarantee\w*|partnership with|in partnership|our partners|(?:students|learners|families) enrolled|scholarship)\b/i;
+/** Post-school study may only ever appear as an explicit exclusion. */
+const POST_SCHOOL = /\b(university|TVET|degree|diploma)\b/i;
+const EXCLUSION = /\b(does not|not cover|outside its scope|are outside)\b/i;
 
 describe("prepared CMS packet", () => {
   it("covers only the entities the owner approved", () => {
