@@ -282,6 +282,12 @@
   background-color: var(--public-surface-recessed);
 }
 
+/* The shared button keeps its platform behaviour; public primary actions use
+   the approved, exact accent hover colour within this scoped theme only. */
+.public-site :where(button, a).bg-primary:hover {
+  background-color: var(--public-accent-hover);
+}
+
 /* Educational reading content keeps the approved high-contrast treatment. */
 .public-site .learning-surface {
   color: hsl(var(--foreground));
