@@ -15,7 +15,10 @@ import { useOptionalRoleContext } from "@/features/roles/role-context";
  * what the UI displays; data access is always decided by the database.
  */
 export function RoleSwitcher() {
-  const { activeRole, hasMultipleRoles, viewer, setActiveRoleId } = useRoleContext();
+  const context = useOptionalRoleContext();
+  if (!context) return null;
+
+  const { activeRole, hasMultipleRoles, viewer, setActiveRoleId } = context;
 
   if (!hasMultipleRoles || !activeRole) return null;
 
