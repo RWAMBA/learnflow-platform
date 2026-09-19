@@ -175,7 +175,6 @@ function EntityPanel({ entity }: { entity: CmsEntity }) {
 
   const draftRows = rows.filter((row) => String(row["status"] ?? "draft") === "draft");
 
-
   const publishDrafts = useMutation({
     mutationFn: async () => {
       let published = 0;
@@ -393,7 +392,6 @@ function EntityPanel({ entity }: { entity: CmsEntity }) {
           }}
         />
       ) : null}
-
     </div>
   );
 }
