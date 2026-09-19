@@ -52,7 +52,8 @@ function isRecoverableRenderError(error: Error) {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
-  const recoverable = typeof window !== "undefined" && !recoveredOnce && isRecoverableRenderError(error);
+  const recoverable =
+    typeof window !== "undefined" && !recoveredOnce && isRecoverableRenderError(error);
 
   useEffect(() => {
     if (recoverable) {
@@ -65,7 +66,6 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   }, [error, recoverable, reset, router]);
 
   if (recoverable) return null;
-
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
