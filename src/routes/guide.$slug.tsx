@@ -66,7 +66,7 @@ function GuideArticlePage() {
   return (
     <PublicLayout>
       {/* AAA-contrast educational reading surface. */}
-      <article className="mx-auto w-full max-w-3xl px-4 py-10 text-neutral-950 dark:text-neutral-50 sm:py-14">
+      <article className="mx-auto w-full max-w-3xl px-4 py-10 text-foreground sm:py-14">
         <nav aria-label="Breadcrumb" className="mb-6 text-sm">
           <Link to="/guide" className="underline underline-offset-4 hover:no-underline">
             Guide

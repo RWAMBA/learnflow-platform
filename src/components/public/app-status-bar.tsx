@@ -120,7 +120,7 @@ export function AppStatusBar() {
         <div
           className={
             status === "recovered"
-              ? "border-b bg-emerald-950/20 px-4 py-2 text-sm text-foreground"
+              ? "border-b bg-success/10 px-4 py-2 text-sm text-foreground"
               : "border-b bg-destructive/10 px-4 py-2 text-sm text-foreground"
           }
         >

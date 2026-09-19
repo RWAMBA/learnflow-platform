@@ -210,101 +210,63 @@
 }
 
 /*
- * Public-website theme (Stage 3 remediation).
+ * Public-website theme.
  *
- * Scoped to the public marketing/information shell only, so the authenticated
- * learning-management application keeps its existing tokens and layouts
- * untouched. Every value is a semantic token override — public pages must not
- * hardcode colour utilities.
- *
- *   page canvas       #09110E   header/footer  #08110F
- *   deepest canvas    #070E0C   green section  #0E251B
- *   cards / panels    #122520   borders        #1B3B30
- *   mint              #6FF0AF   mint hover     #82F4BC
- *   primary text      #F2F6EF   secondary text #A9BDB5
- *   gold              #F3B91F  (sparing: small labels and educational markers)
- *
- * The canvas must read near-black; green appears through cards, alternating
- * sections, borders and accents — never as a flat wash.
+ * This light, warm extension of the platform palette is scoped to the public
+ * shell. The authenticated application continues to use the unchanged :root
+ * tokens above. Public components consume these semantic roles exclusively.
  */
 .public-site {
-  --background: 158 31% 5%; /* #09110E */
-  --foreground: 94 28% 95%; /* #F2F6EF */
-  --card: 164 35% 11%; /* #122520 */
-  --card-foreground: 94 28% 95%;
-  --popover: 164 35% 11%;
-  --popover-foreground: 94 28% 95%;
+  --background: 45 33% 97%;
+  --foreground: 158 22% 16%;
+  --card: 48 33% 99%;
+  --card-foreground: 158 22% 16%;
+  --popover: 48 33% 99%;
+  --popover-foreground: 158 22% 16%;
 
-  /* Darkest chrome (header / footer) and the deepest alternate canvas. */
-  --surface-deep: 167 36% 5%; /* #08110F */
-  --surface-alt: 163 33% 4%; /* #070E0C */
+  --surface-deep: 48 33% 99%;
+  --surface-alt: 138 24% 95%;
 
-  --primary: 150 81% 69%; /* #6FF0AF */
-  --primary-foreground: 167 36% 5%; /* #08110F */
-  --primary-hover: 151 84% 73%; /* #82F4BC */
+  --primary: 158 64% 24%;
+  --primary-foreground: 0 0% 100%;
+  --primary-hover: 158 64% 19%;
 
-  /* Gold. Reserved for small labels and educational highlights. */
-  --secondary: 44 90% 54%; /* #F3B91F */
-  --secondary-foreground: 167 36% 5%;
+  /* Restrained warmth for secondary emphasis, never primary actions. */
+  --secondary: 39 58% 87%;
+  --secondary-foreground: 36 48% 23%;
 
-  /* Secondary green section surface. */
-  --muted: 154 45% 10%; /* #0E251B */
-  --muted-foreground: 156 13% 70%; /* #A9BDB5 */
-  --accent: 154 45% 10%;
-  --accent-foreground: 150 81% 80%;
+  --muted: 138 25% 92%;
+  --muted-foreground: 157 13% 34%;
+  --accent: 145 27% 89%;
+  --accent-foreground: 158 58% 22%;
 
-  --destructive: 4 76% 68%;
-  --destructive-foreground: 167 36% 5%;
-  --success: 150 60% 62%;
-  --success-foreground: 167 36% 5%;
-  --warning: 44 90% 62%;
-  --warning-foreground: 167 36% 5%;
-  --info: 188 60% 66%;
-  --info-foreground: 167 36% 5%;
+  --destructive: 0 67% 40%;
+  --destructive-foreground: 0 0% 100%;
+  --success: 148 55% 30%;
+  --success-foreground: 0 0% 100%;
+  --warning: 36 73% 39%;
+  --warning-foreground: 0 0% 100%;
+  --info: 198 61% 34%;
+  --info-foreground: 0 0% 100%;
 
-  /* Dividers stay subtle; interactive boundaries use the brighter --input so
-     non-text control contrast stays at or above 3:1. */
-  --border: 159 37% 17%; /* #1B3B30 */
-  --input: 157 28% 43%;
-  --ring: 150 81% 69%;
+  --border: 150 15% 81%;
+  --input: 153 16% 58%;
+  --ring: 158 64% 32%;
 
   --radius: 0.75rem;
 
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
-  color-scheme: dark;
+  color-scheme: light;
 }
 
-/*
- * Reference glow. The near-black canvas is lifted by a soft green light from
- * the top-left corner (#0E281C fading to the #09110E canvas), exactly as in the
- * approved reference. Purely decorative and static — it adds no motion and sits
- * behind all content.
- */
+/* Calm sage section surface used behind public page introductions. */
 @utility public-glow {
-  position: relative;
-  isolation: isolate;
-
-  &::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: -1;
-    pointer-events: none;
-    background:
-      radial-gradient(
-        120% 90% at 0% 0%,
-        hsl(154 48% 11% / 0.95) 0%,
-        hsl(154 48% 11% / 0.45) 38%,
-        transparent 72%
-      ),
-      radial-gradient(90% 70% at 100% 0%, hsl(150 45% 12% / 0.35) 0%, transparent 65%);
-  }
+  background-color: hsl(var(--surface-alt));
 }
 
-/* Educational reading content keeps its approved AAA treatment even inside the
-   dark public shell. */
+/* Educational reading content keeps the approved high-contrast treatment. */
 .public-site .learning-surface {
-  color: hsl(90 31% 97%);
-  background-color: hsl(164 35% 10%);
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--card));
 }
