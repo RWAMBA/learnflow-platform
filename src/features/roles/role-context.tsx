@@ -85,3 +85,11 @@ export function useRoleContext() {
   if (!context) throw new Error("useRoleContext must be used inside a RoleProvider");
   return context;
 }
+
+/**
+ * Non-throwing accessor for chrome that may render before the provider is
+ * mounted (or during a hot reload that remounts the provider module).
+ */
+export function useOptionalRoleContext() {
+  return useContext(RoleContext);
+}

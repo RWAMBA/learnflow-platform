@@ -8,14 +8,17 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { useRoleContext } from "@/features/roles/role-context";
+import { useOptionalRoleContext } from "@/features/roles/role-context";
 
 /**
  * Shown only when the user holds more than one active role. Switching changes
  * what the UI displays; data access is always decided by the database.
  */
 export function RoleSwitcher() {
-  const { activeRole, hasMultipleRoles, viewer, setActiveRoleId } = useRoleContext();
+  const context = useOptionalRoleContext();
+  if (!context) return null;
+
+  const { activeRole, hasMultipleRoles, viewer, setActiveRoleId } = context;
 
   if (!hasMultipleRoles || !activeRole) return null;
 
