@@ -170,6 +170,10 @@ function EntityPanel({ entity }: { entity: CmsEntity }) {
 
   const draftRows = rows.filter((row) => String(row["status"] ?? "draft") === "draft");
 
+  // TEMPORARY (Stage 3 Markdown remediation) — remove with MarkdownFixDialog.
+  const [markdownFix, setMarkdownFix] = useState(false);
+  const markdownField = entity.fields.find((field) => field.kind === "markdown");
+
   const publishDrafts = useMutation({
     mutationFn: async () => {
       let published = 0;
