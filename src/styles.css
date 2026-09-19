@@ -280,12 +280,13 @@
 /* Public form controls remain visually distinct from surrounding surfaces. */
 .public-site :where(input:not([type="checkbox"]):not([type="radio"]), textarea, select) {
   background-color: var(--public-surface-recessed);
+  border-color: var(--public-border);
 }
 
 /* The shared button keeps its platform behaviour; public primary actions use
    the approved, exact accent hover colour within this scoped theme only. */
 .public-site :where(button, a).bg-primary:hover {
-  background-color: var(--public-accent-hover);
+  background-color: var(--public-accent-hover) !important;
 }
 
 /* Educational reading content keeps the approved high-contrast treatment. */
