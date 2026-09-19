@@ -206,13 +206,19 @@
  * administrative screens target AA.
  */
 @utility learning-surface {
-  color: hsl(160 20% 8%);
-  background-color: hsl(0 0% 100%);
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--card));
+}
 
-  .dark & {
-    color: hsl(160 5% 98%);
-    background-color: hsl(160 15% 7%);
-  }
+/* Application form controls stay distinct from the page background. */
+:where(input:not([type="checkbox"]):not([type="radio"]), textarea, select) {
+  background-color: var(--app-surface-recessed);
+  border-color: var(--app-border);
+}
+
+/* Primary actions use the approved accent hover colour. */
+:where(button, a).bg-primary:hover {
+  background-color: var(--app-accent-hover);
 }
 
 @layer base {
