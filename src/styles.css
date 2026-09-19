@@ -132,42 +132,46 @@
   color-scheme: dark;
 }
 
-
+/* The application ships the approved dark treatment by default; the .dark
+   class keeps parity so an explicitly dark-scoped subtree is identical. */
 .dark {
-  --background: 160 15% 8%;
-  --foreground: 160 5% 95%;
-  --card: 160 14% 11%;
-  --card-foreground: 160 5% 95%;
-  --popover: 160 14% 11%;
-  --popover-foreground: 160 5% 95%;
-  --primary: 158 55% 45%;
-  --primary-foreground: 160 15% 8%;
-  --secondary: 42 70% 55%;
-  --secondary-foreground: 160 15% 8%;
-  --muted: 160 10% 18%;
-  --muted-foreground: 160 8% 65%;
-  --accent: 158 25% 20%;
-  --accent-foreground: 158 55% 85%;
-  --destructive: 0 62% 45%;
-  --destructive-foreground: 0 0% 100%;
-  --success: 142 50% 45%;
-  --success-foreground: 160 15% 8%;
-  --warning: 38 80% 55%;
-  --warning-foreground: 160 15% 8%;
-  --info: 200 60% 55%;
-  --info-foreground: 160 15% 8%;
-  --border: 160 10% 22%;
-  --input: 160 10% 22%;
-  --ring: 158 55% 45%;
+  --background: 166.15384615 33.33333333% 7.64705882%;
+  --foreground: 75 28.57142857% 94.50980392%;
+  --card: 157.5 30.76923077% 5.09803922%;
+  --card-foreground: 75 28.57142857% 94.50980392%;
+  --popover: 157.5 30.76923077% 5.09803922%;
+  --popover-foreground: 75 28.57142857% 94.50980392%;
+  --primary: 149.76744186 81.13207547% 68.82352941%;
+  --primary-foreground: 166.66666667 36% 4.90196078%;
+  --secondary: 149.76744186 81.13207547% 68.82352941%;
+  --secondary-foreground: 166.66666667 36% 4.90196078%;
+  --muted: 153.33333333 36% 14.70588235%;
+  --muted-foreground: 153.75 9.63855422% 67.45098039%;
+  --accent: 153.33333333 36% 14.70588235%;
+  --accent-foreground: 75 28.57142857% 94.50980392%;
+  --destructive: 0 72% 55%;
+  --destructive-foreground: 166.66666667 36% 4.90196078%;
+  --success: 142 60% 55%;
+  --success-foreground: 166.66666667 36% 4.90196078%;
+  --warning: 38 90% 60%;
+  --warning-foreground: 166.66666667 36% 4.90196078%;
+  --info: 200 70% 62%;
+  --info-foreground: 166.66666667 36% 4.90196078%;
+  --border: 158.57142857 25.92592593% 21.17647059%;
+  --input: 158.57142857 25.92592593% 21.17647059%;
+  --ring: 149.76744186 81.13207547% 68.82352941%;
+  --surface-deep: 157.5 30.76923077% 5.09803922%;
+  --surface-alt: 166.66666667 36% 4.90196078%;
+  --primary-hover: 150.27027027 52.60663507% 58.62745098%;
 
-  --sidebar: 160 14% 11%;
-  --sidebar-foreground: 160 5% 95%;
-  --sidebar-primary: 158 55% 45%;
-  --sidebar-primary-foreground: 160 15% 8%;
-  --sidebar-accent: 158 25% 20%;
-  --sidebar-accent-foreground: 158 55% 85%;
-  --sidebar-border: 160 10% 22%;
-  --sidebar-ring: 158 55% 45%;
+  --sidebar: 157.5 30.76923077% 5.09803922%;
+  --sidebar-foreground: 75 28.57142857% 94.50980392%;
+  --sidebar-primary: 149.76744186 81.13207547% 68.82352941%;
+  --sidebar-primary-foreground: 166.66666667 36% 4.90196078%;
+  --sidebar-accent: 153.33333333 36% 14.70588235%;
+  --sidebar-accent-foreground: 75 28.57142857% 94.50980392%;
+  --sidebar-border: 158.57142857 25.92592593% 21.17647059%;
+  --sidebar-ring: 149.76744186 81.13207547% 68.82352941%;
 }
 
 @layer base {
