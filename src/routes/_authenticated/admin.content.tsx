@@ -398,6 +398,7 @@ function EntityPanel({ entity }: { entity: CmsEntity }) {
   );
 }
 
+function EntityEditor({
   entity,
   row,
   onClose,
