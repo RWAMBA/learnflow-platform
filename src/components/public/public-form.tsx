@@ -192,9 +192,9 @@ export function SuccessPanel({
   reference?: string;
 }) {
   return (
-    <div className="rounded-lg border border-emerald-600/40 bg-emerald-600/5 p-6">
+    <div className="rounded-lg border border-success/40 bg-success/5 p-6">
       <div className="flex items-start gap-3">
-        <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-emerald-600" aria-hidden="true" />
+        <CheckCircle2 className="mt-0.5 size-5 shrink-0 text-success" aria-hidden="true" />
         <div>
           <h2 className="text-base font-semibold">{title}</h2>
           <p className="mt-1 text-sm text-muted-foreground">{description}</p>
