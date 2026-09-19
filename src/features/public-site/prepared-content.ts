@@ -463,7 +463,7 @@ const FAQS: PreparedRecord[] = (
       "Does LearnFlow issue certificates or qualifications?",
       "general",
       40,
-      "No. LearnFlow does not issue certificates, qualifications, credentials or accreditation of any kind. It records what a learner has covered and how they performed; formal qualifications come from the relevant examining body.",
+      "No. LearnFlow does not issue certificates, qualifications or credentials of any kind, and is not an awarding body. It records what a learner has covered and how they performed; formal qualifications come from the relevant examining body.",
     ],
     [
       "Can one person hold more than one role?",
