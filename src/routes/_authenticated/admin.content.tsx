@@ -401,7 +401,174 @@ function EntityPanel({ entity }: { entity: CmsEntity }) {
           }}
         />
       ) : null}
+
+      {markdownFix && markdownField ? (
+        <MarkdownFixDialog
+          entity={entity}
+          field={markdownField}
+          rows={rows}
+          onClose={() => setMarkdownFix(false)}
+          onSaved={async () => {
+            await queryClient.invalidateQueries({ queryKey: key });
+          }}
+        />
+      ) : null}
     </div>
+  );
+}
+
+/* ------------------------------------------------------------------ *
+ * TEMPORARY — Stage 3 Markdown remediation (dry run, then apply).
+ * Remove this component, its button and the markdown-format helper once
+ * the remediation has been saved and verified.
+ * ------------------------------------------------------------------ */
+
+function MarkdownFixDialog({
+  entity,
+  field,
+  rows,
+  onClose,
+  onSaved,
+}: {
+  entity: CmsEntity;
+  field: CmsField;
+  rows: Row[];
+  onClose: () => void;
+  onSaved: () => Promise<void> | void;
+}) {
+  const [log, setLog] = useState<string[]>([]);
+
+  const outcomes = useMemo(
+    () =>
+      rows.map((row) => ({
+        row,
+        identifier: String(row[entity.titleColumn] ?? row["id"]),
+        status: String(row["status"] ?? "draft"),
+        ...evaluateBody(String(row[field.column] ?? "")),
+      })),
+    [rows, entity.titleColumn, field.column],
+  );
+
+  const changes = outcomes.filter((outcome) => outcome.changed);
+  const blocked = changes.some((outcome) => !outcome.equivalent);
+
+  const apply = useMutation({
+    mutationFn: async () => {
+      const lines: string[] = [];
+      for (const outcome of changes) {
+        const form: Record<string, string> = {};
+        for (const entityField of entity.fields) {
+          const value = outcome.row[entityField.column];
+          form[entityField.key] = Array.isArray(value)
+            ? value.join(", ")
+            : value == null
+              ? ""
+              : String(value);
+        }
+        form[field.key] = outcome.proposed;
+        await adminSaveContent({
+          data: {
+            table: entity.table,
+            id: String(outcome.row["id"]),
+            expectedVersion: Number(outcome.row["content_version"] ?? 1),
+            values: buildValues(entity, form),
+          } as never,
+        });
+        lines.push(`Saved ${outcome.identifier} — ${field.label} — remains ${outcome.status}.`);
+        setLog([...lines]);
+      }
+      return lines;
+    },
+    onSuccess: async () => {
+      toast.success("Formatting saved. Drafts unchanged.");
+      await onSaved();
+    },
+    onError: (error) => {
+      setLog((prev) => [...prev, `FAILED — ${message(error)} — stopped.`]);
+      toast.error(message(error));
+    },
+  });
+
+  return (
+    <Dialog open onOpenChange={(open) => (!open ? onClose() : undefined)}>
+      <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>Fix Markdown formatting — dry run</DialogTitle>
+          <DialogDescription>
+            Structure only. Wording, protected fields and draft status are never touched. Nothing is
+            saved until you confirm.
+          </DialogDescription>
+        </DialogHeader>
+
+        <p className="text-sm text-muted-foreground" aria-live="polite">
+          {outcomes.length} inspected · {changes.length} will change ·{" "}
+          {outcomes.length - changes.length} skipped
+        </p>
+
+        {blocked ? (
+          <div role="alert" className="rounded-md border border-destructive/40 p-3 text-sm">
+            A proposed value failed the plaintext-equivalence check. Applying is blocked.
+          </div>
+        ) : null}
+
+        <ul className="space-y-3">
+          {outcomes.map((outcome) => (
+            <li key={String(outcome.row["id"])} className="rounded-md border p-3 text-sm">
+              <p className="flex flex-wrap items-center gap-2 font-medium">
+                <span className="truncate">{outcome.identifier}</span>
+                <Badge variant="outline">{entity.plural}</Badge>
+                <Badge variant={outcome.changed ? "default" : "secondary"}>
+                  {outcome.changed ? "will change" : `skipped — ${outcome.skipReason ?? ""}`}
+                </Badge>
+                <Badge variant={outcome.equivalent ? "outline" : "destructive"}>
+                  {outcome.equivalent ? "plaintext identical" : "equivalence FAILED"}
+                </Badge>
+              </p>
+              {outcome.changed ? (
+                <div className="mt-2 space-y-2">
+                  <p className="text-xs text-muted-foreground">
+                    Adding: {outcome.addedSyntax.join("; ")}
+                  </p>
+                  <div className="grid gap-2 sm:grid-cols-2">
+                    <pre className="max-h-48 overflow-auto rounded bg-muted p-2 text-xs whitespace-pre-wrap">
+                      {outcome.original}
+                    </pre>
+                    <pre className="max-h-48 overflow-auto rounded bg-muted p-2 text-xs whitespace-pre-wrap">
+                      {outcome.proposed}
+                    </pre>
+                  </div>
+                </div>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+
+        {log.length > 0 ? (
+          <ul className="space-y-1 text-xs" aria-live="polite">
+            {log.map((line) => (
+              <li key={line}>{line}</li>
+            ))}
+          </ul>
+        ) : null}
+
+        <DialogFooter>
+          <Button type="button" variant="outline" className="min-h-11" onClick={onClose}>
+            Close
+          </Button>
+          <Button
+            type="button"
+            className="min-h-11"
+            disabled={blocked || changes.length === 0 || apply.isPending}
+            onClick={() => apply.mutate()}
+          >
+            {apply.isPending ? (
+              <Loader2 className="mr-1.5 size-4 animate-spin" aria-hidden="true" />
+            ) : null}
+            Confirm and apply ({changes.length})
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
