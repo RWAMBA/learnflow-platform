@@ -38,8 +38,6 @@ import {
   type CmsEntity,
   type CmsField,
 } from "@/features/public-site/admin-fields";
-// TEMPORARY — Stage 3 Markdown remediation helper.
-import { evaluateBody } from "@/features/public-site/markdown-format";
 import { PREPARED_CONTENT } from "@/features/public-site/prepared-content";
 import {
   adminCreateDocumentLink,
@@ -177,9 +175,6 @@ function EntityPanel({ entity }: { entity: CmsEntity }) {
 
   const draftRows = rows.filter((row) => String(row["status"] ?? "draft") === "draft");
 
-  // TEMPORARY (Stage 3 Markdown remediation) — remove with MarkdownFixDialog.
-  const [markdownFix, setMarkdownFix] = useState(false);
-  const markdownField = entity.fields.find((field) => field.kind === "markdown");
 
   const publishDrafts = useMutation({
     mutationFn: async () => {
@@ -257,16 +252,6 @@ function EntityPanel({ entity }: { entity: CmsEntity }) {
                 <Loader2 className="mr-1.5 size-4 animate-spin" aria-hidden="true" />
               ) : null}
               Publish all drafts ({draftRows.length})
-            </Button>
-          ) : null}
-          {markdownField && rows.length > 0 ? (
-            <Button
-              size="sm"
-              variant="outline"
-              className="min-h-11"
-              onClick={() => setMarkdownFix(true)}
-            >
-              Fix Markdown formatting
             </Button>
           ) : null}
           <Button size="sm" className="min-h-11" onClick={() => setEditing("new")}>
@@ -409,17 +394,6 @@ function EntityPanel({ entity }: { entity: CmsEntity }) {
         />
       ) : null}
 
-      {markdownFix && markdownField ? (
-        <MarkdownFixDialog
-          entity={entity}
-          field={markdownField}
-          rows={rows}
-          onClose={() => setMarkdownFix(false)}
-          onSaved={async () => {
-            await queryClient.invalidateQueries({ queryKey: key });
-          }}
-        />
-      ) : null}
     </div>
   );
 }
