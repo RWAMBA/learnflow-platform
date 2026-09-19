@@ -36,12 +36,36 @@ function NotFoundComponent() {
   );
 }
 
+/**
+ * Client-only routes (the `_authenticated` subtree, `/auth`) render nothing on
+ * the server, so React can report a hydration mismatch the moment the real
+ * component appears. That is a recoverable render, not an outage: retry the
+ * render once before ever showing a failure screen.
+ */
+let recoveredOnce = false;
+
+function isRecoverableRenderError(error: Error) {
+  const text = `${error.name} ${error.message}`;
+  return /hydrat|Minified React error #(418|423|425)/i.test(text);
+}
+
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
+  const recoverable =
+    typeof window !== "undefined" && !recoveredOnce && isRecoverableRenderError(error);
+
   useEffect(() => {
+    if (recoverable) {
+      recoveredOnce = true;
+      router.invalidate();
+      reset();
+      return;
+    }
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
-  }, [error]);
+  }, [error, recoverable, reset, router]);
+
+  if (recoverable) return null;
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">

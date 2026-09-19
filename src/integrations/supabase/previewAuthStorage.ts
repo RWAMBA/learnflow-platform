@@ -56,6 +56,7 @@ export function brokeredPreviewStorage() {
         if (done) return;
         done = true;
         clearTimeout(timer.id);
+
         window.removeEventListener("message", onMessage);
         resolve(r);
       };
