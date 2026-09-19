@@ -212,33 +212,45 @@
 /*
  * Public-website theme.
  *
- * This light, warm extension of the platform palette is scoped to the public
- * shell. The authenticated application continues to use the unchanged :root
- * tokens above. Public components consume these semantic roles exclusively.
+ * This exact dark forest treatment is scoped to the public shell. The
+ * authenticated application continues to use the unchanged :root tokens
+ * above. Public components consume these semantic roles exclusively.
  */
 .public-site {
-  --background: 45 33% 97%;
-  --foreground: 158 22% 16%;
-  --card: 48 33% 99%;
-  --card-foreground: 158 22% 16%;
-  --popover: 48 33% 99%;
-  --popover-foreground: 158 22% 16%;
+  /* Approved public reference colours. Keep these exact hex values. */
+  --public-background: #0d1a17;
+  --public-surface: #09110e;
+  --public-surface-recessed: #08110f;
+  --public-surface-hover: #183327;
+  --public-border: #28443a;
+  --public-text: #f3f5ed;
+  --public-text-muted: #a4b4ad;
+  --public-accent: #6ff0af;
+  --public-accent-hover: #5ecd96;
+  --public-focus: #6ff0af;
 
-  --surface-deep: 48 33% 99%;
-  --surface-alt: 138 24% 95%;
+  /* Exact HSL equivalents consumed by the existing semantic utilities. */
+  --background: 166.15384615 33.33333333% 7.64705882%;
+  --foreground: 75 28.57142857% 94.50980392%;
+  --card: 157.5 30.76923077% 5.09803922%;
+  --card-foreground: 75 28.57142857% 94.50980392%;
+  --popover: 157.5 30.76923077% 5.09803922%;
+  --popover-foreground: 75 28.57142857% 94.50980392%;
 
-  --primary: 158 64% 24%;
-  --primary-foreground: 0 0% 100%;
-  --primary-hover: 158 64% 19%;
+  --surface-deep: 157.5 30.76923077% 5.09803922%;
+  --surface-alt: 166.66666667 36% 4.90196078%;
 
-  /* Restrained warmth for secondary emphasis, never primary actions. */
-  --secondary: 39 58% 87%;
-  --secondary-foreground: 36 48% 23%;
+  --primary: 149.76744186 81.13207547% 68.82352941%;
+  --primary-foreground: 166.66666667 36% 4.90196078%;
+  --primary-hover: 150.27027027 52.60663507% 58.62745098%;
 
-  --muted: 138 25% 92%;
-  --muted-foreground: 157 13% 34%;
-  --accent: 145 27% 89%;
-  --accent-foreground: 158 58% 22%;
+  --secondary: 149.76744186 81.13207547% 68.82352941%;
+  --secondary-foreground: 166.66666667 36% 4.90196078%;
+
+  --muted: 153.33333333 36% 14.70588235%;
+  --muted-foreground: 153.75 9.63855422% 67.45098039%;
+  --accent: 153.33333333 36% 14.70588235%;
+  --accent-foreground: 75 28.57142857% 94.50980392%;
 
   --destructive: 0 67% 40%;
   --destructive-foreground: 0 0% 100%;
@@ -249,20 +261,32 @@
   --info: 198 61% 34%;
   --info-foreground: 0 0% 100%;
 
-  --border: 150 15% 81%;
-  --input: 153 16% 58%;
-  --ring: 158 64% 32%;
+  --border: 158.57142857 25.92592593% 21.17647059%;
+  --input: 158.57142857 25.92592593% 21.17647059%;
+  --ring: 149.76744186 81.13207547% 68.82352941%;
 
   --radius: 0.75rem;
 
   background-color: hsl(var(--background));
   color: hsl(var(--foreground));
-  color-scheme: light;
+  color-scheme: dark;
 }
 
-/* Calm sage section surface used behind public page introductions. */
+/* Recessed section surface used behind public page introductions. */
 @utility public-glow {
   background-color: hsl(var(--surface-alt));
+}
+
+/* Public form controls remain visually distinct from surrounding surfaces. */
+.public-site :where(input:not([type="checkbox"]):not([type="radio"]), textarea, select) {
+  background-color: var(--public-surface-recessed);
+  border-color: var(--public-border);
+}
+
+/* The shared button keeps its platform behaviour; public primary actions use
+   the approved, exact accent hover colour within this scoped theme only. */
+.public-site :where(button, a).bg-primary:hover {
+  background-color: var(--public-accent-hover) !important;
 }
 
 /* Educational reading content keeps the approved high-contrast treatment. */
