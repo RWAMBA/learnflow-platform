@@ -252,6 +252,16 @@ function EntityPanel({ entity }: { entity: CmsEntity }) {
               Publish all drafts ({draftRows.length})
             </Button>
           ) : null}
+          {markdownField && rows.length > 0 ? (
+            <Button
+              size="sm"
+              variant="outline"
+              className="min-h-11"
+              onClick={() => setMarkdownFix(true)}
+            >
+              Fix Markdown formatting
+            </Button>
+          ) : null}
           <Button size="sm" className="min-h-11" onClick={() => setEditing("new")}>
             <Plus className="mr-1.5 size-4" aria-hidden="true" />
             New {entity.singular}
