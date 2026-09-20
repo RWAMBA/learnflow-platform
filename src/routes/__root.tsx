@@ -67,7 +67,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
       return;
     }
     reportLovableError(error, { boundary: "tanstack_root_error_component" });
-  }, [error, recoverable, reset, router]);
+  }, [error, path, recoverable, reset, router]);
 
   if (recoverable) return null;
 
@@ -83,6 +83,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => {
+              recoveryAttempts.delete(path);
               router.invalidate();
               reset();
             }}
