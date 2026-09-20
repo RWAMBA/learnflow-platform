@@ -42,7 +42,8 @@ function NotFoundComponent() {
  * component appears. That is a recoverable render, not an outage: retry the
  * render once before ever showing a failure screen.
  */
-let recoveredOnce = false;
+const recoveryAttempts = new Map<string, number>();
+const MAX_RECOVERY_ATTEMPTS = 2;
 
 function isRecoverableRenderError(error: Error) {
   const text = `${error.name} ${error.message}`;
@@ -52,12 +53,15 @@ function isRecoverableRenderError(error: Error) {
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   console.error(error);
   const router = useRouter();
+  const path = typeof window === "undefined" ? "" : window.location.pathname;
   const recoverable =
-    typeof window !== "undefined" && !recoveredOnce && isRecoverableRenderError(error);
+    typeof window !== "undefined" &&
+    (recoveryAttempts.get(path) ?? 0) < MAX_RECOVERY_ATTEMPTS &&
+    isRecoverableRenderError(error);
 
   useEffect(() => {
     if (recoverable) {
-      recoveredOnce = true;
+      recoveryAttempts.set(path, (recoveryAttempts.get(path) ?? 0) + 1);
       router.invalidate();
       reset();
       return;
