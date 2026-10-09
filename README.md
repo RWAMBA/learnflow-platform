@@ -1,5 +1,42 @@
 # LearnFlow Platform
 
+A role-based education application covering student, parent/guardian, teacher, tutor, organization administrator, and platform administrator workflows.
+
+## Repository overview
+
+**Engineering focus:** role-based application development, authentication, account recovery, data-access boundaries, and privacy-conscious education workflows.
+
+**Current code stack:** React, TypeScript, TanStack Start/Router, Vite, Tailwind CSS, and Supabase. The historical brief below requests Next.js, but the checked-in application uses TanStack Start.
+
+The repository contains authentication and account-recovery code, role permissions, curriculum and assessment features, database migrations, and automated security checks. Feature presence is not a claim that every historical requirement is complete or deployed.
+
+This project was scaffolded with Lovable. Existing architecture and security documents provide implementation context; some reports describe earlier branch states and should be read with their stated revision boundaries.
+
+## Run locally
+
+1. Install Bun from its official distribution and clone this repository.
+2. Run `bun install --frozen-lockfile` using the committed `bun.lock`.
+3. Copy `.env.example` to `.env.local` and configure your own development Supabase project. `VITE_*` values are browser-visible; service-role and provider credentials must remain server-only.
+4. Run `bun run dev` and use the local URL printed by Vite.
+
+Database-backed features need the matching schema and development services. Use a separate development environment; do not apply migrations to production merely to preview the UI.
+
+## Checks and evidence
+
+- `bun run typecheck`, `bun run lint`, `bun run test`, `bun run build`
+- `bun run test:e2e` for browser tests with the configured test services
+- `bun run scan:secrets`, `bun run check:migrations`
+- [Architecture documents](docs/architecture/)
+- [Security handoff with explicit scope and limits](docs/final-security-handoff-report.md)
+- [Quality-gate workflow](.github/workflows/pr-quality-gates.yml)
+
+A verified public demo URL is not listed here. See [Valerie's portfolio](https://valerie-rwamba-munyi.vercel.app/) for the anonymized education-platform case study.
+
+## Historical project brief
+
+The following original specification is retained for context. It describes requested behavior and is not a completion report or a command to run its embedded SQL.
+
+
 PROJECT OVERVIEW
 
 Build "Platform" (a placeholder name — do not invent a brand name, logo, or marketing copy; use generic labels like "the Platform" or "Dashboard" in the UI): a multi-tenant SaaS system for homeschooling and alternative education, launching as a single Kenya-based tenant. The architecture must support additional tenants, curricula, currencies, and languages later without redesign, even though this build seeds and runs only one active tenant.
